@@ -236,7 +236,6 @@ add2("mental_health","Group practices and clinics",[
 ("LifeStance Health (North Brunswick and other NJ offices)","North Brunswick","343 Old Georges Rd","",3,"National chain; says it has 19 NJ offices; clinicians also listed for Piscataway, Plainsboro, South Plainfield, Perth Amboy, East Brunswick","LifeStance site","","Large","Low","National chain: filter out.","","Evidence: company site says 19 NJ offices"),
 ("Lifebulb (Edison)","Edison","","",2,"Team of licensed professionals; virtual options","Lifebulb site","","Medium","Medium","Count clinicians; other offices?","","Suspected: team practice"),
 ("The Howard Center for Wellness","Iselin","","",2,"Youth and adult counseling; statewide virtual","TherapyDen","","","Medium","Owner and clinician count."),
-("Neuro Bloom Behavioral Health","Iselin","","",2,"Mental health nurse practitioner listed; virtual talk therapy","Directory listing"),
 ("Blueprint Mental Health","Somerville","","",2,"Children, teens and adults; in person in Somerville, virtual statewide","Psychology Today"),
 ("Clear Conscience Counseling LLC","South Plainfield","2509 Park Ave","",2,"Mental health and substance abuse counseling; EMDR; IOP","CopeCompass"),
 ("One Step at a Time Therapy Center","East Brunswick","","(732) 210-2444",2,"In-home and office sessions across Middlesex County; private insurance and self-pay","Middlesex ResourceNet"),
@@ -258,6 +257,64 @@ add2("mental_health","Individual clinicians",[
 ("Jennifer Wacker, MA, EdM, LPC","Bridgewater","","",3,"Licensed professional counselor: depression, anxiety, postpartum, adoption","Psychology Today","1","","Medium","Practice name, website, phone.","individual"),
 ("Alex Soloway, MD","Bridgewater","","",3,"Double board-certified psychiatrist, child and adolescent","Psychology Today","1","","Medium","Practice name, website, phone.","individual"),
 ],spec="Mental health")
+# -------- mental health: deeper pass (group practices with several clinicians)
+OWN="Is it owned by a hospital system or a private-equity platform, or is it clinician-owned?"
+add2("mental_health","Group practices and clinics",[
+("Bridge to Balance","Piscataway","","",1,"Counseling center: 3 locations, over 30 clinicians; children from age 5, teens, adults, seniors","Middlesex ResourceNet","30","","High","Confirm the Piscataway office, owner and who handles marketing. At 30+ clinicians this is Large: check the Size filter before outreach.","","Evidence: directory says over 30 clinicians"),
+("Center for Marriage and Family Therapy","Piscataway","","",1,"Network with offices in Matawan, Freehold, Princeton, Toms River and Piscataway; LPCs and LCSWs","Directory listing","","Medium","High","Count clinicians and offices; who owns and markets it?","","Suspected: five offices, several therapists each"),
+("Ellie Mental Health (Old Bridge / Piscataway / South Brunswick)","Old Bridge","","",2,"Hiring LPCs/LCSWs for Old Bridge, Piscataway and South Brunswick; full-time and contractor roles","Ellie careers page","","Medium","Medium","Franchise: each clinic is locally owned. Find the local franchise owner and count therapists per site.","","Suspected: franchise brand with three NJ sites hiring"),
+("Multi-Cultural Counseling Center","North Brunswick","","",2,"Listed on Psychology Today as a multi-clinician resource","Psychology Today","","Medium","Medium","Count clinicians; owner; website quality.","","Suspected: multi-clinician listing"),
+("Rossi Psychological Group","Somerville","62 E Main St","",2,"Single-location psychology group","WebMD","","","Medium","Count psychologists; website and Google profile."),
+("CogniCare Psychological Services","Branchburg","","",2,"Psychological services; an LPC listed","Psychology Today","","","Medium","Count clinicians; website and Google profile."),
+("Hackensack Meridian Bay Behavioral Health","Old Bridge","Old Bridge Medical Arts Building, 3rd floor","732-360-4077",3,"Outpatient psychotherapy, psychiatric evaluation and medication monitoring","HMH site","","Large","Low","Health-system owned: filter out.","","Evidence: Hackensack Meridian Health site"),
+("Thriveworks (Edison)","Edison","","",3,"National counseling and psychiatry chain","Thriveworks site","","Large","Low","National chain: filter out.","","Evidence: national company"),
+],spec="Mental health")
+add2("mental_health","Psychiatry practices",[
+("Neuro Bloom Behavioral Health","Iselin","","",2,"Mental health nurse practitioner offering talk therapy and medication management","Psychology Today","","","Medium","Group, or one NP?"),
+("OCA Behavioral Health Services","Old Bridge","","",2,"Psychiatric evaluation, treatment plans and medication management; a nurse practitioner's practice","Psychology Today","1","","Medium","Solo NP or a group? Website and Google profile."),
+("Lifebulb Psychiatry (Edison)","Edison","","",2,"In-network psychiatry at the Edison office or online; dedicated billing team","Lifebulb site","","Medium","Medium","Same company as the Lifebulb counseling row; count psychiatrists and prescribers.","","Suspected: multi-prescriber team"),
+("Ramandeep Kaur, MD","Edison","","",3,"Dual board-certified adult and child-adolescent psychiatrist","Psychology Today","1","","Medium","Practice name, website, phone.","individual"),
+("Sheema Imran, MD","Old Bridge","","",3,"Psychiatrist","Psychology Today","1","","Medium","Practice name, website, phone.","individual"),
+],spec="Mental health")
+add2("mental_health","Testing and child psychology",[
+("Center for CBT: neuropsychological evaluation (Priscilla Morrison, PsyD)","East Brunswick","","",2,"Pediatric neuropsychologist: ADHD, learning difficulties, autism; school observation","Psychology Today","1","","Medium","Part of the Center for CBT group or her own practice?","individual"),
+("Stephanie Cooper, PsyD","Somerset","","",3,"Learning evaluations (IQ and achievement); former child study team psychologist","Psychology Today","1","","Medium","Practice name, website, phone.","individual"),
+("Wendy Skiba-King, PhD, APN","Somerset","","",3,"Autism spectrum and ADHD","Psychology Today","1","","Medium","Practice name, website, phone.","individual"),
+("Children's Wellness & Developmental Center","Middlesex County (town unconfirmed)","","",3,"Outpatient services listed for Mercer, Middlesex, Monmouth and Ocean counties","Monmouth ResourceNet","","","High","Which town is the Middlesex office? May be based outside the target counties."),
+],spec="Mental health")
+# -------- primary care (family medicine, internal medicine, pediatrics)
+PC_CHK="Confirm it is clinician-owned (not RWJBarnabas, Hackensack Meridian, Atlantic Health, Saint Peter's, Hunterdon, Penn Medicine or a PE platform). Count physicians. Website and Google profile?"
+add2("primary_care","Family medicine",[
+("Avenel Iselin Medical Group, LLC","Iselin","400 Gill Ln","",2,"LLC; family medicine provider listed (accepting new patients, telehealth)","Medifind","","","Medium",PC_CHK),
+("Family Medicine & Dentistry of East Brunswick","East Brunswick","647 NJ-18","",2,"Offers primary medical and dental care together","Zocdoc","","","Medium",PC_CHK),
+("Highland Park Family Practice","Highland Park","505 Raritan Ave","",3,"Listed in a Robert Wood Johnson Barnabas community directory","RWJBH directory","","","High","Listing in a RWJBH directory suggests possible system ownership. Check for RWJPE branding. "+PC_CHK),
+("Etheridge Family Medicine","Somerset","","",2,"Telehealth offered; hospital affiliations listed at Hunterdon, RWJ and Saint Peter's","Cureus profile","","","Medium",PC_CHK),
+("Practice Associates Medical Group","Branchburg","3322 Route 22","",2,"Family medicine providers accepting new patients; also appears in the cardiology list as a multi-specialty group","Directory listing","","Medium","Medium","Multi-specialty group: count providers; same company as the cardiology row?","","Suspected: multi-specialty group"),
+("Faculty Family Practice at Somerset, LLC","Somerville","110 Rehill Ave","",3,"Not on Medicare; no telehealth; address next to the RWJ Somerset campus","Cortico directory","","","High","Probably tied to the RWJ family medicine residency faculty. Likely system-linked: confirm before keeping."),
+("Central Jersey Medical Center","Perth Amboy","","",3,"Federally qualified health center with sites in Perth Amboy and Carteret; hiring","Job posting","","Large","Low","FQHC (nonprofit, different buyer): filter out.","","Evidence: FQHC with multiple sites"),
+],spec="Family medicine")
+add2("primary_care","Internal medicine",[
+("Internal Medicine of North Brunswick","North Brunswick","2300 Route 27, Suite 1A","",3,"Listed in a RWJBH community directory","RWJBH directory","","","High","Listing in a RWJBH directory suggests possible system ownership. "+PC_CHK),
+("Medical Associates of Central New Jersey","Old Bridge","26 Throckmorton Ln","",2,"Internal medicine primary care provider listed","Directory listing","","","Medium",PC_CHK),
+("SD Medical","Spotswood","407 Main St, Suite 1","",2,"Internal medicine providers listed","Directory listing","","","Medium",PC_CHK),
+("South Plainfield Primary Care","South Plainfield","2509 Park Ave","",2,"NPI record lists family and internal medicine; last updated January 2022. Same address as Clear Conscience Counseling (mental health list)","NPI listing","","","High","Still open? Shares a building with another listing."),
+("Internal medicine practice at 1636 Stelton Rd, Suite 301 (name unconfirmed)","Piscataway","1636 Stelton Rd, Suite 301","",3,"Zocdoc listing: individualized treatment plans, 25+ years of experience","Zocdoc","","","High","Find the practice name and owner."),
+("MDVIP concierge practice (225 May St)","Edison","225 May St","",3,"MDVIP concierge internal medicine; physician-owned, membership model","MDVIP directory","1","","Medium","Different offer (membership). Physician name, website, own marketing?","","Evidence: MDVIP physician-owned network"),
+("MDVIP concierge practice (267 Central Ave)","Metuchen","267 Central Ave","",3,"MDVIP concierge internal medicine; membership model","MDVIP directory","1","","Medium","Different offer (membership). Physician name, website, own marketing?","","Evidence: MDVIP physician-owned network"),
+("Lijing Shen, MD","Edison","906 Inman Ave","",3,"Internist","Medifind","1","","Medium","Practice name, website, phone.","individual"),
+("Harry Lin, MD","Metuchen","201 Bridge St","",3,"Internist","Medifind","1","","Medium","Practice name, website, phone.","individual"),
+("Inderjit Kainth, MD","South Brunswick","","",3,"Internist; offices in South Brunswick, Kendall Park and Metuchen","Zocdoc","1","","Medium","Practice name, website, phone. Three offices: still solo?","individual"),
+("Jeffrey Kaladas, MD","South Bound Brook","","",3,"Internist; accepting new patients","Zocdoc","1","","Medium","Practice name, website, phone.","individual"),
+("Rizwana Khan, MD","Old Bridge","2477 County Rd 516, Unit 103","",3,"Primary care / internal medicine","Zocdoc","1","","Medium","Practice name, website, phone.","individual"),
+],spec="Internal medicine")
+add2("primary_care","Pediatrics",[
+("Pediatric & Adolescent Associates of Central NJ","Old Bridge","100 Perrine Rd","",2,"WebMD: not accepting new patients; no Medicaid or Medicare listed (may be outdated)","WebMD","","","High","Open and accepting patients? Count pediatricians."),
+("Somerset Pediatric Group","Bridgewater","2345 Lamington Rd","",3,"Founded 1958; offices in Hillsborough, Bedminster, Warren, Lebanon, Somerset, Raritan, Long Valley, Springfield and Highland Park","Practice site","","Large","Low","Large multi-office group: filter unless you want a bigger target. Who handles its marketing?","","Evidence: ten offices listed"),
+("Pediatric Associates of Hillsborough","Hillsborough","349 Doctors Way","(908) 431-5352",3,"Listing says affiliated with Primary Care Partners in partnership with Atlantic Health System","Macaroni Kid directory","2","","High","Affiliation with Atlantic Health: confirm ownership before keeping.","","Evidence: listing names the Atlantic Health partnership"),
+("Edison Health (pediatrics)","Edison","Route 27","",2,"Pediatrician Shelley Carolan sees patients here; accepting new patients","Zocdoc","","","Medium",PC_CHK),
+("Shelley Carolan, MD","Edison","Route 27 (Edison Health)","",3,"Board-certified pediatrician","Zocdoc","1","","Medium","Employed by Edison Health or owner?","individual"),
+("Laura Senator, MD","Hillsborough","349 Doctors Way","",3,"Pediatrician at Pediatric Associates of Hillsborough","Macaroni Kid directory","1","","Medium","Part of the Hillsborough practice above.","individual"),
+],spec="Pediatrics")
 # -------- size marking for existing rows (basis stated)
 MARK={ # name: (override, basis)
 "Strive Physical Therapy of Monroe":("Large","Evidence: 18-location network"),
@@ -290,6 +347,7 @@ MARK={ # name: (override, basis)
 "Soft Care Dental Group":("Medium","Suspected: group name"),
 "Central Jersey Pediatric Dentistry & Orthodontics":("Medium","Suspected: a pediatric dentist and an orthodontist under one name"),
 "Cardio MD":None,
+"Primecare Medical Group (primary care)":None,
 }
 for r in rows:
     m=MARK.get(r["practice"])

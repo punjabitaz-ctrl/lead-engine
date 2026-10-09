@@ -1,0 +1,8 @@
+practice,specialty,city,address,phone,priority,evidence,source,providers,size_override,review,check,kind,segment,subspecialty,size_basis
+"Lijing Shen, MD",Internal medicine,Edison,906 Inman Ave,,3,Internist,Medifind,1,,Medium,"Practice name, website, phone.",individual,primary_care,Internal medicine,
+"Harry Lin, MD",Internal medicine,Metuchen,201 Bridge St,,3,Internist,Medifind,1,,Medium,"Practice name, website, phone.",individual,primary_care,Internal medicine,
+"Rizwana Khan, MD",Internal medicine,Old Bridge,"2477 County Rd 516, Unit 103",,3,Primary care / internal medicine,Zocdoc,1,,Medium,"Practice name, website, phone.",individual,primary_care,Internal medicine,
+"Jeffrey Kaladas, MD",Internal medicine,South Bound Brook,,,3,Internist; accepting new patients,Zocdoc,1,,Medium,"Practice name, website, phone.",individual,primary_care,Internal medicine,
+"Inderjit Kainth, MD",Internal medicine,South Brunswick,,,3,"Internist; offices in South Brunswick, Kendall Park and Metuchen",Zocdoc,1,,Medium,"Practice name, website, phone. Three offices: still solo?",individual,primary_care,Internal medicine,
+"Shelley Carolan, MD",Pediatrics,Edison,Route 27 (Edison Health),,3,Board-certified pediatrician,Zocdoc,1,,Medium,Employed by Edison Health or owner?,individual,primary_care,Pediatrics,
+"Laura Senator, MD",Pediatrics,Hillsborough,349 Doctors Way,,3,Pediatrician at Pediatric Associates of Hillsborough,Macaroni Kid directory,1,,Medium,Part of the Hillsborough practice above.,individual,primary_care,Pediatrics,

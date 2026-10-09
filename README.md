@@ -38,7 +38,7 @@ that return nothing.
 ## Lists in this repo (private repo)
 
 `data/candidates/*.csv` are the hand-assembled candidate lists (from directory listings found by web search, 2026-10-09: unverified) for Middlesex and
-Somerset counties: cardiology, ophthalmology, physical therapy, dentists (by specialty) and mental health. `lists/` holds the generated workbooks:
+Somerset counties: cardiology, ophthalmology, physical therapy, dentists (by specialty), mental health (group practices, psychiatry, testing and child psychology) and primary care (family medicine, internal medicine, pediatrics). `lists/` holds the generated workbooks:
 `NJ_<segment>_review_*.xlsx` (review checklist, one sheet per specialty plus Overview and Individuals), `NJ_<segment>_practices_*` and
 `NJ_<segment>_individuals_*` (the filled lead-engine template, ordered by specialty). Rebuild with:
 
@@ -48,6 +48,9 @@ python3 tools/run_lists.py        # runs the engine, writes lists/*.xlsx and *.c
 python3 tools/build_review.py lists
 python3 tools/build_template.py lead-engine-template.xlsx   # regenerates the Sheets template
 ```
+
+Primary care note: most primary care in these counties is owned by RWJBarnabas, Hackensack Meridian, Atlantic Health, Saint Peter's or Hunterdon. Those sites
+are excluded and recorded in `data/candidates/excluded_system_owned.csv`; the primary care list holds only practices whose ownership still needs checking.
 
 ## Filtering large groups
 

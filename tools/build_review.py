@@ -8,7 +8,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 OUTDIR = sys.argv[1] if len(sys.argv) > 1 else "lists"
 STAMP = "2026-10-09"
 SEGMENTS = [("cardiology", "Cardiology"), ("ophthalmology", "Ophthalmology"), ("pt", "Physical therapy"),
-            ("dentist", "Dentist"), ("mental_health", "Mental health")]
+            ("dentist", "Dentist"), ("mental_health", "Mental health"), ("primary_care", "Primary care")]
 
 
 def F(**k):
