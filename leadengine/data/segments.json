@@ -1,11 +1,38 @@
 {
   "_note": "taxonomy strings are passed to the NPPES taxonomy_description filter. They are written from memory of the NUCC taxonomy and have NOT been checked against the live registry: the first live run prints a warning for any string that returns zero results. Tier 2 comes from studies showing GI, orthopaedic and cardiovascular complaints are among the most common reasons for specialist referral; total cost of care by specialty was NOT established, so tier 3 is an unvalidated candidate list.",
-  "tier1": {"label": "Dentists, physical therapists, mental health, primary care",
-            "taxonomies": ["Dentist", "Physical Therapist", "Psychologist", "Counselor", "Clinical Social Worker",
-                           "Marriage & Family Therapist", "Psychiatry", "Family Medicine", "Internal Medicine", "Pediatrics"]},
-  "tier2": {"label": "High referral volume (per cited studies)",
-            "taxonomies": ["Gastroenterology", "Orthopaedic Surgery", "Cardiovascular Disease"]},
-  "tier3": {"label": "Candidates for high cost of care (unvalidated)",
-            "taxonomies": ["Medical Oncology", "Neurology", "Pain Medicine", "Urology", "Ophthalmology", "Dermatology",
-                           "Obstetrics & Gynecology"]}
+  "tier1": {
+    "label": "Dentists, physical therapists, mental health, primary care",
+    "taxonomies": [
+      "Dentist",
+      "Physical Therapist",
+      "Psychologist",
+      "Counselor",
+      "Clinical Social Worker",
+      "Marriage & Family Therapist",
+      "Psychiatry",
+      "Family Medicine",
+      "Internal Medicine",
+      "Pediatrics"
+    ]
+  },
+  "tier2": {
+    "label": "High referral volume (per cited studies)",
+    "taxonomies": [
+      "Gastroenterology",
+      "Orthopaedic Surgery",
+      "Cardiovascular Disease"
+    ]
+  },
+  "tier3": {
+    "label": "Candidates for high cost of care (unvalidated; to be ranked with docs/specialty_rubric.md)",
+    "taxonomies": [
+      "Medical Oncology",
+      "Neurology",
+      "Pain Medicine",
+      "Urology",
+      "Ophthalmology",
+      "Dermatology",
+      "Obstetrics & Gynecology"
+    ]
+  }
 }

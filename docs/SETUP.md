@@ -12,11 +12,14 @@ broader level, or add these under **Allowed domains**:
 - `places.googleapis.com` (presence checks)
 - `api.adzuna.com` (optional job signals)
 - `tazabbas.com` (optional; lets the tool audit and read your portfolio)
-- `data.cms.gov`, `www.cms.gov` (public Medicare spending by specialty, used to rank tier 3)
+- `data.cms.gov`, `www.cms.gov`, `download.medicaid.gov` (public Medicare spending, NADAC drug costs; see `docs/specialty_rubric.md`)
 - `www2.census.gov` (official municipality lists, used to load the remaining NJ counties)
 - `mzsrtwrbpdpehthwmkwt.supabase.co` (only to smoke-test the live tracker)
 
 Steps: https://code.claude.com/docs/en/cloud-environments#network-access
+
+Hospital price files live on each hospital's own website, so they cannot be allow-listed one by one. Either raise the access level
+temporarily while they are collected, or download the files yourself and put them in the repo or Google Drive.
 
 ## 2. Google Places key (presence checks run automatically)
 
@@ -44,7 +47,7 @@ Deployed to project `lead-engine-tracker` (`mzsrtwrbpdpehthwmkwt`, free plan). T
 
 Sending volume is limited by reputation, not by tools. A new setup that starts large gets blocked.
 
-- **Use a subdomain, not the root.** For example `mail.<your-domain>`, with its own mailbox. **Confirm the exact spelling first: you have written both `momento.family` and `memento.family`.** DNS records for the wrong domain do nothing. A flagged sending domain then does not
+- **Use a subdomain, not the root.** For example `mail.<your-domain>`, with its own mailbox. You own both `momento.family` and `memento.family`: pick **one** to send from. On the other, publish `v=spf1 -all` (TXT on the root) and a DMARC record `v=DMARC1; p=reject` so nobody can spoof it, and point it at the one you use. A flagged sending domain then does not
   damage the root domain you use for real family email.
 - **Authenticate it.** At your DNS provider add (placeholders in angle brackets, the exact values come from your mail provider):
   - SPF: TXT on the subdomain, `v=spf1 include:<your provider's SPF include> ~all`

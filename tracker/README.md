@@ -20,8 +20,8 @@ treat the table as personal data and disclose the tracking in your privacy polic
 
 Deployed 2026-10-09 to Supabase project `lead-engine-tracker` (`mzsrtwrbpdpehthwmkwt`, us-east-1, free plan). Table and function are live.
 URL: `https://mzsrtwrbpdpehthwmkwt.supabase.co/functions/v1/lead-tracker`. **Inert until you add two secrets** (Supabase dashboard >
-Edge Functions > Secrets): `ALLOWED_HOSTS` (e.g. `tazabbas.com`) and `EXPORT_TOKEN` (a long random string; paste the same value into
-the Apps Script property `EXPORT_TOKEN`). Until then every redirect and beacon is refused and the export is closed, which is the safe default.
+Edge Functions > Secrets): `ALLOWED_HOSTS` = `ayinadvisors.com,pardesiconnections.com,vehlijantamedia.com,thinkersdilemma.com,tazabbas.com` (subdomains are allowed automatically) and `EXPORT_TOKEN` (a long random string; paste the same value into
+the Apps Script property `EXPORT_TOKEN`). The secret prompt was cancelled twice from this session, so add both by hand. Until then every redirect and beacon is refused and the export is closed, which is the safe default.
 Not yet smoke-tested live: the sandbox cannot reach `*.supabase.co`. The advisor note "RLS enabled, no policy" on `lead_events` is intentional.
 
 ## Deploy (already done; for reference or a second project)
