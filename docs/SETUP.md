@@ -47,7 +47,7 @@ Deployed to project `lead-engine-tracker` (`mzsrtwrbpdpehthwmkwt`, free plan). T
 
 Sending volume is limited by reputation, not by tools. A new setup that starts large gets blocked.
 
-- **Use a subdomain, not the root.** For example `mail.<your-domain>`, with its own mailbox. You own both `momento.family` and `memento.family`: pick **one** to send from. On the other, publish `v=spf1 -all` (TXT on the root) and a DMARC record `v=DMARC1; p=reject` so nobody can spoof it, and point it at the one you use. A flagged sending domain then does not
+- **Use a subdomain, not the root.** For example `mail.<your-domain>`, with its own mailbox. Send from **`mail.momento.family`**. You also own `memento.family` (the likely typo domain): park it, publishing `v=spf1 -all` (TXT on the root) and a DMARC record `v=DMARC1; p=reject` so nobody can spoof it, and redirect its web address to `momento.family`. Mailbox provider is not decided yet; the SPF/DKIM values depend on it. A flagged sending domain then does not
   damage the root domain you use for real family email.
 - **Authenticate it.** At your DNS provider add (placeholders in angle brackets, the exact values come from your mail provider):
   - SPF: TXT on the subdomain, `v=spf1 include:<your provider's SPF include> ~all`

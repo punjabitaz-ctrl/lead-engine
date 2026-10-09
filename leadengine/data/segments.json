@@ -1,5 +1,5 @@
 {
-  "_note": "taxonomy strings are passed to the NPPES taxonomy_description filter. They are written from memory of the NUCC taxonomy and have NOT been checked against the live registry: the first live run prints a warning for any string that returns zero results. Tier 2 comes from studies showing GI, orthopaedic and cardiovascular complaints are among the most common reasons for specialist referral; total cost of care by specialty was NOT established, so tier 3 is an unvalidated candidate list.",
+  "_note": "taxonomy strings are passed to the NPPES taxonomy_description filter. They are written from memory of the NUCC taxonomy and have NOT been checked against the live registry: the first live run prints a warning for any string that returns zero results. Tier 2 and 3 order is PROVISIONAL, from web-search snippets only (see docs/specialty_rubric.md, 'Findings so far'); it will be re-ranked when the CMS files can be downloaded.",
   "tier1": {
     "label": "Dentists, physical therapists, mental health, primary care",
     "taxonomies": [
@@ -16,22 +16,22 @@
     ]
   },
   "tier2": {
-    "label": "High referral volume (per cited studies)",
+    "label": "High referral volume and high cost (provisional)",
     "taxonomies": [
-      "Gastroenterology",
       "Orthopaedic Surgery",
+      "Gastroenterology",
       "Cardiovascular Disease"
     ]
   },
   "tier3": {
-    "label": "Candidates for high cost of care (unvalidated; to be ranked with docs/specialty_rubric.md)",
+    "label": "Cost or local-fit candidates (provisional, unvalidated)",
     "taxonomies": [
       "Medical Oncology",
-      "Neurology",
-      "Pain Medicine",
-      "Urology",
       "Ophthalmology",
       "Dermatology",
+      "Urology",
+      "Neurology",
+      "Pain Medicine",
       "Obstetrics & Gynecology"
     ]
   }
