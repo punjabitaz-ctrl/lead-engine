@@ -13,7 +13,7 @@ def _blank_lead(company, city, state, source):
             "vertical": "", "emp": None, "hiring": "N", "expand": "N", "detail": "", "sigdate": None, "first": "",
             "last": "", "title": "", "email": "", "linkedin": "", "psi": None, "outdated": "", "estatus": "Unverified",
             "status": "New", "n_postings": 0, "titles": [], "urls": [], "audit_note": "", "specialty": "", "npi": "",
-            "hasweb": "", "hasgbp": "", "reviews": None, "address": "", "provider": False, "priority": 9}
+            "hasweb": "", "hasgbp": "", "reviews": None, "address": "", "provider": False, "priority": 9, "providers": None, "sizeov": ""}
 
 
 def _employees(text):
@@ -87,6 +87,8 @@ class Engine:
             lead["detail"] = "; ".join(lead["titles"][:2])
         elif cand["kind"] == "provider":
             lead["provider"] = True
+            lead["providers"] = cand.get("providers", lead["providers"])
+            lead["sizeov"] = cand.get("size_override", lead["sizeov"])
             lead["priority"] = cand.get("priority", 9)
             if cand.get("evidence"):
                 lead["detail"] = cand["evidence"]
@@ -131,6 +133,7 @@ class Engine:
     def _finish(self, lead):
         lead.update(scoring.score(lead, self.cfg, [self.q["industry"]] if self.q.get("industry") else (), self.today))
         lead["strength"] = scoring.strength(lead, self.cfg, self.today)
+        lead["size_class"] = scoring.size_class(lead, self.cfg)
         lead["why"] = scoring.why(lead)
         lead["signal"], lead["subject"], lead["body"] = drafts.draft(lead, self.cfg)
         lead["notes"] = " | ".join(lead["urls"])
@@ -147,6 +150,8 @@ class Engine:
             if key in self.seen:
                 continue
             self._finish(lead)
+            if self.cfg.get("exclude_large") and lead["size_class"] == "Large":
+                continue
             if lead["strength"] in want:
                 out.append((key, lead))
         out.sort(key=lambda kv: ((kv[1]["priority"] if self.priority_first else 0), -kv[1]["total"], kv[1]["priority"], -kv[1]["n_postings"],

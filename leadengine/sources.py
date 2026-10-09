@@ -177,4 +177,6 @@ def manual_providers(path, state="NJ"):
             "title": "", "specialty": r.get("specialty", ""), "phone": r.get("phone", ""), "address": r.get("address", ""),
             "loc_city": r["city"], "metro": r["city"], "city_label": f"{r['city']}, {state}",
             "priority": int(r.get("priority") or 9), "evidence": r.get("evidence", ""), "origin": "Web search (unverified)",
-            "origin_note": r.get("source", "")} for r in rows]
+            "origin_note": r.get("source", ""),
+            "providers": int(r["providers"]) if (r.get("providers") or "").strip().isdigit() else None,
+            "size_override": (r.get("size_override") or "").strip()} for r in rows]

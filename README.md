@@ -35,6 +35,13 @@ Segments (`--tier`, from `leadengine/data/segments.json`): **focus** (default) c
 `--taxonomy "A, B"` overrides. The specialty strings are not yet verified against the live registry; the first live run warns on any
 that return nothing.
 
+## Filtering large groups
+
+Every lead gets a **Size Class**: Solo (1 clinician), Small (2-5), Medium (6-15), Large (16+) or Unknown. Thresholds are on the Config tab (rows 112-113).
+Enter the clinician count in **Providers (est.)**, or set **Size Override** (for example Large for a chain or dental group you can see is big).
+On the Leads tab filter the Size Class column to hide Large rows, or set Config B114 to Y to keep Large practices out of the Queue and Call Queue.
+On the command line, `--exclude-large` drops them. Unknown is not Large: count the clinicians when you review.
+
 ## Running it on your own computer
 
 The tool needs only Python 3 (openpyxl is optional, for the filled .xlsx). On a machine with normal internet access none of the network blocks apply:
@@ -51,7 +58,7 @@ python3 -m leadengine run --source nppes --county Middlesex --county Somerset --
 |---|---|---|---|
 | `--postings file.csv` | any job-board export (see `samples/`) | hiring signals | tested |
 | `nppes` | internet access to `npiregistry.cms.hhs.gov` (free, no key) | NJ practice name, phone, specialty, authorized official | parser tested on canned data; **API call not tested live** |
-| `manual` + `--manual file.csv` | a hand-assembled practice list (practice, specialty, city, address, phone, priority 1-3, evidence, source) | ranks by independence evidence first; keep real-name lists out of git (`private/` is ignored) | tested |
+| `manual` + `--manual file.csv` | a hand-assembled practice list (practice, specialty, city, address, phone, priority 1-3, evidence, source, providers, size_override) | ranks by independence evidence first; keep real-name lists out of git (`private/` is ignored) | tested |
 | `--presence file.csv` | your manual or tool results: `npi`/`company`, `has_website`, `has_gbp`, `reviews` | confirmed web-presence gaps | tested |
 | `--presence-check places` | `GOOGLE_PLACES_API_KEY` | automatic presence lookup, cached, with per-run and monthly caps | caps/cache tested; **API call not tested live**; billed per request |
 | `adzuna` | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | hiring signals | **not tested live** |

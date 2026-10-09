@@ -5,9 +5,9 @@ FIELDS = [("source", "Source"), ("company", "Company"), ("website", "Website"), 
           ("state", "State"), ("vertical", "Vertical"), ("specialty", "Specialty"), ("npi", "NPI"), ("emp", "Employees (est.)"), ("hiring", "Hiring Signal (Y/N)"),
           ("expand", "Expansion Signal (Y/N)"), ("detail", "Signal Detail"), ("sigdate", "Signal Date"),
           ("first", "First Name"), ("last", "Last Name"), ("title", "Title"), ("email", "Email"),
-          ("linkedin", "LinkedIn URL"), ("psi", "Mobile PageSpeed (0-100)"), ("outdated", "Outdated Site (Y/N)"), ("hasweb", "Website Present (Y/N)"), ("hasgbp", "Google Profile Present (Y/N)"), ("reviews", "Review Count"),
+          ("linkedin", "LinkedIn URL"), ("psi", "Mobile PageSpeed (0-100)"), ("outdated", "Outdated Site (Y/N)"), ("hasweb", "Website Present (Y/N)"), ("hasgbp", "Google Profile Present (Y/N)"), ("reviews", "Review Count"), ("providers", "Providers (est.)"), ("sizeov", "Size Override"),
           ("estatus", "Email Status"), ("status", "Status"), ("notes", "Notes")]
-EXTRA = [("strength", "Signal Strength"), ("total", "Score"), ("grade", "Grade"), ("why", "Why This Lead"),
+EXTRA = [("size_class", "Size Class"), ("strength", "Signal Strength"), ("total", "Score"), ("grade", "Grade"), ("why", "Why This Lead"),
          ("signal", "Primary Signal"), ("next_step", "Next Step"), ("subject", "Draft Subject"), ("body", "Draft Email 1")]
 
 
@@ -32,6 +32,8 @@ def write_workbook(template, path, leads, cfg=None, cities=(), industry=""):
             cf.cell(row=row, column=2).value = cfg["sender"][key]
         cf["B108"] = cfg["sender"].get("tracker_base", "")
         cf["B109"] = cfg["sender"].get("link_mode", "plain")
+        cf["B112"], cf["B113"] = cfg["size"]["small_max"], cfg["size"]["medium_max"]
+        cf["B114"] = "Y" if cfg.get("exclude_large") else "N"
         cf["B12"], cf["B13"] = cfg["target"]["employees_min"], cfg["target"]["employees_max"]
     for i in range(10):
         cf.cell(row=28 + i, column=1).value = cities[i] if i < len(cities) else None

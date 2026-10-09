@@ -128,6 +128,28 @@ class ThinProfileTests(unittest.TestCase):
         self.assertEqual(scoring.primary_signal(lead, CFG), "General")
 
 
+class SizeTests(unittest.TestCase):
+    def test_size_class(self):
+        self.assertEqual([scoring.size_class({"providers": n}, CFG) for n in (1, 2, 5, 6, 15, 16)],
+                         ["Solo", "Small", "Small", "Medium", "Medium", "Large"])
+        self.assertEqual(scoring.size_class({}, CFG), "Unknown")
+        self.assertEqual(scoring.size_class({"providers": 2, "sizeov": "Large"}, CFG), "Large")
+
+    def test_exclude_large(self):
+        import copy
+        from leadengine import sources
+        from leadengine.engine import Engine
+        batch = [dict(kind="provider", company=n, npi="", npi_type="NPI-2", sole="", first="", last="", title="", specialty="x",
+                      phone="", address="", loc_city="Edison", metro="Edison", city_label="Edison, NJ", priority=2, evidence="",
+                      origin="Web search (unverified)", origin_note="", providers=p, size_override=o)
+                 for n, p, o in (("Solo Heart", 1, ""), ("Chain Heart", None, "Large"), ("Big Heart", 40, ""))]
+        cfg = copy.deepcopy(CFG)
+        cfg["exclude_large"] = True
+        e = Engine({"signal": "any", "industry": "Medical practice", "professions": []}, cfg, [batch], today=TODAY)
+        e.fill(10)
+        self.assertEqual([l["company"] for l in e.take(10)], ["Solo Heart"])
+
+
 class CheckerTests(unittest.TestCase):
     def test_cache_and_caps(self):
         import tempfile

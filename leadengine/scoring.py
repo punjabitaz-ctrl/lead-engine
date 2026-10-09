@@ -88,3 +88,15 @@ def why(lead):
         parts.append("Site looks outdated.")
     parts.append({"Valid": "Email verified.", "Risky": "Email risky."}.get(lead.get("estatus"), "No verified email."))
     return " ".join(parts)
+
+
+def size_class(lead, cfg):
+    """Solo / Small / Medium / Large / Unknown. An explicit override wins; otherwise the clinician count decides.
+    Must match the Size Class formula in the workbook."""
+    if lead.get("sizeov"):
+        return lead["sizeov"]
+    n = lead.get("providers")
+    if not isinstance(n, (int, float)):
+        return "Unknown"
+    z = cfg["size"]
+    return "Solo" if n <= 1 else "Small" if n <= z["small_max"] else "Medium" if n <= z["medium_max"] else "Large"

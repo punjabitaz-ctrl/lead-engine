@@ -133,6 +133,8 @@ def run(args):
         raise SystemExit("Give --county Middlesex, --city 'City, ST' or --state NJ")
     professions = [p.strip() for p in (args.profession or "").split(",") if p.strip()]
     cfg = config.load(args.config)
+    if args.exclude_large:
+        cfg["exclude_large"] = True
     signal = args.signal or ("any" if set(args.source or []) & {"nppes", "manual"} else "warm")
     query = {"industry": args.industry, "professions": professions, "signal": signal}
     seen = None if args.fresh else os.path.join(args.state_dir, "seen.json")
@@ -207,6 +209,7 @@ def main(argv=None):
     ap.add_argument("--config")
     ap.add_argument("--state-dir", default=".leadengine")
     ap.add_argument("--fresh", action="store_true", help="ignore the record of leads already delivered")
+    ap.add_argument("--exclude-large", action="store_true", help="drop practices classed Large (see Config size thresholds)")
     ap.add_argument("--no-prompt", action="store_true")
     args = ap.parse_args(argv)
     if args.command == "doctor":
