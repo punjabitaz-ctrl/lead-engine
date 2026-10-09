@@ -28,7 +28,7 @@ Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the templat
 Counties: `--county Middlesex --county Somerset` (municipalities and USPS place names from `leadengine/data/nj_counties.json`, written from memory
 and unverified; the other 19 counties are not loaded yet).
 
-Segments (`--tier`, from `leadengine/data/segments.json`): **1** dentists, physical therapists, mental health, primary care ·
+Segments (`--tier`, from `leadengine/data/segments.json`): **focus** (default) cardiology + ophthalmology · **1** dentists, physical therapists, mental health, primary care ·
 **2** gastroenterology, orthopaedics, cardiology (high referral volume per cited studies) · **3** unvalidated cost-of-care candidates ·
 `--taxonomy "A, B"` overrides. The specialty strings are not yet verified against the live registry; the first live run warns on any
 that return nothing.

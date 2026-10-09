@@ -18,7 +18,8 @@ broader level, or add these under **Allowed domains**:
 
 Steps: https://code.claude.com/docs/en/cloud-environments#network-access
 
-Hospital price files live on each hospital's own website, so they cannot be allow-listed one by one. Either raise the access level
+For the Middlesex/Somerset hospital price files add `rwjbh.org`, `saintpetershcs.com`, `hackensackmeridianhealth.org`, `www1.pennmedicine.org`
+(registry: `leadengine/data/hospital_mrf_registry.csv`). Other hospitals' files live on their own websites, so they cannot be allow-listed one by one. Either raise the access level
 temporarily while they are collected, or download the files yourself and put them in the repo or Google Drive.
 
 ## 2. Google Places key (presence checks run automatically)

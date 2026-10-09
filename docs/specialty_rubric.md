@@ -79,3 +79,38 @@ Caveats that matter:
 1. CMS "Expenditures and Services by Specialty" CY2022/CY2023 XLSX and the by-Provider file: replace the Medicare numbers above with current totals and per-provider averages.
 2. NJ hospital price files for GI, orthopaedic and cardiology codes (colonoscopy, joint replacement, echocardiogram, catheterisation).
 3. AMA state-level tables, if obtainable, otherwise estimate private-practice share from NPPES sole-proprietor flags.
+
+## Update 2026-10-09: cardiology and ophthalmology (your focus), data years, hospital files
+
+**Data years that exist.** The CMS by-Provider dataset lists **2024** as its latest year (updated 2026-05-21; about 1.3M rows). Data year 2023
+was released in 2025. **Data year 2025 has not been published**; one catalog estimates the next release around May 2027 (an estimate, not a CMS date).
+So "2024-2025" and "2025-2026" can only mean release years, which map to data years 2023 and 2024. CMS's *Expenditures and Services by Specialty*
+page lists CY2023 and CY2024 as XLSX downloads, but I could not open them.
+
+**Numbers found (none from the CY2023/2024 files themselves):**
+
+| | Cardiology | Ophthalmology | Source |
+|---|---|---|---|
+| CY2018 Medicare allowed charges | $5.62B | $9.51B | [CMS CY2018 table](https://cms.gov/Research-Statistics-Data-and-Systems/Statistics-Trends-and-Reports/MedicareFeeforSvcPartsAB/Downloads/Specialty2018.pdf) |
+| CY2018 Medicare payments | $4.20B | $7.11B | same |
+| Recent total payments / providers (year not stated) | $3.7B / 19,657 | $7.6B / 17,459 | third-party site, unverified |
+| Implied payment per provider (my arithmetic on the row above) | about $188K | about $435K | |
+| Share in private practice (AMA 2024) | 30.7% (lowest) | 70.4% (highest) | [AMA](https://www.ama-assn.org/about-ama/research/physician-practice-benchmark-survey) |
+
+Reading: ophthalmology generates more Medicare dollars than cardiology in total and about twice as much per provider, and most ophthalmologists
+work independently. Cardiology is a large cost category but most cardiologists are employed by hospitals or groups, so the reachable pool is smaller.
+Ophthalmology payments include Part B drugs, which inflate the totals.
+
+**Consequence for the lead engine.** Almost every cardiology and ophthalmology practice already has a website, so a "no web presence" pitch will find few.
+The realistic signals are a thin or outdated site, a low review count, and a slow mobile page. Run with `--audit` and `--presence-check places` so those signals are measured.
+
+**Hospital price files found (not downloaded):** see `leadengine/data/hospital_mrf_registry.csv`. Aggregators (Trilliant, PayerPrice, MyCareCost,
+Turquoise) index file URLs and are the quickest way to locate them. The CMS-published [hospital price transparency repository](https://github.com/CMSgov/hospital-price-transparency)
+describes the file template. Files are 15 MB to 2 GB each.
+
+**Procedures to extract once files are in hand** (CPT codes from memory; verify before use):
+cardiology: 93306 (echocardiogram), 93015 (stress test), 93458 (cardiac catheterisation), 93000 (ECG);
+ophthalmology: 66984 (cataract surgery with lens), 67028 (intravitreal injection), 92134 (retinal imaging), 92004 (eye exam).
+
+**Pharmacy data:** CMS Part D formulary, pharmacy network and pricing files, [NADAC](https://catalog.data.gov/dataset/nadac-national-average-drug-acquisition-cost-2025).
+For ophthalmology, the relevant drugs are Part B injectables (see CMS "Medicare Part B Spending by Drug"); for cardiology, oral anticoagulants and statins on Part D.

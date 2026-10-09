@@ -180,7 +180,9 @@ class SegmentTests(unittest.TestCase):
     def test_tiers(self):
         import argparse
         from leadengine.cli import taxonomies_for
-        a = argparse.Namespace(taxonomy="", tier="1")
+        a = argparse.Namespace(taxonomy="", tier="focus")
+        self.assertEqual(taxonomies_for(a), ["Cardiovascular Disease", "Ophthalmology"])
+        a.tier = "1"
         self.assertIn("Dentist", taxonomies_for(a))
         a.tier = "all"
         self.assertIn("Gastroenterology", taxonomies_for(a))

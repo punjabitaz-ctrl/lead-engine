@@ -63,7 +63,7 @@ def taxonomies_for(args):
         return [t.strip() for t in args.taxonomy.split(",") if t.strip()]
     with open(os.path.join(os.path.dirname(__file__), "data", "segments.json"), encoding="utf-8") as fh:
         seg = json.load(fh)
-    tiers = ["tier1", "tier2", "tier3"] if args.tier == "all" else [f"tier{args.tier}"]
+    tiers = ["focus", "tier1", "tier2", "tier3"] if args.tier == "all" else ["focus" if args.tier == "focus" else f"tier{args.tier}"]
     return [t for k in tiers for t in seg[k]["taxonomies"]]
 
 
@@ -140,7 +140,7 @@ def main(argv=None):
     ap.add_argument("--taxonomy", help="comma list of NPPES specialties, e.g. 'Family Medicine, Pediatrics'")
     ap.add_argument("--presence", help="CSV of web-presence results (npi or company, has_website, has_gbp, reviews)")
     ap.add_argument("--presence-check", choices=["places"], help="look each provider up in Google Places (needs a key)")
-    ap.add_argument("--tier", choices=["1", "2", "3", "all"], default="1", help="NPPES specialty tier from data/segments.json")
+    ap.add_argument("--tier", choices=["focus", "1", "2", "3", "all"], default="focus", help="NPPES specialty set from data/segments.json (default: focus = cardiology + ophthalmology)")
     ap.add_argument("--max-places-calls", type=int, default=200, help="hard cap on Places lookups per run")
     ap.add_argument("--monthly-places-cap", type=int, default=1000, help="hard cap per calendar month (default = Google's listed free allowance)")
     ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes"])
