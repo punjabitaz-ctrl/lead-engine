@@ -105,6 +105,23 @@ def nj_cities():
         return [(ln.strip(), "NJ") for ln in fh if ln.strip() and not ln.startswith("#")]
 
 
+def county_cities(counties):
+    """--county Middlesex --county Somerset -> [(city, 'NJ')...]. Raises with the loaded list if a county is unknown."""
+    import json as _json
+    with open(os.path.join(os.path.dirname(__file__), "data", "nj_counties.json"), encoding="utf-8") as fh:
+        data = {k.lower(): v for k, v in _json.load(fh).items() if not k.startswith("_")}
+    out, seen = [], set()
+    for c in counties:
+        if c.lower() not in data:
+            raise SystemExit(f"County {c!r} is not loaded yet. Loaded: {', '.join(k.title() for k in data)}. "
+                             "Use --state NJ for the statewide city sweep or add the county to data/nj_counties.json.")
+        for city in data[c.lower()]:
+            if city not in seen:
+                seen.add(city)
+                out.append((city, "NJ"))
+    return out
+
+
 def parse_nppes(data, city, state):
     """Pure parser for one NPPES API response page -> provider candidates. Active providers only."""
     out = []

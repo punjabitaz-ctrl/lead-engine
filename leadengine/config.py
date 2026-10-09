@@ -9,8 +9,8 @@ DEFAULTS = {
         "address": "[Street, City, State ZIP]",
         "portfolio_url": "https://tazabbas.com/projects",
         "booking_link": "",
-        "tracker_base": "",
-        "link_mode": "plain",
+        "tracker_base": "https://mzsrtwrbpdpehthwmkwt.supabase.co/functions/v1/lead-tracker",
+        "link_mode": "utm",
         "offer": ("I build and launch business websites in 72 hours, and can extend that into app and tool "
                   "development and business marketing strategy."),
     },

@@ -17,12 +17,16 @@ Validate first with `lead-engine-template.xlsx` (no code). The CLI fills that sa
 ```
 python3 -m leadengine                                   # prompts for city, industry, profession, signal
 python3 -m leadengine run --city "Tampa, FL" --profession "web developer, marketing manager" --target 50
-python3 -m leadengine run --source nppes --state NJ --tier 1 --presence-check places   # NJ practices, auto presence check
+python3 -m leadengine run --source nppes --county Middlesex --county Somerset --tier 1 --presence-check places   # first test area
+python3 -m leadengine run --source nppes --state NJ --tier 1 --presence-check places   # statewide city sweep (top ~55 cities only)
 python3 -m leadengine run --source nppes --state NJ --presence presence.csv             # or import hand-checked results
 ```
 
 After each batch it asks `Want 50 more?`. Delivered leads are remembered in `.leadengine/seen.json` (`--fresh` ignores it).
 Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the template (its Config tab is set to match the run).
+
+Counties: `--county Middlesex --county Somerset` (municipalities and USPS place names from `leadengine/data/nj_counties.json`, written from memory
+and unverified; the other 19 counties are not loaded yet).
 
 Segments (`--tier`, from `leadengine/data/segments.json`): **1** dentists, physical therapists, mental health, primary care ·
 **2** gastroenterology, orthopaedics, cardiology (high referral volume per cited studies) · **3** unvalidated cost-of-care candidates ·

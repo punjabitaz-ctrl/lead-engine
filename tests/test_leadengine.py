@@ -163,6 +163,19 @@ class KeyTests(unittest.TestCase):
         self.assertEqual(tracked_link("", "k", "https://tazabbas.com/projects", "redirect"), "https://tazabbas.com/projects")  # no base
 
 
+class CountyTests(unittest.TestCase):
+    def test_counties(self):
+        from leadengine import sources
+        got = sources.county_cities(["Middlesex", "somerset"])
+        names = [c for c, _ in got]
+        self.assertIn("Edison", names)
+        self.assertIn("Basking Ridge", names)
+        self.assertEqual(len(names), len(set(names)))
+        self.assertTrue(all(st == "NJ" for _, st in got))
+        with self.assertRaises(SystemExit):
+            sources.county_cities(["Bergen"])
+
+
 class SegmentTests(unittest.TestCase):
     def test_tiers(self):
         import argparse

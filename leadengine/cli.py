@@ -74,15 +74,20 @@ def summarize(leads):
 
 
 def run(args):
-    interactive = not args.city and not args.state
+    interactive = not args.city and not args.state and not args.county
     if interactive:
         args.city = [c.strip() for c in ask("City, ST (separate several with ';')").split(";") if c.strip()]
         args.industry = ask("Industry (blank to skip)", args.industry or "")
         args.profession = ask("Profession / role you want to reach or that signals need", args.profession or "web developer, marketing manager")
         args.signal = ask("Signal strength (hot / warm / any)", args.signal or "warm")
-    cities = [parse_city(c) for c in args.city] if args.city else (sources.nj_cities() if (args.state or "").upper() == "NJ" else [])
-    if not cities:
-        raise SystemExit("Give --city 'City, ST' or --state NJ")
+    if args.county:
+        cities = sources.county_cities(args.county)
+    elif args.city:
+        cities = [parse_city(c) for c in args.city]
+    elif (args.state or "").upper() == "NJ":
+        cities = sources.nj_cities()
+    else:
+        raise SystemExit("Give --county Middlesex, --city 'City, ST' or --state NJ")
     professions = [p.strip() for p in (args.profession or "").split(",") if p.strip()]
     cfg = config.load(args.config)
     signal = args.signal or ("any" if "nppes" in (args.source or []) else "warm")
@@ -130,6 +135,7 @@ def main(argv=None):
     ap.add_argument("--industry", default="")
     ap.add_argument("--profession", default="")
     ap.add_argument("--signal", choices=["hot", "warm", "any"], help="signal strength to keep (default warm; any for nppes)")
+    ap.add_argument("--county", action="append", help="NJ county (repeatable), e.g. --county Middlesex --county Somerset")
     ap.add_argument("--state", help="two-letter state for a statewide sweep, e.g. NJ (nppes uses data/nj_cities.txt)")
     ap.add_argument("--taxonomy", help="comma list of NPPES specialties, e.g. 'Family Medicine, Pediatrics'")
     ap.add_argument("--presence", help="CSV of web-presence results (npi or company, has_website, has_gbp, reviews)")

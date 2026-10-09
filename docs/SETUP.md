@@ -12,6 +12,9 @@ broader level, or add these under **Allowed domains**:
 - `places.googleapis.com` (presence checks)
 - `api.adzuna.com` (optional job signals)
 - `tazabbas.com` (optional; lets the tool audit and read your portfolio)
+- `data.cms.gov`, `www.cms.gov` (public Medicare spending by specialty, used to rank tier 3)
+- `www2.census.gov` (official municipality lists, used to load the remaining NJ counties)
+- `mzsrtwrbpdpehthwmkwt.supabase.co` (only to smoke-test the live tracker)
 
 Steps: https://code.claude.com/docs/en/cloud-environments#network-access
 
@@ -35,13 +38,13 @@ python3 -m leadengine run --source nppes --state NJ --tier 1 --presence-check pl
 
 ## 3. Click and visit tracker (Supabase)
 
-See `tracker/README.md`. It needs a Supabase project to host one table and one edge function.
+Deployed to project `lead-engine-tracker` (`mzsrtwrbpdpehthwmkwt`, free plan). Two secrets still need your hand: see `tracker/README.md`.
 
 ## 4. Sending from momento.family
 
 Sending volume is limited by reputation, not by tools. A new setup that starts large gets blocked.
 
-- **Use a subdomain, not the root.** For example `hello.momento.family`, with its own mailbox. A flagged sending domain then does not
+- **Use a subdomain, not the root.** For example `mail.<your-domain>`, with its own mailbox. **Confirm the exact spelling first: you have written both `momento.family` and `memento.family`.** DNS records for the wrong domain do nothing. A flagged sending domain then does not
   damage the root domain you use for real family email.
 - **Authenticate it.** At your DNS provider add (placeholders in angle brackets, the exact values come from your mail provider):
   - SPF: TXT on the subdomain, `v=spf1 include:<your provider's SPF include> ~all`

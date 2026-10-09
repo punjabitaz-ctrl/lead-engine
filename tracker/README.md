@@ -16,13 +16,21 @@ treat the table as personal data and disclose the tracking in your privacy polic
 | `utm` | your URL + `utm_source=leadengine&utm_content=<key>` | visits and form fills, via `track.js` on your site | **recommended**: no third-party domain in the link |
 | `redirect` | `<tracker>/t?l=<key>&to=<your URL>` | clicks, then visits | link points at `*.supabase.co` until you add a custom domain |
 
-## Deploy
+## Status
+
+Deployed 2026-10-09 to Supabase project `lead-engine-tracker` (`mzsrtwrbpdpehthwmkwt`, us-east-1, free plan). Table and function are live.
+URL: `https://mzsrtwrbpdpehthwmkwt.supabase.co/functions/v1/lead-tracker`. **Inert until you add two secrets** (Supabase dashboard >
+Edge Functions > Secrets): `ALLOWED_HOSTS` (e.g. `tazabbas.com`) and `EXPORT_TOKEN` (a long random string; paste the same value into
+the Apps Script property `EXPORT_TOKEN`). Until then every redirect and beacon is refused and the export is closed, which is the safe default.
+Not yet smoke-tested live: the sandbox cannot reach `*.supabase.co`. The advisor note "RLS enabled, no policy" on `lead_events` is intentional.
+
+## Deploy (already done; for reference or a second project)
 
 1. Run `migration.sql` on the project (table `lead_events`, RLS on, no public policies).
 2. Deploy `index.ts` + `lib.ts` as an edge function named `lead-tracker` with **JWT verification off**.
 3. Secrets: `ALLOWED_HOSTS` (e.g. `tazabbas.com,momento.family`; only these hosts can be redirect targets or send beacons) and
    `EXPORT_TOKEN` (a long random string).
-4. Sheet: Config B108 = `https://<project>.supabase.co/functions/v1/lead-tracker`, B109 = `utm` or `redirect`.
+4. Sheet: Config B108 = `https://<project>.supabase.co/functions/v1/lead-tracker`, B109 = `utm` (default) or `redirect`.
 5. Sites: paste `track.js` before `</body>` (edit `ENDPOINT`).
 6. Apps Script: add properties `TRACKER_URL` and `EXPORT_TOKEN`, then **Lead Engine > Pull clicks and visits**.
 
