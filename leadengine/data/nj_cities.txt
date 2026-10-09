@@ -1,0 +1,56 @@
+# Statewide NJ sweep for --state NJ. NPPES paging caps at ~1,200 records per query, so we query city by city.
+Newark
+Jersey City
+Paterson
+Elizabeth
+Edison
+Woodbridge
+Lakewood
+Toms River
+Trenton
+Clifton
+Camden
+Brick
+Cherry Hill
+Passaic
+Union City
+Bayonne
+East Orange
+Vineland
+New Brunswick
+Hoboken
+Perth Amboy
+Plainfield
+Hackensack
+Sayreville
+Kearny
+Linden
+Atlantic City
+Fort Lee
+Fair Lawn
+Teaneck
+Paramus
+Livingston
+Morristown
+Princeton
+Montclair
+Bloomfield
+Freehold
+Marlton
+Wayne
+Parsippany
+Bridgewater
+Piscataway
+Old Bridge
+Manalapan
+Toms River
+Englewood
+Ridgewood
+Red Bank
+Hamilton
+Mount Laurel
+Voorhees
+Vauxhall
+Union
+Summit
+Westfield

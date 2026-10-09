@@ -1,0 +1,51 @@
+# One name per line (case-insensitive, whole-word match). Employers that are too large or are not buyers.
+# Edit freely. Sizes are not known from job postings, so this is a heuristic, not a fact check.
+
+# Large enterprises / public companies
+accenture
+adp
+amazon
+audible
+brevo
+avery dennison
+avery products
+brooks brothers
+caesars
+charles schwab
+deloitte
+dhl
+ferrero
+first tech federal credit union
+fisher investments
+fred meyer
+google
+kroger
+legends global
+m/i homes
+mattel
+mckesson
+microsoft
+oracle
+ramp
+sharecare
+teledyne flir
+tesla
+thales
+the hershey company
+thermo fisher
+valley bank
+visa
+vitamin shoppe
+wells fargo
+whole foods
+
+# Gig / staffing / IT consultancies (competitors or intermediaries, not buyers)
+dataannotation
+prahartech
+scio consulting
+tavant
+techinteracts
+vaserjob
+robert half
+teksystems
+randstad

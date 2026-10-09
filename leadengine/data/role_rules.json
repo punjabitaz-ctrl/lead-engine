@@ -1,0 +1,10 @@
+{
+  "_note": "A posting counts as a website/digital-project signal if the title matches an include pattern and no exclude pattern. Regex, case-insensitive.",
+  "include": ["web", "website", "front[- ]?end", "full[- ]?stack", "\\bui\\b", "\\bux\\b", "digital", "e-?commerce", "amazon",
+              "marketing", "\\bseo\\b", "\\bppc\\b", "paid media", "social media", "content", "brand", "growth",
+              "wordpress", "shopify", "webmaster", "developer", "designer", "creative"],
+  "exclude": ["ai trainer", "annotation", "clearance", "ts/sci", "security", "manufacturing", "assembly", "supply chain",
+              "customer service", "team leader", "territory", "public affairs", "purchasing", "department lead",
+              "supervisor", "software engineer", "platform engineer", "sales manager", "membership", "trade marketing",
+              "registered nurse"]
+}
