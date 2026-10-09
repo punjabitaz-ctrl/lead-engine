@@ -58,6 +58,12 @@ function syncGmail() {
       if (t.length) {
         leads.getRange(r, col['Status']).setValue('Replied');
         leads.getRange(r, col['Reply Date']).setValue(t[0].getLastMessageDate());
+        // Interest level: log the reply on the Events tab (Date, Lead Key, Company, Event)
+        const events = SpreadsheetApp.getActive().getSheetByName('Events');
+        const next = events.getRange('B:B').getValues().filter(String).length + 1;
+        events.getRange(next, 1).setValue(t[0].getLastMessageDate());
+        events.getRange(next, 2).setValue(row[col['Dedupe Key'] - 1]);
+        events.getRange(next, 4).setValue('Replied');
       }
     }
   });

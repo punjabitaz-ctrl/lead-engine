@@ -5,6 +5,7 @@ import sys
 
 from . import config, export, sources
 from .engine import Engine, load_enrichment
+from .presence import load_presence
 
 STATES = {"alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR", "california": "CA", "colorado": "CO",
           "connecticut": "CT", "delaware": "DE", "florida": "FL", "georgia": "GA", "hawaii": "HI", "idaho": "ID",
@@ -44,6 +45,8 @@ def build_sources(args, cities, professions):
             gens.append(sources.csv_postings(args.postings, cities))
         elif n == "adzuna":
             gens.append(sources.adzuna_postings(cities, professions))
+        elif n == "nppes":
+            gens.append(sources.nppes_providers(cities, [t.strip() for t in args.taxonomy.split(",")] if args.taxonomy else None))
         elif n == "places":
             if not args.industry:
                 raise SystemExit("--industry is required for the places source")
@@ -54,25 +57,30 @@ def build_sources(args, cities, professions):
 
 
 def summarize(leads):
-    print(f"\n{'#':>3}  {'Score':>5} {'Gr':>2} {'Tier':<5} {'Company':<42} Signal")
+    print(f"\n{'#':>3}  {'Score':>5} {'Gr':>2} {'Sig':<5} {'Company':<42} Signal")
     for i, ld in enumerate(leads, 1):
-        print(f"{i:>3}  {ld['total']:>5} {ld['grade']:>2} {ld['tier']:<5} {ld['company'][:42]:<42} {ld['detail'][:60]}")
+        print(f"{i:>3}  {ld['total']:>5} {ld['grade']:>2} {ld['strength']:<5} {ld['company'][:42]:<42} {ld['detail'][:60]}")
 
 
 def run(args):
-    interactive = not args.city
+    interactive = not args.city and not args.state
     if interactive:
         args.city = [c.strip() for c in ask("City, ST (separate several with ';')").split(";") if c.strip()]
         args.industry = ask("Industry (blank to skip)", args.industry or "")
         args.profession = ask("Profession / role you want to reach or that signals need", args.profession or "web developer, marketing manager")
-        args.interest = ask("Interest level (hot / warm / any)", args.interest)
-    cities = [parse_city(c) for c in args.city]
+        args.signal = ask("Signal strength (hot / warm / any)", args.signal or "warm")
+    cities = [parse_city(c) for c in args.city] if args.city else (sources.nj_cities() if (args.state or "").upper() == "NJ" else [])
+    if not cities:
+        raise SystemExit("Give --city 'City, ST' or --state NJ")
     professions = [p.strip() for p in (args.profession or "").split(",") if p.strip()]
     cfg = config.load(args.config)
-    query = {"industry": args.industry, "professions": professions, "interest": args.interest}
+    signal = args.signal or ("any" if "nppes" in (args.source or []) else "warm")
+    query = {"industry": args.industry, "professions": professions, "signal": signal}
     seen = None if args.fresh else os.path.join(args.state_dir, "seen.json")
     eng = Engine(query, cfg, build_sources(args, cities, professions), seen_path=seen, do_audit=args.audit,
-                 enrichment=load_enrichment(args.enrich) if args.enrich else None)
+                 enrichment=load_enrichment(args.enrich) if args.enrich else None,
+                 presence_data=load_presence(args.presence) if args.presence else None,
+                 presence_places=args.presence_check == "places")
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     batch_no = 0
     while True:
@@ -80,7 +88,7 @@ def run(args):
         eng.fill(args.target)
         leads = eng.take(args.target)
         if not leads:
-            print("No new qualifying leads. Sources are exhausted; widen the profession list, interest level, or cities.")
+            print("No new qualifying leads. Sources are exhausted; widen the profession list, signal strength, or cities.")
             break
         summarize(leads)
         st = eng.stats
@@ -93,7 +101,7 @@ def run(args):
         print(f"Saved {len(leads)} leads -> {base}.csv" + (f" and {base}.xlsx" if os.path.exists(args.template) else ""))
         if len(leads) < args.target:
             print(f"Only {len(leads)} of the {args.target} requested qualified: sources are exhausted. "
-                  "Try --interest any, more professions, nearby cities, or add the places source.")
+                  "Try --signal any, more professions, nearby cities, or add the places source.")
         if args.no_prompt or not sys.stdin.isatty() or eng.exhausted and len(eng._ready()) == 0:
             break
         if ask(f"Want {args.target} more? (y/n)", "n").lower() not in ("y", "yes"):
@@ -106,8 +114,12 @@ def main(argv=None):
     ap.add_argument("--city", action="append", help="'City, ST' (repeatable). Omit to be prompted.")
     ap.add_argument("--industry", default="")
     ap.add_argument("--profession", default="")
-    ap.add_argument("--interest", choices=["hot", "warm", "any"], default="warm")
-    ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places"])
+    ap.add_argument("--signal", choices=["hot", "warm", "any"], help="signal strength to keep (default warm; any for nppes)")
+    ap.add_argument("--state", help="two-letter state for a statewide sweep, e.g. NJ (nppes uses data/nj_cities.txt)")
+    ap.add_argument("--taxonomy", help="comma list of NPPES specialties, e.g. 'Family Medicine, Pediatrics'")
+    ap.add_argument("--presence", help="CSV of web-presence results (npi or company, has_website, has_gbp, reviews)")
+    ap.add_argument("--presence-check", choices=["places"], help="look each provider up in Google Places (needs a key)")
+    ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes"])
     ap.add_argument("--postings", help="CSV of job postings (metro,company,title,location,posted,job_type,comp,url)")
     ap.add_argument("--target", type=int, default=50)
     ap.add_argument("--audit", action="store_true", help="fetch each website and flag outdated sites (needs internet)")

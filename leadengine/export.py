@@ -2,12 +2,12 @@ import csv
 import os
 
 FIELDS = [("source", "Source"), ("company", "Company"), ("website", "Website"), ("phone", "Phone"), ("city", "City"),
-          ("state", "State"), ("vertical", "Vertical"), ("emp", "Employees (est.)"), ("hiring", "Hiring Signal (Y/N)"),
+          ("state", "State"), ("vertical", "Vertical"), ("specialty", "Specialty"), ("npi", "NPI"), ("emp", "Employees (est.)"), ("hiring", "Hiring Signal (Y/N)"),
           ("expand", "Expansion Signal (Y/N)"), ("detail", "Signal Detail"), ("sigdate", "Signal Date"),
           ("first", "First Name"), ("last", "Last Name"), ("title", "Title"), ("email", "Email"),
-          ("linkedin", "LinkedIn URL"), ("psi", "Mobile PageSpeed (0-100)"), ("outdated", "Outdated Site (Y/N)"),
+          ("linkedin", "LinkedIn URL"), ("psi", "Mobile PageSpeed (0-100)"), ("outdated", "Outdated Site (Y/N)"), ("hasweb", "Website Present (Y/N)"), ("hasgbp", "Google Profile Present (Y/N)"), ("reviews", "Review Count"),
           ("estatus", "Email Status"), ("status", "Status"), ("notes", "Notes")]
-EXTRA = [("tier", "Interest Tier"), ("total", "Score"), ("grade", "Grade"), ("why", "Why This Lead"),
+EXTRA = [("strength", "Signal Strength"), ("total", "Score"), ("grade", "Grade"), ("why", "Why This Lead"),
          ("signal", "Primary Signal"), ("next_step", "Next Step"), ("subject", "Draft Subject"), ("body", "Draft Email 1")]
 
 
@@ -43,7 +43,7 @@ def write_workbook(template, path, leads, cfg=None, cities=(), industry=""):
         for k, h in FIELDS:
             v = ld.get(k)
             if k == "notes":
-                v = f"{ld.get('tier', '')}. " + (ld.get("notes") or "")
+                v = f"{ld.get('strength', '')}. " + (ld.get("notes") or "")
             ws.cell(row=2 + i, column=col[h]).value = v if v != "" else None
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     wb.save(path)

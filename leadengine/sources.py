@@ -93,3 +93,56 @@ def places_businesses(cities, industry, max_pages=3):
             token = data.get("nextPageToken")
             if not token:
                 break
+
+
+NJ_CITIES = os.path.join(os.path.dirname(__file__), "data", "nj_cities.txt")
+DEFAULT_TAXONOMIES = ["Family Medicine", "Internal Medicine", "Pediatrics", "Obstetrics & Gynecology", "Dermatology",
+                      "Ophthalmology", "Orthopaedic Surgery", "Psychiatry"]
+
+
+def nj_cities():
+    with open(NJ_CITIES, encoding="utf-8") as fh:
+        return [(ln.strip(), "NJ") for ln in fh if ln.strip() and not ln.startswith("#")]
+
+
+def parse_nppes(data, city, state):
+    """Pure parser for one NPPES API response page -> provider candidates. Active providers only."""
+    out = []
+    for r in data.get("results", []):
+        basic, kind = r.get("basic", {}), r.get("enumeration_type", "")
+        if basic.get("status", "A") != "A":
+            continue
+        loc = next((a for a in r.get("addresses", []) if a.get("address_purpose") == "LOCATION"), {})
+        taxes = r.get("taxonomies") or [{}]
+        tax = next((t for t in taxes if t.get("primary")), taxes[0])
+        if kind == "NPI-2":
+            name = basic.get("organization_name", "")
+            first, last = basic.get("authorized_official_first_name", ""), basic.get("authorized_official_last_name", "")
+            title = basic.get("authorized_official_title_or_position", "")
+        else:
+            first, last = basic.get("first_name", ""), basic.get("last_name", "")
+            name = " ".join(x for x in (first, last) if x).title() + (f", {basic['credential']}" if basic.get("credential") else "")
+            title = basic.get("credential", "")
+        if not name.strip():
+            continue
+        out.append({"kind": "provider", "company": name.strip(), "npi": r.get("number", ""), "npi_type": kind,
+                    "sole": (basic.get("sole_proprietor") or "").upper(), "first": first.title(), "last": last.title(),
+                    "title": title, "specialty": tax.get("desc", ""), "phone": loc.get("telephone_number", ""),
+                    "address": loc.get("address_1", ""), "loc_city": (loc.get("city") or "").title(),
+                    "metro": city, "city_label": f"{loc.get('city', city).title()}, {state}"})
+    return out
+
+
+def nppes_providers(cities, taxonomies=None, max_skip=1000):
+    """CMS NPI Registry (free, no key). One query per city x taxonomy x type, paged 200 at a time (API cap: skip <= 1000).
+    Written from the public API docs; needs npiregistry.cms.hhs.gov reachable. Not tested live."""
+    for city, state in cities:
+        for tax in (taxonomies or DEFAULT_TAXONOMIES):
+            for kind in ("NPI-2", "NPI-1"):
+                for skip in range(0, max_skip + 1, 200):
+                    q = urllib.parse.urlencode({"version": "2.1", "state": state, "city": city, "enumeration_type": kind,
+                                                "taxonomy_description": tax, "limit": 200, "skip": skip})
+                    data = _http_json("https://npiregistry.cms.hhs.gov/api/?" + q)
+                    yield parse_nppes(data, city, state)
+                    if len(data.get("results", [])) < 200:
+                        break

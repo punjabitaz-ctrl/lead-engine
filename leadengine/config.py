@@ -15,12 +15,12 @@ DEFAULTS = {
     "target": {"employees_min": 20, "employees_max": 250},
     "points": {
         "vertical": 10, "size": 10, "metro": 10, "hiring": 15, "psi_poor": 10, "psi_moderate": 5,
-        "outdated": 8, "expansion": 7, "email_valid": 10, "email_risky": 5, "phone": 5, "linkedin": 5,
+        "outdated": 8, "expansion": 7, "no_website": 20, "no_gbp": 12, "thin_profile": 5, "email_valid": 10, "email_risky": 5, "phone": 5, "linkedin": 5,
         "fresh1": 10, "fresh2": 5,
     },
-    "thresholds": {"psi_poor": 50, "psi_moderate": 75, "fresh1_days": 30, "fresh2_days": 90,
+    "thresholds": {"urgency_cap": 40, "thin_reviews": 10, "psi_poor": 50, "psi_moderate": 75, "fresh1_days": 30, "fresh2_days": 90,
                    "grade_a": 75, "grade_b": 60, "grade_c": 40},
-    "interest": {"hot_days": 30, "warm_days": 90, "hot_min_postings": 2},
+    "signal": {"hot_days": 30, "warm_days": 90, "hot_min_postings": 2},
     "excluded_job_types": ["part-time", "internship"],
 }
 

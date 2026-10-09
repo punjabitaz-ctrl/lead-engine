@@ -5,6 +5,8 @@
     "Weak Site": {"line": "I took a look at {website} and {site_issue}.", "subject": "Quick note on {website}"},
     "Expansion": {"line": "Congratulations on {signal_detail}. Growth like that usually puts pressure on the website.",
                   "subject": "Congrats, {company} — quick idea"},
+    "No Presence": {"line": "I searched for {company} in {city} and couldn't find a website or a claimed Google listing, so people looking for a practice like yours online may not be finding you.",
+                    "subject": "Is {company} easy to find online?"},
     "General": {"line": "I came across {company} while researching companies in {city}.", "subject": "Idea for {company}'s website"}
   },
   "body": "Hi {first_name},\n\n{signal_line}\n\n{offer_line}\n\nIf a fast, fixed-scope project would help {company}, I'm happy to send a quick plan — no obligation. A few recent launches (AYiN Advisors, Historical Philly, Al Saboot Builders, Qbit Edge Technologies) are at {portfolio_url}\n\nWorth a 15-minute call this week?{booking_link}\n\n{sender_name}\n{business_name} · {postal_address}\nIf you'd rather not hear from me, just reply \"no thanks\" and I won't contact you again."

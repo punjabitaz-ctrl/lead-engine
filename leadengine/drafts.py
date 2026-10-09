@@ -4,7 +4,8 @@ import os
 
 from .scoring import primary_signal
 
-T = json.load(open(os.path.join(os.path.dirname(__file__), "data", "templates.json"), encoding="utf-8"))
+with open(os.path.join(os.path.dirname(__file__), "data", "templates.json"), encoding="utf-8") as _fh:
+    T = json.load(_fh)
 
 
 def _fill(text, vals):

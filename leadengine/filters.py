@@ -29,6 +29,17 @@ def is_public_sector(company):
     return bool(PUBLIC.search(company))
 
 
+HEALTH_SYSTEM = re.compile(r"\b(hospital|health system|healthcare system|university|medical group|urgent care|dialysis|davita|"
+                           r"hackensack meridian|rwjbarnabas|atlanticare|virtua|inspira|atlantic health|valley health|"
+                           r"englewood health|jefferson health|northwell|nyu langone|summit health|carepoint|"
+                           r"cooper health|trinitas|saint barnabas|st\.? barnabas)\b", re.I)
+
+
+def is_health_system(name):
+    """Heuristic for 'not privately owned'. Ownership is not in NPPES; names are the only cheap signal."""
+    return bool(HEALTH_SYSTEM.search(name))
+
+
 def anonymous_employer(company):
     low = company.strip().lower()
     return not low or "@" in low or low in {"private", "confidential", "n/a", "undisclosed"}
