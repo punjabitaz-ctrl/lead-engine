@@ -33,9 +33,62 @@ def _digits(p):
     return re.sub(r"\D", "", p or "")[-10:]
 
 
-def check_places(name, city, state, phone=""):
-    """Google Places (New) text search. Returns dict(hasweb, hasgbp, reviews) or None if the call fails.
-    Not tested live. No match is reported as N/N only when the search returned nothing similar."""
+class PlacesChecker:
+    """Google Places (New) text search with a disk cache and hard spend caps (per run and per calendar month).
+    Not tested live. Each lookup requests websiteUri/phone/rating fields, which Google bills at its Enterprise rate."""
+
+    def __init__(self, state_dir=".leadengine", run_cap=200, monthly_cap=1000, today=None):
+        import datetime as dt
+        self.cache_path = os.path.join(state_dir, "presence_cache.json")
+        self.usage_path = os.path.join(state_dir, "places_usage.json")
+        self.month = (today or dt.date.today()).strftime("%Y-%m")
+        self.run_cap, self.monthly_cap, self.calls, self.stopped = run_cap, monthly_cap, 0, ""
+        self.cache = self._load(self.cache_path)
+        self.usage = self._load(self.usage_path)
+        os.makedirs(state_dir, exist_ok=True)
+
+    @staticmethod
+    def _load(path):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                return json.load(fh)
+        except (OSError, ValueError):
+            return {}
+
+    def _save(self):
+        with open(self.cache_path, "w", encoding="utf-8") as fh:
+            json.dump(self.cache, fh)
+        with open(self.usage_path, "w", encoding="utf-8") as fh:
+            json.dump(self.usage, fh)
+
+    def check(self, name, city, state, phone=""):
+        ck = f"{norm_name(name)}|{city.lower()}|{state}"
+        if ck in self.cache:
+            return self.cache[ck]
+        if self.calls >= self.run_cap:
+            self.stopped = f"per-run cap of {self.run_cap} lookups reached"
+            return None
+        if self.usage.get(self.month, 0) >= self.monthly_cap:
+            self.stopped = f"monthly cap of {self.monthly_cap} lookups reached"
+            return None
+        row = _places_lookup(name, city, state, phone)
+        if row is None:                       # failed call: do not cache, do not count as a confirmed gap
+            return None
+        self.calls += 1
+        self.usage[self.month] = self.usage.get(self.month, 0) + 1
+        self.cache[ck] = row
+        self._save()
+        return row
+
+    def cost_note(self, per_1000=35.0, free_monthly=1000):
+        used = self.usage.get(self.month, 0)
+        billable = max(0, used - free_monthly)
+        return (f"{self.calls} Places lookups this run, {used} this month "
+                f"(~${billable * per_1000 / 1000:.2f} billable if Google's listed ${per_1000:.0f}/1,000 and "
+                f"{free_monthly} free/month still apply: verify current pricing)")
+
+
+def _places_lookup(name, city, state, phone=""):
     key = os.environ.get("GOOGLE_PLACES_API_KEY")
     if not key:
         return None

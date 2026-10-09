@@ -143,6 +143,9 @@ def nppes_providers(cities, taxonomies=None, max_skip=1000):
                     q = urllib.parse.urlencode({"version": "2.1", "state": state, "city": city, "enumeration_type": kind,
                                                 "taxonomy_description": tax, "limit": 200, "skip": skip})
                     data = _http_json("https://npiregistry.cms.hhs.gov/api/?" + q)
+                    if skip == 0 and not data.get("results"):
+                        import sys
+                        print(f"[nppes] 0 results for {kind} {tax!r} in {city}, {state}", file=sys.stderr)
                     yield parse_nppes(data, city, state)
                     if len(data.get("results", [])) < 200:
                         break

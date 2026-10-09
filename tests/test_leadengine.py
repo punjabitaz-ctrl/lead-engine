@@ -114,5 +114,66 @@ class ProviderTests(unittest.TestCase):
         self.assertIn("couldn't find a website", lead["body"])
 
 
+class CheckerTests(unittest.TestCase):
+    def test_cache_and_caps(self):
+        import tempfile
+        from unittest import mock
+        from leadengine import presence
+        with tempfile.TemporaryDirectory() as d:
+            calls = []
+
+            def fake(name, city, state, phone=""):
+                calls.append(name)
+                return {"hasweb": "N", "hasgbp": "N", "reviews": None}
+
+            with mock.patch.object(presence, "_places_lookup", fake):
+                c = presence.PlacesChecker(d, run_cap=2, monthly_cap=10, today=TODAY)
+                c.check("A Dental", "Newark", "NJ")
+                c.check("A Dental", "Newark", "NJ")           # cached: no second call
+                c.check("B Dental", "Newark", "NJ")
+                self.assertIsNone(c.check("C Dental", "Newark", "NJ"))   # run cap hit
+                self.assertEqual((calls, c.calls), (["A Dental", "B Dental"], 2))
+                self.assertIn("per-run cap", c.stopped)
+                c2 = presence.PlacesChecker(d, run_cap=5, monthly_cap=2, today=TODAY)   # new run, same month
+                self.assertIsNotNone(c2.check("A Dental", "Newark", "NJ"))             # cache still free
+                self.assertIsNone(c2.check("D Dental", "Newark", "NJ"))                # monthly cap (2 already used)
+                self.assertIn("monthly cap", c2.stopped)
+
+    def test_failed_lookup_is_not_a_confirmed_gap(self):
+        import tempfile
+        from unittest import mock
+        from leadengine import presence
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(presence, "_places_lookup", lambda *a, **k: None):
+            c = presence.PlacesChecker(d, today=TODAY)
+            self.assertIsNone(c.check("X", "Newark", "NJ"))
+            self.assertEqual((c.calls, c.cache), (0, {}))
+
+
+class KeyTests(unittest.TestCase):
+    def test_keys(self):
+        from leadengine.keys import dedupe_key, tracked_link
+        self.assertEqual(dedupe_key("https://www.EarthCam.net/about", "EarthCam Inc", "Newark"), "earthcam.net")
+        self.assertEqual(dedupe_key("", " Garden State Family Care ", "Newark"), "garden state family care|newark")
+        self.assertEqual(tracked_link("https://x.supabase.co/functions/v1/lead-tracker/", "a b|c", "https://tazabbas.com/projects", "redirect"),
+                         "https://x.supabase.co/functions/v1/lead-tracker/t?l=a%20b%7Cc&to=https%3A%2F%2Ftazabbas.com%2Fprojects")
+        self.assertEqual(tracked_link("", "k", "https://tazabbas.com/projects"), "https://tazabbas.com/projects")
+        self.assertEqual(tracked_link("", "a b", "https://tazabbas.com/projects", "utm"),
+                         "https://tazabbas.com/projects?utm_source=leadengine&utm_content=a%20b")
+        self.assertEqual(tracked_link("", "k", "https://t.com/p?x=1", "utm"), "https://t.com/p?x=1&utm_source=leadengine&utm_content=k")
+        self.assertEqual(tracked_link("", "k", "https://tazabbas.com/projects", "redirect"), "https://tazabbas.com/projects")  # no base
+
+
+class SegmentTests(unittest.TestCase):
+    def test_tiers(self):
+        import argparse
+        from leadengine.cli import taxonomies_for
+        a = argparse.Namespace(taxonomy="", tier="1")
+        self.assertIn("Dentist", taxonomies_for(a))
+        a.tier = "all"
+        self.assertIn("Gastroenterology", taxonomies_for(a))
+        a.taxonomy = "Podiatrist, Chiropractor"
+        self.assertEqual(taxonomies_for(a), ["Podiatrist", "Chiropractor"])
+
+
 if __name__ == "__main__":
     unittest.main()

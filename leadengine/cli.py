@@ -1,11 +1,12 @@
 import argparse
 import datetime as dt
+import json
 import os
 import sys
 
 from . import config, export, sources
 from .engine import Engine, load_enrichment
-from .presence import load_presence
+from .presence import PlacesChecker, load_presence
 
 STATES = {"alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR", "california": "CA", "colorado": "CO",
           "connecticut": "CT", "delaware": "DE", "florida": "FL", "georgia": "GA", "hawaii": "HI", "idaho": "ID",
@@ -46,7 +47,7 @@ def build_sources(args, cities, professions):
         elif n == "adzuna":
             gens.append(sources.adzuna_postings(cities, professions))
         elif n == "nppes":
-            gens.append(sources.nppes_providers(cities, [t.strip() for t in args.taxonomy.split(",")] if args.taxonomy else None))
+            gens.append(sources.nppes_providers(cities, taxonomies_for(args)))
         elif n == "places":
             if not args.industry:
                 raise SystemExit("--industry is required for the places source")
@@ -54,6 +55,16 @@ def build_sources(args, cities, professions):
         else:
             raise SystemExit(f"Unknown source {n}")
     return (b for g in gens for b in g)
+
+
+def taxonomies_for(args):
+    """--taxonomy wins; otherwise --tier 1 (default), 2, 3 or all, from data/segments.json."""
+    if args.taxonomy:
+        return [t.strip() for t in args.taxonomy.split(",") if t.strip()]
+    with open(os.path.join(os.path.dirname(__file__), "data", "segments.json"), encoding="utf-8") as fh:
+        seg = json.load(fh)
+    tiers = ["tier1", "tier2", "tier3"] if args.tier == "all" else [f"tier{args.tier}"]
+    return [t for k in tiers for t in seg[k]["taxonomies"]]
 
 
 def summarize(leads):
@@ -77,10 +88,12 @@ def run(args):
     signal = args.signal or ("any" if "nppes" in (args.source or []) else "warm")
     query = {"industry": args.industry, "professions": professions, "signal": signal}
     seen = None if args.fresh else os.path.join(args.state_dir, "seen.json")
+    checker = (PlacesChecker(args.state_dir, args.max_places_calls, args.monthly_places_cap)
+               if args.presence_check == "places" else None)
     eng = Engine(query, cfg, build_sources(args, cities, professions), seen_path=seen, do_audit=args.audit,
                  enrichment=load_enrichment(args.enrich) if args.enrich else None,
                  presence_data=load_presence(args.presence) if args.presence else None,
-                 presence_places=args.presence_check == "places")
+                 checker=checker)
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     batch_no = 0
     while True:
@@ -94,6 +107,8 @@ def run(args):
         st = eng.stats
         print(f"\nScanned {st['scanned']} records: dropped {st['enterprise_or_staffing']} enterprise/staffing, "
               f"{st['irrelevant_role']} irrelevant roles, {st['part_time']} part-time, {st['anonymous']} anonymous.")
+        if checker:
+            print(checker.cost_note() + (f"\nPlaces lookups paused: {checker.stopped}. Unchecked providers stay 'cold'." if checker.stopped else ""))
         base = os.path.join(args.out, f"leads-{stamp}-b{batch_no}")
         export.write_csv(base + ".csv", leads)
         if os.path.exists(args.template):
@@ -119,6 +134,9 @@ def main(argv=None):
     ap.add_argument("--taxonomy", help="comma list of NPPES specialties, e.g. 'Family Medicine, Pediatrics'")
     ap.add_argument("--presence", help="CSV of web-presence results (npi or company, has_website, has_gbp, reviews)")
     ap.add_argument("--presence-check", choices=["places"], help="look each provider up in Google Places (needs a key)")
+    ap.add_argument("--tier", choices=["1", "2", "3", "all"], default="1", help="NPPES specialty tier from data/segments.json")
+    ap.add_argument("--max-places-calls", type=int, default=200, help="hard cap on Places lookups per run")
+    ap.add_argument("--monthly-places-cap", type=int, default=1000, help="hard cap per calendar month (default = Google's listed free allowance)")
     ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes"])
     ap.add_argument("--postings", help="CSV of job postings (metro,company,title,location,posted,job_type,comp,url)")
     ap.add_argument("--target", type=int, default=50)

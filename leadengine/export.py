@@ -30,6 +30,8 @@ def write_workbook(template, path, leads, cfg=None, cities=(), industry=""):
     if cfg:
         for row, key in ((4, "name"), (5, "business"), (6, "address"), (7, "portfolio_url"), (8, "booking_link"), (9, "offer")):
             cf.cell(row=row, column=2).value = cfg["sender"][key]
+        cf["B108"] = cfg["sender"].get("tracker_base", "")
+        cf["B109"] = cfg["sender"].get("link_mode", "plain")
         cf["B12"], cf["B13"] = cfg["target"]["employees_min"], cfg["target"]["employees_max"]
     for i in range(10):
         cf.cell(row=28 + i, column=1).value = cities[i] if i < len(cities) else None

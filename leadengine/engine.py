@@ -34,14 +34,14 @@ def load_enrichment(path):
 
 class Engine:
     def __init__(self, query, cfg, batches, seen_path=None, do_audit=False, blocklist_path=None, today=None,
-                 enrichment=None, presence_data=None, presence_places=False):
+                 enrichment=None, presence_data=None, checker=None):
         self.q, self.cfg, self.batches = query, cfg, iter(batches)
         self.rules = RoleRules(query.get("professions", []))
         self.block = load_blocklist(blocklist_path)
         self.today = today or dt.date.today()
         self.do_audit, self.pool, self.exhausted = do_audit, {}, False
         self.enrichment = enrichment or {}
-        self.presence_data, self.presence_places = presence_data or {}, presence_places
+        self.presence_data, self.checker = presence_data or {}, checker
         self.seen_path = seen_path
         self.seen = set(json.load(open(seen_path))) if seen_path and os.path.exists(seen_path) else set()
         self.stats = {"scanned": 0, "enterprise_or_staffing": 0, "anonymous": 0, "part_time": 0, "irrelevant_role": 0,
@@ -96,8 +96,8 @@ class Engine:
         if lead["source"] != "NPPES" or lead["hasweb"] or lead["hasgbp"]:
             return
         row = self.presence_data.get(lead["npi"]) or self.presence_data.get(norm_name(lead["company"]))
-        if not row and self.presence_places:
-            row = presence.check_places(lead["company"], lead["city"], lead["state"], lead["phone"])
+        if not row and self.checker:
+            row = self.checker.check(lead["company"], lead["city"], lead["state"], lead["phone"])
         if row:
             lead["hasweb"], lead["hasgbp"], lead["reviews"] = row["hasweb"], row["hasgbp"], row["reviews"]
 

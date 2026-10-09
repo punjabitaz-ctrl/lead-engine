@@ -9,6 +9,7 @@ function onOpen() {
     .addItem('Create Gmail drafts from Queue', 'createDrafts')
     .addItem('Sync sent / replies from Gmail', 'syncGmail')
     .addItem('Fill mobile PageSpeed scores (12 per run)', 'fillPageSpeed')
+    .addItem('Pull clicks and visits from the tracker', 'pullEvents')
     .addToUi();
 }
 
@@ -92,4 +93,31 @@ function fillPageSpeed() {
       done++;
     } catch (e) { /* skip this site */ }
   }
+}
+
+// Pulls clicks / visits / form fills from the lead-tracker edge function into the Events tab.
+// Script properties needed: TRACKER_URL (e.g. https://<project>.supabase.co/functions/v1/lead-tracker), EXPORT_TOKEN.
+function pullEvents() {
+  const props = PropertiesService.getScriptProperties();
+  const base = props.getProperty('TRACKER_URL'), token = props.getProperty('EXPORT_TOKEN');
+  if (!base || !token) { SpreadsheetApp.getUi().alert('Add script properties TRACKER_URL and EXPORT_TOKEN first.'); return; }
+  const events = SpreadsheetApp.getActive().getSheetByName('Events');
+  let since = props.getProperty('LAST_PULL') || '1970-01-01T00:00:00Z', added = 0, more = true;
+  while (more) {
+    const res = UrlFetchApp.fetch(base + '/export?since=' + encodeURIComponent(since),
+      { headers: { 'x-export-token': token }, muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) { SpreadsheetApp.getUi().alert('Tracker returned ' + res.getResponseCode()); return; }
+    const body = JSON.parse(res.getContentText());
+    const evs = body.events;
+    if (evs.length) {
+      // Columns C, E, F on the Events tab hold formulas: write only A (date), B (lead key) and D (event).
+      const next = events.getRange('B:B').getValues().filter(String).length + 1;
+      events.getRange(next, 1, evs.length, 2).setValues(evs.map(e => [new Date(e.ts), e.lead_key]));
+      events.getRange(next, 4, evs.length, 1).setValues(evs.map(e => [e.event]));
+      added += evs.length;
+    }
+    since = body.next_since; more = body.more;
+  }
+  props.setProperty('LAST_PULL', since);
+  SpreadsheetApp.getUi().alert(added + ' event(s) added.');
 }

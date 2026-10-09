@@ -2,6 +2,7 @@
 import json
 import os
 
+from .keys import dedupe_key, tracked_link
 from .scoring import primary_signal
 
 with open(os.path.join(os.path.dirname(__file__), "data", "templates.json"), encoding="utf-8") as _fh:
@@ -25,6 +26,6 @@ def draft(lead, cfg):
     line = _fill(T["signals"][sig]["line"], vals)
     booking = f"\nBook directly: {s['booking_link']}" if s.get("booking_link") else ""
     body = _fill(T["body"], {"first_name": lead.get("first") or "there", "signal_line": line, "offer_line": s["offer"],
-                             "portfolio_url": s["portfolio_url"], "booking_link": booking, "sender_name": s["name"],
+                             "portfolio_url": tracked_link(s.get("tracker_base", ""), dedupe_key(lead.get("website", ""), lead["company"], lead.get("city", "")), s["portfolio_url"], s.get("link_mode", "plain")), "booking_link": booking, "sender_name": s["name"],
                              "business_name": s["business"], "postal_address": s["address"], "company": lead["company"]})
     return sig, _fill(T["signals"][sig]["subject"], vals), body

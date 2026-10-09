@@ -17,11 +17,17 @@ Validate first with `lead-engine-template.xlsx` (no code). The CLI fills that sa
 ```
 python3 -m leadengine                                   # prompts for city, industry, profession, signal
 python3 -m leadengine run --city "Tampa, FL" --profession "web developer, marketing manager" --target 50
-python3 -m leadengine run --source nppes --state NJ --presence presence.csv     # NJ medical offices
+python3 -m leadengine run --source nppes --state NJ --tier 1 --presence-check places   # NJ practices, auto presence check
+python3 -m leadengine run --source nppes --state NJ --presence presence.csv             # or import hand-checked results
 ```
 
 After each batch it asks `Want 50 more?`. Delivered leads are remembered in `.leadengine/seen.json` (`--fresh` ignores it).
 Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the template (its Config tab is set to match the run).
+
+Segments (`--tier`, from `leadengine/data/segments.json`): **1** dentists, physical therapists, mental health, primary care ·
+**2** gastroenterology, orthopaedics, cardiology (high referral volume per cited studies) · **3** unvalidated cost-of-care candidates ·
+`--taxonomy "A, B"` overrides. The specialty strings are not yet verified against the live registry; the first live run warns on any
+that return nothing.
 
 ## Sources
 
@@ -30,7 +36,7 @@ Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the templat
 | `--postings file.csv` | any job-board export (see `samples/`) | hiring signals | tested |
 | `nppes` | internet access to `npiregistry.cms.hhs.gov` (free, no key) | NJ practice name, phone, specialty, authorized official | parser tested on canned data; **API call not tested live** |
 | `--presence file.csv` | your manual or tool results: `npi`/`company`, `has_website`, `has_gbp`, `reviews` | confirmed web-presence gaps | tested |
-| `--presence-check places` | `GOOGLE_PLACES_API_KEY` | automatic presence lookup | **not tested live**; billed per request |
+| `--presence-check places` | `GOOGLE_PLACES_API_KEY` | automatic presence lookup, cached, with per-run and monthly caps | caps/cache tested; **API call not tested live**; billed per request |
 | `adzuna` | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | hiring signals | **not tested live** |
 | `places` | `GOOGLE_PLACES_API_KEY`, `--industry` | businesses with website + phone | **not tested live** |
 | `--enrich file.csv` | Hunter / Apollo / Indeed-profile exports | size, website, contacts | tested |
@@ -47,6 +53,6 @@ Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the templat
 
 ## Files
 
-`lead-engine-template.xlsx` Sheets template (Leads, Queue, Call Queue, Events, Dashboard, Templates, Config) ·
+`docs/SETUP.md` network, Google key, sending-domain checklist · `tracker/` click/visit tracker · `lead-engine-template.xlsx` Sheets template (Leads, Queue, Call Queue, Events, Dashboard, Templates, Config) ·
 `apps-script/Code.gs` optional Gmail-draft / reply-sync helper (untested live) · `samples/` the 2026-10-08 six-city run ·
 tests: `python3 -m unittest discover -s tests`
