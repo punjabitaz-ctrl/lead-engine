@@ -1,0 +1,11 @@
+{
+  "signals": {
+    "Hiring": {"line": "I saw that {company} is hiring for {signal_detail}, which is often a sign a digital project is on the way.",
+               "subject": "{company}'s digital project — quick idea"},
+    "Weak Site": {"line": "I took a look at {website} and {site_issue}.", "subject": "Quick note on {website}"},
+    "Expansion": {"line": "Congratulations on {signal_detail}. Growth like that usually puts pressure on the website.",
+                  "subject": "Congrats, {company} — quick idea"},
+    "General": {"line": "I came across {company} while researching companies in {city}.", "subject": "Idea for {company}'s website"}
+  },
+  "body": "Hi {first_name},\n\n{signal_line}\n\n{offer_line}\n\nIf a fast, fixed-scope project would help {company}, I'm happy to send a quick plan — no obligation. A few recent launches (AYiN Advisors, Historical Philly, Al Saboot Builders, Qbit Edge Technologies) are at {portfolio_url}\n\nWorth a 15-minute call this week?{booking_link}\n\n{sender_name}\n{business_name} · {postal_address}\nIf you'd rather not hear from me, just reply \"no thanks\" and I won't contact you again."
+}
