@@ -24,7 +24,7 @@ python3 -m leadengine run --source nppes --state NJ --tier 1 --presence-check pl
 python3 -m leadengine run --source nppes --state NJ --presence presence.csv             # or import hand-checked results
 ```
 
-After each batch it asks `Want 50 more?`. Delivered leads are remembered in `.leadengine/seen.json` (`--fresh` ignores it).
+Leads are delivered in stages of **59, then 100, then 250** (`--stages`, the last repeats; `--all-stages` runs them back to back; `--target N` for one batch). After each stage it asks whether to continue. Delivered leads are remembered in `.leadengine/seen.json` (`--fresh` ignores it).
 Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the template (its Config tab is set to match the run).
 
 Counties: `--county Middlesex --county Somerset` (municipalities and USPS place names from `leadengine/data/nj_counties.json`, written from memory
@@ -34,6 +34,16 @@ Segments (`--tier`, from `leadengine/data/segments.json`): **focus** (default) c
 **2** gastroenterology, orthopaedics, cardiology (high referral volume per cited studies) · **3** unvalidated cost-of-care candidates ·
 `--taxonomy "A, B"` overrides. The specialty strings are not yet verified against the live registry; the first live run warns on any
 that return nothing.
+
+## Running it on your own computer
+
+The tool needs only Python 3 (openpyxl is optional, for the filled .xlsx). On a machine with normal internet access none of the network blocks apply:
+
+```
+git clone <this repo> && cd lead-engine && git checkout claude/lead-generation-system-pbvuy8
+python3 -m leadengine doctor
+python3 -m leadengine run --source nppes --county Middlesex --county Somerset --audit
+```
 
 ## Sources
 

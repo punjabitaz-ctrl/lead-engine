@@ -136,18 +136,22 @@ def run(args):
                  presence_data=load_presence(args.presence) if args.presence else None,
                  checker=checker)
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    stages = [args.target] if args.target else [int(x) for x in args.stages.split(",") if x.strip()]
     batch_no = 0
     while True:
+        size = stages[min(batch_no, len(stages) - 1)]
         batch_no += 1
-        eng.fill(args.target)
-        leads = eng.take(args.target)
+        eng.fill(size)
+        leads = eng.take(size)
         if not leads:
             print("No new qualifying leads. Sources are exhausted; widen the profession list, signal strength, or cities.")
             break
+        print(f"\nStage {batch_no}: target {size}")
         summarize(leads)
         st = eng.stats
         print(f"\nScanned {st['scanned']} records: dropped {st['enterprise_or_staffing']} enterprise/staffing, "
-              f"{st['irrelevant_role']} irrelevant roles, {st['part_time']} part-time, {st['anonymous']} anonymous.")
+              f"{st['irrelevant_role']} irrelevant roles, {st['part_time']} part-time, {st['anonymous']} anonymous, "
+              f"{st['not_private']} not privately owned.")
         if checker:
             print(checker.cost_note() + (f"\nPlaces lookups paused: {checker.stopped}. Unchecked providers stay 'cold'." if checker.stopped else ""))
         base = os.path.join(args.out, f"leads-{stamp}-b{batch_no}")
@@ -155,12 +159,16 @@ def run(args):
         if os.path.exists(args.template):
             export.write_workbook(args.template, base + ".xlsx", leads, cfg, [c for c, _ in cities], args.industry)
         print(f"Saved {len(leads)} leads -> {base}.csv" + (f" and {base}.xlsx" if os.path.exists(args.template) else ""))
-        if len(leads) < args.target:
-            print(f"Only {len(leads)} of the {args.target} requested qualified: sources are exhausted. "
+        if len(leads) < size:
+            print(f"Only {len(leads)} of the {size} requested qualified: sources are exhausted. "
                   "Try --signal any, more professions, nearby cities, or add the places source.")
-        if args.no_prompt or not sys.stdin.isatty() or eng.exhausted and len(eng._ready()) == 0:
             break
-        if ask(f"Want {args.target} more? (y/n)", "n").lower() not in ("y", "yes"):
+        nxt = stages[min(batch_no, len(stages) - 1)]
+        if args.all_stages:
+            continue
+        if args.no_prompt or not sys.stdin.isatty():
+            break
+        if ask(f"Next stage: {nxt} more leads? (y/n)", "n").lower() not in ("y", "yes"):
             break
 
 
@@ -181,7 +189,9 @@ def main(argv=None):
     ap.add_argument("--monthly-places-cap", type=int, default=1000, help="hard cap per calendar month (default = Google's listed free allowance)")
     ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes"])
     ap.add_argument("--postings", help="CSV of job postings (metro,company,title,location,posted,job_type,comp,url)")
-    ap.add_argument("--target", type=int, default=50)
+    ap.add_argument("--target", type=int, help="one batch of exactly this size (overrides --stages)")
+    ap.add_argument("--stages", default="59,100,250", help="batch sizes in order; the last repeats (default 59,100,250)")
+    ap.add_argument("--all-stages", action="store_true", help="run every stage without asking in between")
     ap.add_argument("--audit", action="store_true", help="fetch each website and flag outdated sites (needs internet)")
     ap.add_argument("--enrich", help="CSV with websites / sizes / contacts to merge (company,website,employees,phone,first,last,title,email,linkedin,estatus)")
     ap.add_argument("--template", default="lead-engine-template.xlsx")
