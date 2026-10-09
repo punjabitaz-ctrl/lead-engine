@@ -114,6 +114,20 @@ class ProviderTests(unittest.TestCase):
         self.assertIn("couldn't find a website", lead["body"])
 
 
+class ThinProfileTests(unittest.TestCase):
+    def test_thin_profile_signal_and_draft(self):
+        from leadengine import drafts
+        lead = {"company": "Bright Eye Care", "website": "https://brighteye.test", "city": "Edison", "reviews": 4, "hasweb": "Y",
+                "hasgbp": "Y", "first": "Dr. Rao"}
+        self.assertEqual(scoring.primary_signal(lead, CFG), "Thin Profile")
+        self.assertEqual(scoring.strength(lead, CFG, TODAY), "warm")
+        sig, subj, body = drafts.draft(lead, CFG)
+        self.assertIn("only 4 Google reviews", body)
+        self.assertIn("Google reviews", subj)
+        lead["reviews"] = 250
+        self.assertEqual(scoring.primary_signal(lead, CFG), "General")
+
+
 class CheckerTests(unittest.TestCase):
     def test_cache_and_caps(self):
         import tempfile

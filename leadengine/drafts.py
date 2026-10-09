@@ -22,7 +22,8 @@ def draft(lead, cfg):
     site_issue = (f"Google's PageSpeed test scores it {psi}/100 on mobile" if isinstance(psi, (int, float))
                   else lead.get("audit_note") and f"it shows {lead['audit_note']}" or lead.get("detail") or "it looks dated on mobile")
     vals = {"company": lead["company"], "website": lead.get("website", ""), "city": lead.get("city", ""),
-            "signal_detail": lead.get("detail") or "a digital role", "site_issue": site_issue}
+            "signal_detail": lead.get("detail") or "a digital role", "site_issue": site_issue,
+            "reviews": "" if lead.get("reviews") is None else lead["reviews"]}
     line = _fill(T["signals"][sig]["line"], vals)
     booking = f"\nBook directly: {s['booking_link']}" if s.get("booking_link") else ""
     body = _fill(T["body"], {"first_name": lead.get("first") or "there", "signal_line": line, "offer_line": s["offer"],

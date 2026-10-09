@@ -73,6 +73,42 @@ def summarize(leads):
         print(f"{i:>3}  {ld['total']:>5} {ld['grade']:>2} {ld['strength']:<5} {ld['company'][:42]:<42} {ld['detail'][:60]}")
 
 
+CHECKS = [
+    ("npiregistry.cms.hhs.gov", "NJ provider registry (required)", "https://npiregistry.cms.hhs.gov/api/?version=2.1&state=NJ&limit=1&taxonomy_description=Ophthalmology"),
+    ("places.googleapis.com", "Google Places presence checks", "https://places.googleapis.com/"),
+    ("data.cms.gov", "Medicare spending by specialty", "https://data.cms.gov/"),
+    ("www.cms.gov", "CMS specialty tables", "https://www.cms.gov/"),
+    ("download.medicaid.gov", "NADAC drug costs", "https://download.medicaid.gov/"),
+    ("rwjbh.org", "RWJ New Brunswick price file", "https://rwjbh.org/"),
+    ("saintpetershcs.com", "Saint Peter's price file", "https://www.saintpetershcs.com/"),
+    ("hackensackmeridianhealth.org", "Raritan Bay price file", "https://www.hackensackmeridianhealth.org/"),
+    ("www1.pennmedicine.org", "Penn Princeton price file", "https://www1.pennmedicine.org/"),
+    ("mzsrtwrbpdpehthwmkwt.supabase.co", "click/visit tracker", "https://mzsrtwrbpdpehthwmkwt.supabase.co/functions/v1/lead-tracker/t"),
+]
+
+
+def doctor():
+    """Preflight: which hosts the sandbox can reach and which keys are set. Prints no secret values."""
+    import urllib.error
+    import urllib.request
+    blocked = []
+    for host, purpose, url in CHECKS:
+        try:
+            urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "LeadEngine doctor"}), timeout=10)
+            status = "reachable"
+        except urllib.error.HTTPError as exc:          # the site answered, even if with an error code
+            status = f"reachable (HTTP {exc.code})"
+        except Exception as exc:
+            status = f"BLOCKED ({type(exc).__name__}: {str(exc)[:60]})"
+            blocked.append(host)
+        print(f"{host:<36} {purpose:<34} {status}")
+    for var, purpose in (("GOOGLE_PLACES_API_KEY", "presence checks"), ("ADZUNA_APP_ID", "optional job signals")):
+        print(f"{var:<36} {purpose:<34} {'set' if os.environ.get(var) else 'NOT SET'}")
+    if blocked:
+        print("\nAdd the BLOCKED hosts under Allowed domains (cloud environment menu > Edit > Network access), then start a new session.")
+    return 1 if blocked else 0
+
+
 def run(args):
     interactive = not args.city and not args.state and not args.county
     if interactive:
@@ -130,7 +166,7 @@ def run(args):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="leadengine", description="Point at a city, industry and profession; get scored leads.")
-    ap.add_argument("command", nargs="?", default="run", choices=["run"])
+    ap.add_argument("command", nargs="?", default="run", choices=["run", "doctor"])
     ap.add_argument("--city", action="append", help="'City, ST' (repeatable). Omit to be prompted.")
     ap.add_argument("--industry", default="")
     ap.add_argument("--profession", default="")
@@ -154,4 +190,7 @@ def main(argv=None):
     ap.add_argument("--state-dir", default=".leadengine")
     ap.add_argument("--fresh", action="store_true", help="ignore the record of leads already delivered")
     ap.add_argument("--no-prompt", action="store_true")
-    run(ap.parse_args(argv))
+    args = ap.parse_args(argv)
+    if args.command == "doctor":
+        raise SystemExit(doctor())
+    run(args)

@@ -5,6 +5,9 @@ variable in the cloud environment (menu in the session title bar, then Edit). A 
 
 ## 1. Let the sandbox reach the registry and Google
 
+Only you can do this (it is an environment setting, not something the assistant can change). Afterwards start a **new session** and run
+`python3 -m leadengine doctor` to confirm. As of 2026-10-09 only `places.googleapis.com` was reachable; everything else below was blocked.
+
 The environment's network policy blocks hosts it has not been told about. In **Edit environment > Network access**, choose a
 broader level, or add these under **Allowed domains**:
 

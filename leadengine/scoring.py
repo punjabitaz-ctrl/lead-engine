@@ -46,6 +46,9 @@ def primary_signal(lead, cfg):
         return "No Presence"
     if (isinstance(psi, (int, float)) and psi < cfg["thresholds"]["psi_poor"]) or lead.get("outdated") == "Y":
         return "Weak Site"
+    thin = cfg["thresholds"]["thin_reviews"]
+    if isinstance(lead.get("reviews"), (int, float)) and lead["reviews"] < thin:
+        return "Thin Profile"
     return "Expansion" if lead.get("expand") == "Y" else "General"
 
 
@@ -58,6 +61,8 @@ def strength(lead, cfg, today=None):
     if lead.get("hasweb") == "N" and lead.get("hasgbp") == "N":
         return "hot"
     if lead.get("hasweb") == "N" or lead.get("hasgbp") == "N":
+        return "warm"
+    if isinstance(lead.get("reviews"), (int, float)) and lead["reviews"] < cfg["thresholds"]["thin_reviews"]:
         return "warm"
     if lead.get("hiring") != "Y" and lead.get("outdated") != "Y":
         return "cold"
