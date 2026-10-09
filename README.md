@@ -35,6 +35,20 @@ Segments (`--tier`, from `leadengine/data/segments.json`): **focus** (default) c
 `--taxonomy "A, B"` overrides. The specialty strings are not yet verified against the live registry; the first live run warns on any
 that return nothing.
 
+## Lists in this repo (private repo)
+
+`data/candidates/*.csv` are the hand-assembled candidate lists (from directory listings found by web search, 2026-10-09: unverified) for Middlesex and
+Somerset counties: cardiology, ophthalmology, physical therapy, dentists (by specialty) and mental health. `lists/` holds the generated workbooks:
+`NJ_<segment>_review_*.xlsx` (review checklist, one sheet per specialty plus Overview and Individuals), `NJ_<segment>_practices_*` and
+`NJ_<segment>_individuals_*` (the filled lead-engine template, ordered by specialty). Rebuild with:
+
+```
+python3 tools/build_lists.py      # writes data/candidates/*.csv
+python3 tools/run_lists.py        # runs the engine, writes lists/*.xlsx and *.csv
+python3 tools/build_review.py lists
+python3 tools/build_template.py lead-engine-template.xlsx   # regenerates the Sheets template
+```
+
 ## Filtering large groups
 
 Every lead gets a **Size Class**: Solo (1 clinician), Small (2-5), Medium (6-15), Large (16+) or Unknown. Thresholds are on the Config tab (rows 112-113).

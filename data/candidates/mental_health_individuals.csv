@@ -1,0 +1,10 @@
+practice,specialty,city,address,phone,priority,evidence,source,providers,size_override,review,check,kind,segment,subspecialty,size_basis
+"Alex Soloway, MD",Mental health,Bridgewater,,,3,"Double board-certified psychiatrist, child and adolescent",Psychology Today,1,,Medium,"Practice name, website, phone.",individual,mental_health,Individual clinicians,
+"Jennifer Wacker, MA, EdM, LPC",Mental health,Bridgewater,,,3,"Licensed professional counselor: depression, anxiety, postpartum, adoption",Psychology Today,1,,Medium,"Practice name, website, phone.",individual,mental_health,Individual clinicians,
+"Suzi Millar, PsyD",Mental health,Bridgewater,,,3,Online-only therapy including Arabic,Psychology Today,1,,Low,Online-only: local search matters less.,individual,mental_health,Individual clinicians,
+"Nancy Howard, MSW, LCSW",Mental health,Edison,,,3,In person and teletherapy; CBT and DBT,Theravive,1,,Medium,"Practice name, website, phone.",individual,mental_health,Individual clinicians,
+"Marion Rollings, PhD",Mental health,Hillsborough,101 New Amwell Rd,908-500-7295,3,Licensed psychologist; also serves Bridgewater,Theravive,1,,Medium,"Practice name, website.",individual,mental_health,Individual clinicians,
+"Nicole York, MA, LAC",Mental health,Iselin,,,3,Online-only counseling,Psychology Today,1,,Low,Online-only: local search matters less.,individual,mental_health,Individual clinicians,
+"Samantha Jones, PsyD",Mental health,Iselin,,,3,"Clinical neuropsychologist: assessment of memory loss, TBI, ADHD",Directory listing,1,,Medium,"Practice name, website, phone.",individual,mental_health,Individual clinicians,
+"Sharon R. Evancio, MA, LPC",Mental health,Metuchen,,,3,"Private practice: individual, couples, family counseling",Psychology Today,1,,Medium,"Practice name, website, phone.",individual,mental_health,Individual clinicians,
+"Rebecca Hartman, PsyD",Mental health,Somerville,,,3,Psychologist for children and teens; not accepting new clients,Psychology Today,1,,High,Closed to new clients: drop unless she expands.,individual,mental_health,Individual clinicians,

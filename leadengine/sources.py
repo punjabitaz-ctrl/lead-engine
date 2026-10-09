@@ -174,7 +174,7 @@ def manual_providers(path, state="NJ"):
     with open(path, newline="", encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
     yield [{"kind": "provider", "company": r["practice"].strip(), "npi": "", "npi_type": "NPI-2", "sole": "", "first": "", "last": "",
-            "title": "", "specialty": r.get("specialty", ""), "phone": r.get("phone", ""), "address": r.get("address", ""),
+            "title": "", "specialty": r.get("subspecialty") or r.get("specialty", ""), "phone": r.get("phone", ""), "address": r.get("address", ""),
             "loc_city": r["city"], "metro": r["city"], "city_label": f"{r['city']}, {state}",
             "priority": int(r.get("priority") or 9), "evidence": r.get("evidence", ""), "origin": "Web search (unverified)",
             "origin_note": r.get("source", ""),

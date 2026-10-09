@@ -143,7 +143,7 @@ def run(args):
     eng = Engine(query, cfg, build_sources(args, cities, professions), seen_path=seen, do_audit=args.audit,
                  enrichment=load_enrichment(args.enrich) if args.enrich else None,
                  presence_data=load_presence(args.presence) if args.presence else None,
-                 checker=checker, priority_first="manual" in (args.source or []))
+                 checker=checker, priority_first="manual" in (args.source or []), group_by_specialty=args.group_by_specialty)
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     stages = [args.target] if args.target else [int(x) for x in args.stages.split(",") if x.strip()]
     batch_no = 0
@@ -209,6 +209,7 @@ def main(argv=None):
     ap.add_argument("--config")
     ap.add_argument("--state-dir", default=".leadengine")
     ap.add_argument("--fresh", action="store_true", help="ignore the record of leads already delivered")
+    ap.add_argument("--group-by-specialty", action="store_true", help="order leads by specialty first, then by priority and score")
     ap.add_argument("--exclude-large", action="store_true", help="drop practices classed Large (see Config size thresholds)")
     ap.add_argument("--no-prompt", action="store_true")
     args = ap.parse_args(argv)

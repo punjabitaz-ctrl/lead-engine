@@ -34,7 +34,7 @@ def load_enrichment(path):
 
 class Engine:
     def __init__(self, query, cfg, batches, seen_path=None, do_audit=False, blocklist_path=None, today=None,
-                 enrichment=None, presence_data=None, checker=None, priority_first=False):
+                 enrichment=None, presence_data=None, checker=None, priority_first=False, group_by_specialty=False):
         self.q, self.cfg, self.batches = query, cfg, iter(batches)
         self.rules = RoleRules(query.get("professions", []))
         self.block = load_blocklist(blocklist_path)
@@ -42,6 +42,7 @@ class Engine:
         self.do_audit, self.pool, self.exhausted = do_audit, {}, False
         self.enrichment = enrichment or {}
         self.priority_first = priority_first
+        self.group_by_specialty = group_by_specialty
         self.presence_data, self.checker = presence_data or {}, checker
         self.seen_path = seen_path
         self.seen = set(json.load(open(seen_path))) if seen_path and os.path.exists(seen_path) else set()
@@ -154,7 +155,7 @@ class Engine:
                 continue
             if lead["strength"] in want:
                 out.append((key, lead))
-        out.sort(key=lambda kv: ((kv[1]["priority"] if self.priority_first else 0), -kv[1]["total"], kv[1]["priority"], -kv[1]["n_postings"],
+        out.sort(key=lambda kv: ((kv[1]["specialty"] if self.group_by_specialty else ""), (kv[1]["priority"] if self.priority_first else 0), -kv[1]["total"], kv[1]["priority"], -kv[1]["n_postings"],
                                  -(kv[1]["sigdate"].toordinal() if kv[1]["sigdate"] else 0), kv[1]["company"].lower()))
         return out
 
