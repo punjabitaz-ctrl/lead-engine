@@ -35,6 +35,8 @@ def write_workbook(template, path, leads, cfg=None, cities=(), industry=""):
         cf["B12"], cf["B13"] = cfg["target"]["employees_min"], cfg["target"]["employees_max"]
     for i in range(10):
         cf.cell(row=28 + i, column=1).value = cities[i] if i < len(cities) else None
+    for i in range(40):                                     # overflow list in column E (rows 28-67)
+        cf.cell(row=28 + i, column=5).value = cities[10 + i] if 10 + i < len(cities) else None
     if industry:
         for i in range(10):
             cf.cell(row=16 + i, column=1).value = industry if i == 0 else None

@@ -29,7 +29,7 @@ def is_public_sector(company):
     return bool(PUBLIC.search(company))
 
 
-HEALTH_SYSTEM = re.compile(r"\b(hospital|health system|healthcare system|university|medical group|urgent care|dialysis|davita|"
+HEALTH_SYSTEM = re.compile(r"\b(hospital|health system|healthcare system|university|urgent care|dialysis|davita|"
                            r"hackensack meridian|rwjbarnabas|atlanticare|virtua|inspira|atlantic health|valley health|"
                            r"englewood health|jefferson health|northwell|nyu langone|summit health|carepoint|"
                            r"cooper health|trinitas|saint barnabas|st\.? barnabas)\b", re.I)

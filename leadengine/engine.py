@@ -13,7 +13,7 @@ def _blank_lead(company, city, state, source):
             "vertical": "", "emp": None, "hiring": "N", "expand": "N", "detail": "", "sigdate": None, "first": "",
             "last": "", "title": "", "email": "", "linkedin": "", "psi": None, "outdated": "", "estatus": "Unverified",
             "status": "New", "n_postings": 0, "titles": [], "urls": [], "audit_note": "", "specialty": "", "npi": "",
-            "hasweb": "", "hasgbp": "", "reviews": None, "address": ""}
+            "hasweb": "", "hasgbp": "", "reviews": None, "address": "", "provider": False, "priority": 9}
 
 
 def _employees(text):
@@ -34,13 +34,14 @@ def load_enrichment(path):
 
 class Engine:
     def __init__(self, query, cfg, batches, seen_path=None, do_audit=False, blocklist_path=None, today=None,
-                 enrichment=None, presence_data=None, checker=None):
+                 enrichment=None, presence_data=None, checker=None, priority_first=False):
         self.q, self.cfg, self.batches = query, cfg, iter(batches)
         self.rules = RoleRules(query.get("professions", []))
         self.block = load_blocklist(blocklist_path)
         self.today = today or dt.date.today()
         self.do_audit, self.pool, self.exhausted = do_audit, {}, False
         self.enrichment = enrichment or {}
+        self.priority_first = priority_first
         self.presence_data, self.checker = presence_data or {}, checker
         self.seen_path = seen_path
         self.seen = set(json.load(open(seen_path))) if seen_path and os.path.exists(seen_path) else set()
@@ -70,7 +71,7 @@ class Engine:
                 self.stats["irrelevant_role"] += 1
                 return
         key = f"{norm_name(name)}|{city.lower()}"
-        src = {"posting": "Indeed", "business": "Google Maps", "provider": "NPPES"}[cand["kind"]]
+        src = cand.get("origin") or {"posting": "Indeed", "business": "Google Maps", "provider": "NPPES"}[cand["kind"]]
         lead = self.pool.get(key) or self.pool.setdefault(key, _blank_lead(name, city, state, src))
         if self.q.get("industry"):
             lead["vertical"] = lead["vertical"] or self.q["industry"]
@@ -85,6 +86,12 @@ class Engine:
                 lead["sigdate"] = cand["posted"]
             lead["detail"] = "; ".join(lead["titles"][:2])
         elif cand["kind"] == "provider":
+            lead["provider"] = True
+            lead["priority"] = cand.get("priority", 9)
+            if cand.get("evidence"):
+                lead["detail"] = cand["evidence"]
+            if cand.get("origin_note"):
+                lead["urls"].append("Source: " + cand["origin_note"])
             lead.update({"phone": cand["phone"], "specialty": cand["specialty"], "npi": cand["npi"], "address": cand["address"],
                          "first": cand["first"], "last": cand["last"], "title": cand["title"],
                          "vertical": self.q.get("industry") or "Medical practice"})
@@ -93,7 +100,7 @@ class Engine:
             lead["phone"] = lead["phone"] or cand.get("phone", "")
 
     def _presence(self, lead):
-        if lead["source"] != "NPPES" or lead["hasweb"] or lead["hasgbp"]:
+        if not lead["provider"] or lead["hasweb"] or lead["hasgbp"]:
             return
         row = self.presence_data.get(lead["npi"]) or self.presence_data.get(norm_name(lead["company"]))
         if not row and self.checker:
@@ -127,9 +134,9 @@ class Engine:
         lead["why"] = scoring.why(lead)
         lead["signal"], lead["subject"], lead["body"] = drafts.draft(lead, self.cfg)
         lead["notes"] = " | ".join(lead["urls"])
-        if lead["source"] == "NPPES" and not (lead["hasweb"] or lead["hasgbp"]):
+        if lead["provider"] and not (lead["hasweb"] or lead["hasgbp"]):
             lead["notes"] = (lead["notes"] + " | " if lead["notes"] else "") + "Check presence: " + presence.check_links(lead["company"], lead["city"], lead["state"])
-        need = [n for n, missing in (("web-presence check", lead["source"] == "NPPES" and not (lead["hasweb"] or lead["hasgbp"])), ("website", not lead["website"] and lead["hasweb"] != "N"), ("decision-maker email", not lead["email"]),
+        need = [n for n, missing in (("web-presence check", lead["provider"] and not (lead["hasweb"] or lead["hasgbp"])), ("website", not lead["website"] and lead["hasweb"] != "N"), ("decision-maker email", not lead["email"]),
                                      ("phone", not lead["phone"]), ("employee count", lead["emp"] is None)) if missing]
         lead["next_step"] = ("Find " + ", ".join(need)) if need else "Verify email, then review draft"
 
@@ -142,7 +149,7 @@ class Engine:
             self._finish(lead)
             if lead["strength"] in want:
                 out.append((key, lead))
-        out.sort(key=lambda kv: (-kv[1]["total"], -kv[1]["n_postings"],
+        out.sort(key=lambda kv: ((kv[1]["priority"] if self.priority_first else 0), -kv[1]["total"], kv[1]["priority"], -kv[1]["n_postings"],
                                  -(kv[1]["sigdate"].toordinal() if kv[1]["sigdate"] else 0), kv[1]["company"].lower()))
         return out
 

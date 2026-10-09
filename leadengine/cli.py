@@ -1,4 +1,5 @@
 import argparse
+import csv
 import datetime as dt
 import json
 import os
@@ -46,6 +47,10 @@ def build_sources(args, cities, professions):
             gens.append(sources.csv_postings(args.postings, cities))
         elif n == "adzuna":
             gens.append(sources.adzuna_postings(cities, professions))
+        elif n == "manual":
+            if not args.manual:
+                raise SystemExit("--manual FILE.csv is required for the manual source")
+            gens.append(sources.manual_providers(args.manual))
         elif n == "nppes":
             gens.append(sources.nppes_providers(cities, taxonomies_for(args)))
         elif n == "places":
@@ -110,13 +115,15 @@ def doctor():
 
 
 def run(args):
-    interactive = not args.city and not args.state and not args.county
+    interactive = not (args.city or args.state or args.county or "manual" in (args.source or []) or args.postings)
     if interactive:
         args.city = [c.strip() for c in ask("City, ST (separate several with ';')").split(";") if c.strip()]
         args.industry = ask("Industry (blank to skip)", args.industry or "")
         args.profession = ask("Profession / role you want to reach or that signals need", args.profession or "web developer, marketing manager")
         args.signal = ask("Signal strength (hot / warm / any)", args.signal or "warm")
-    if args.county:
+    if "manual" in (args.source or []) and not (args.county or args.city or args.state):
+        cities = [(c, "NJ") for c in sorted({r["city"] for r in csv.DictReader(open(args.manual, encoding="utf-8"))})]
+    elif args.county:
         cities = sources.county_cities(args.county)
     elif args.city:
         cities = [parse_city(c) for c in args.city]
@@ -126,7 +133,7 @@ def run(args):
         raise SystemExit("Give --county Middlesex, --city 'City, ST' or --state NJ")
     professions = [p.strip() for p in (args.profession or "").split(",") if p.strip()]
     cfg = config.load(args.config)
-    signal = args.signal or ("any" if "nppes" in (args.source or []) else "warm")
+    signal = args.signal or ("any" if set(args.source or []) & {"nppes", "manual"} else "warm")
     query = {"industry": args.industry, "professions": professions, "signal": signal}
     seen = None if args.fresh else os.path.join(args.state_dir, "seen.json")
     checker = (PlacesChecker(args.state_dir, args.max_places_calls, args.monthly_places_cap)
@@ -134,7 +141,7 @@ def run(args):
     eng = Engine(query, cfg, build_sources(args, cities, professions), seen_path=seen, do_audit=args.audit,
                  enrichment=load_enrichment(args.enrich) if args.enrich else None,
                  presence_data=load_presence(args.presence) if args.presence else None,
-                 checker=checker)
+                 checker=checker, priority_first="manual" in (args.source or []))
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     stages = [args.target] if args.target else [int(x) for x in args.stages.split(",") if x.strip()]
     batch_no = 0
@@ -187,7 +194,8 @@ def main(argv=None):
     ap.add_argument("--tier", choices=["focus", "1", "2", "3", "all"], default="focus", help="NPPES specialty set from data/segments.json (default: focus = cardiology + ophthalmology)")
     ap.add_argument("--max-places-calls", type=int, default=200, help="hard cap on Places lookups per run")
     ap.add_argument("--monthly-places-cap", type=int, default=1000, help="hard cap per calendar month (default = Google's listed free allowance)")
-    ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes"])
+    ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes", "manual"])
+    ap.add_argument("--manual", help="CSV of hand-assembled practices (see sources.manual_providers)")
     ap.add_argument("--postings", help="CSV of job postings (metro,company,title,location,posted,job_type,comp,url)")
     ap.add_argument("--target", type=int, help="one batch of exactly this size (overrides --stages)")
     ap.add_argument("--stages", default="59,100,250", help="batch sizes in order; the last repeats (default 59,100,250)")

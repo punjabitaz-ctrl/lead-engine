@@ -51,6 +51,7 @@ python3 -m leadengine run --source nppes --county Middlesex --county Somerset --
 |---|---|---|---|
 | `--postings file.csv` | any job-board export (see `samples/`) | hiring signals | tested |
 | `nppes` | internet access to `npiregistry.cms.hhs.gov` (free, no key) | NJ practice name, phone, specialty, authorized official | parser tested on canned data; **API call not tested live** |
+| `manual` + `--manual file.csv` | a hand-assembled practice list (practice, specialty, city, address, phone, priority 1-3, evidence, source) | ranks by independence evidence first; keep real-name lists out of git (`private/` is ignored) | tested |
 | `--presence file.csv` | your manual or tool results: `npi`/`company`, `has_website`, `has_gbp`, `reviews` | confirmed web-presence gaps | tested |
 | `--presence-check places` | `GOOGLE_PLACES_API_KEY` | automatic presence lookup, cached, with per-run and monthly caps | caps/cache tested; **API call not tested live**; billed per request |
 | `adzuna` | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | hiring signals | **not tested live** |

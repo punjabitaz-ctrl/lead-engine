@@ -166,3 +166,15 @@ def nppes_providers(cities, taxonomies=None, max_skip=1000):
                     yield parse_nppes(data, city, state)
                     if len(data.get("results", [])) < 200:
                         break
+
+
+def manual_providers(path, state="NJ"):
+    """Hand-assembled practice list (CSV: practice, specialty, city, address, phone, priority, evidence, source).
+    priority 1 = a directory says independent / private practice, 2 = standalone name, 3 = individual or uncertain."""
+    with open(path, newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    yield [{"kind": "provider", "company": r["practice"].strip(), "npi": "", "npi_type": "NPI-2", "sole": "", "first": "", "last": "",
+            "title": "", "specialty": r.get("specialty", ""), "phone": r.get("phone", ""), "address": r.get("address", ""),
+            "loc_city": r["city"], "metro": r["city"], "city_label": f"{r['city']}, {state}",
+            "priority": int(r.get("priority") or 9), "evidence": r.get("evidence", ""), "origin": "Web search (unverified)",
+            "origin_note": r.get("source", "")} for r in rows]
