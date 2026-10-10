@@ -5,6 +5,32 @@ each, and fills the Google Sheets template. Then it asks if you want more.
 
 Validate first with `lead-engine-template.xlsx` (no code). The CLI fills that same sheet.
 
+## Campaigns: the repeatable version
+
+A campaign is one market plus one offer, run through fixed stages with a human gate before anyone is contacted:
+`define -> discover -> review (human) -> outreach plan -> humans send -> engagement`.
+
+```
+python3 -m leadengine campaign init nj-dental --state NJ --county Middlesex --vertical healthcare-practices
+python3 -m leadengine campaign status nj-dental --json     # what is done, what is blocked, what is next (agents start here)
+python3 -m leadengine campaign run nj-dental               # next stage size -> campaigns/nj-dental/review/pack-01.csv
+python3 -m leadengine campaign approve nj-dental reviewed.csv   # after a human marks Keep / Drop / Unsure
+python3 -m leadengine campaign outreach nj-dental --start 2026-10-19   # dated tasks; nothing is sent
+python3 -m leadengine campaign batch preview nj-dental 2026-10-19      # read one file, then: batch approve --hash H, batch export
+python3 -m leadengine campaign deal add nj-dental --lead-key <key> --product page1   # after a reply
+python3 -m leadengine campaign launch nj-dental --start 2026-11-01   # 90-day introductory pricing, fixed end date; first 100 signers locked for 12 months
+python3 -m leadengine campaign landing nj-dental                      # one-page landing page from the spec (see examples/landing_example.html)
+python3 -m leadengine campaign deal move nj-dental D001 "Call booked"
+python3 -m leadengine campaign deal call nj-dental D001 --reason "..."   # calls are off unless one is absolutely required (Fridays 10-3)
+python3 -m leadengine campaign deal pay nj-dental D001 250      # then: deal intake, deal start (refuses until paid and intake complete)
+python3 -m leadengine campaign pipeline nj-dental          # funnel, revenue, weekly capacity, in-person eligibility
+```
+
+Swap `--state`, `--county`/`--city` and `--vertical` (a pack in `leadengine/data/verticals/`) to run the same process anywhere.
+`playbook/` has the call script, proposal, agreement and delivery checklist. `docs/EXECUTIVE_REVIEW.md` has the business case and `python3 tools/funnel.py` the funnel math.
+See `docs/ARCHITECTURE.md` for the model and the gap list, and `docs/AGENT_RUNBOOK.md` for how an agent drives it.
+`campaigns/` holds lead data and sender details, so it is git-ignored except `campaigns/README.md`.
+
 ## Two different ideas, kept separate
 
 - **Signal strength** (`hot / warm / cold`): how strong the reason to contact them is. Computed when the lead is found.
@@ -27,10 +53,10 @@ python3 -m leadengine run --source nppes --state NJ --presence presence.csv     
 Leads are delivered in stages of **59, then 100, then 250** (`--stages`, the last repeats; `--all-stages` runs them back to back; `--target N` for one batch). After each stage it asks whether to continue. Delivered leads are remembered in `.leadengine/seen.json` (`--fresh` ignores it).
 Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the template (its Config tab is set to match the run).
 
-Counties: `--county Middlesex --county Somerset` (municipalities and USPS place names from `leadengine/data/nj_counties.json`, written from memory
-and unverified; the other 19 counties are not loaded yet).
+Counties: `--county Middlesex --county Somerset` (municipalities and USPS place names from `leadengine/data/geo/NJ.json`, written from memory
+and unverified; the other 19 NJ counties and other states are not loaded yet: add `data/geo/<ST>.json`, see `docs/ARCHITECTURE.md`).
 
-Segments (`--tier`, from `leadengine/data/segments.json`): **focus** (default) cardiology + ophthalmology (pitch: site and local-search quality; signals: weak site, thin reviews, slow mobile page) · **1** dentists, physical therapists, mental health, primary care ·
+Segments (`--tier`, from the vertical pack `leadengine/data/verticals/healthcare-practices.json`): **focus** (default) cardiology + ophthalmology (pitch: site and local-search quality; signals: weak site, thin reviews, slow mobile page) · **1** dentists, physical therapists, mental health, primary care ·
 **2** gastroenterology, orthopaedics, cardiology (high referral volume per cited studies) · **3** unvalidated cost-of-care candidates ·
 `--taxonomy "A, B"` overrides. The specialty strings are not yet verified against the live registry; the first live run warns on any
 that return nothing.

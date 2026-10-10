@@ -73,53 +73,44 @@ def adzuna_postings(cities, professions, pages=3):
 
 
 def places_businesses(cities, industry, max_pages=3):
+    """industry: one text-search phrase, or a list of phrases (each searched in every city)."""
     key = os.environ.get("GOOGLE_PLACES_API_KEY")
     if not key:
         raise RuntimeError("Set GOOGLE_PLACES_API_KEY (Places API (New) must be enabled; billed per request)")
     mask = ("places.displayName,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,"
             "places.rating,places.userRatingCount,nextPageToken")
+    queries = [industry] if isinstance(industry, str) else list(industry)
     for city, state in cities:
-        token = None
-        for _ in range(max_pages):
-            body = {"textQuery": f"{industry} in {city}, {state}", "pageSize": 20}
-            if token:
-                body["pageToken"] = token
-            data = _http_json("https://places.googleapis.com/v1/places:searchText", json.dumps(body).encode(),
-                              {"Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": mask})
-            yield [{"kind": "business", "company": p["displayName"]["text"], "address": p.get("formattedAddress", ""),
-                    "website": p.get("websiteUri", ""), "phone": p.get("nationalPhoneNumber", ""),
-                    "rating": p.get("rating"), "reviews": p.get("userRatingCount"), "metro": city,
-                    "city_label": f"{city}, {state}"} for p in data.get("places", [])]
-            token = data.get("nextPageToken")
-            if not token:
-                break
+        for query in queries:
+            token = None
+            for _ in range(max_pages):
+                body = {"textQuery": f"{query} in {city}, {state}", "pageSize": 20}
+                if token:
+                    body["pageToken"] = token
+                data = _http_json("https://places.googleapis.com/v1/places:searchText", json.dumps(body).encode(),
+                                  {"Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": mask})
+                yield [{"kind": "business", "company": p["displayName"]["text"], "address": p.get("formattedAddress", ""),
+                        "website": p.get("websiteUri", ""), "phone": p.get("nationalPhoneNumber", ""),
+                        "rating": p.get("rating"), "reviews": p.get("userRatingCount"), "metro": city,
+                        "city_label": f"{city}, {state}"} for p in data.get("places", [])]
+                token = data.get("nextPageToken")
+                if not token:
+                    break
 
 
-NJ_CITIES = os.path.join(os.path.dirname(__file__), "data", "nj_cities.txt")
 DEFAULT_TAXONOMIES = ["Family Medicine", "Internal Medicine", "Pediatrics", "Obstetrics & Gynecology", "Dermatology",
                       "Ophthalmology", "Orthopaedic Surgery", "Psychiatry"]
 
 
 def nj_cities():
-    with open(NJ_CITIES, encoding="utf-8") as fh:
-        return [(ln.strip(), "NJ") for ln in fh if ln.strip() and not ln.startswith("#")]
+    from . import geo
+    return geo.statewide("NJ")
 
 
-def county_cities(counties):
+def county_cities(counties, state="NJ"):
     """--county Middlesex --county Somerset -> [(city, 'NJ')...]. Raises with the loaded list if a county is unknown."""
-    import json as _json
-    with open(os.path.join(os.path.dirname(__file__), "data", "nj_counties.json"), encoding="utf-8") as fh:
-        data = {k.lower(): v for k, v in _json.load(fh).items() if not k.startswith("_")}
-    out, seen = [], set()
-    for c in counties:
-        if c.lower() not in data:
-            raise SystemExit(f"County {c!r} is not loaded yet. Loaded: {', '.join(k.title() for k in data)}. "
-                             "Use --state NJ for the statewide city sweep or add the county to data/nj_counties.json.")
-        for city in data[c.lower()]:
-            if city not in seen:
-                seen.add(city)
-                out.append((city, "NJ"))
-    return out
+    from . import geo
+    return geo.county_cities(counties, state)
 
 
 def parse_nppes(data, city, state):
@@ -168,7 +159,7 @@ def nppes_providers(cities, taxonomies=None, max_skip=1000):
                         break
 
 
-def manual_providers(path, state="NJ"):
+def manual_providers(path, state="NJ"):  # state: two-letter code written on each row
     """Hand-assembled practice list (CSV: practice, specialty, city, address, phone, priority, evidence, source).
     priority 1 = a directory says independent / private practice, 2 = standalone name, 3 = individual or uncertain."""
     with open(path, newline="", encoding="utf-8") as fh:

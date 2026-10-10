@@ -1,0 +1,24 @@
+{
+ "id": "local-services",
+ "label": "Local service businesses found through Google Places",
+ "industry": "Local business",
+ "sources": [
+  "places"
+ ],
+ "tier_order": [
+  "focus"
+ ],
+ "tiers": {
+  "focus": {
+   "label": "Edit this list for your market",
+   "places_queries": [
+    "plumber",
+    "electrician",
+    "HVAC contractor",
+    "roofing contractor",
+    "landscaper"
+   ]
+  }
+ },
+ "_note": "Example pack for a non-medical vertical. Each query becomes a Google Places text search per city. Replace the list with the trades you serve."
+}

@@ -5,7 +5,7 @@ import json
 import os
 import sys
 
-from . import config, export, sources
+from . import config, export, geo, packs, sources
 from .engine import Engine, load_enrichment
 from .presence import PlacesChecker, load_presence
 
@@ -50,26 +50,26 @@ def build_sources(args, cities, professions):
         elif n == "manual":
             if not args.manual:
                 raise SystemExit("--manual FILE.csv is required for the manual source")
-            gens.append(sources.manual_providers(args.manual))
+            gens.append(sources.manual_providers(args.manual, (args.state or "NJ").upper()))
         elif n == "nppes":
             gens.append(sources.nppes_providers(cities, taxonomies_for(args)))
         elif n == "places":
-            if not args.industry:
-                raise SystemExit("--industry is required for the places source")
-            gens.append(sources.places_businesses(cities, args.industry))
+            queries = args.places_query or ([args.industry] if args.industry else [])
+            if not queries:
+                raise SystemExit("--industry (or --places-query) is required for the places source")
+            gens.append(sources.places_businesses(cities, queries))
         else:
             raise SystemExit(f"Unknown source {n}")
     return (b for g in gens for b in g)
 
 
-def taxonomies_for(args):
-    """--taxonomy wins; otherwise --tier 1 (default), 2, 3 or all, from data/segments.json."""
+def taxonomies_for(args, pack_id="healthcare-practices"):
+    """--taxonomy wins; otherwise --tier focus (default), 1, 2, 3 or all, from the vertical pack's tiers."""
     if args.taxonomy:
         return [t.strip() for t in args.taxonomy.split(",") if t.strip()]
-    with open(os.path.join(os.path.dirname(__file__), "data", "segments.json"), encoding="utf-8") as fh:
-        seg = json.load(fh)
-    tiers = ["focus", "tier1", "tier2", "tier3"] if args.tier == "all" else ["focus" if args.tier == "focus" else f"tier{args.tier}"]
-    return [t for k in tiers for t in seg[k]["taxonomies"]]
+    pack = packs.load(pack_id)
+    tiers = ["all"] if args.tier == "all" else ["focus" if args.tier == "focus" else f"tier{args.tier}"]
+    return packs.terms(pack, "taxonomies", tiers)
 
 
 def summarize(leads):
@@ -79,7 +79,7 @@ def summarize(leads):
 
 
 CHECKS = [
-    ("npiregistry.cms.hhs.gov", "NJ provider registry (required)", "https://npiregistry.cms.hhs.gov/api/?version=2.1&state=NJ&limit=1&taxonomy_description=Ophthalmology"),
+    ("npiregistry.cms.hhs.gov", "provider registry (nppes source)", "https://npiregistry.cms.hhs.gov/api/?version=2.1&state=NJ&limit=1&taxonomy_description=Ophthalmology"),
     ("places.googleapis.com", "Google Places presence checks", "https://places.googleapis.com/"),
     ("data.cms.gov", "Medicare spending by specialty", "https://data.cms.gov/"),
     ("www.cms.gov", "CMS specialty tables", "https://www.cms.gov/"),
@@ -122,15 +122,15 @@ def run(args):
         args.profession = ask("Profession / role you want to reach or that signals need", args.profession or "web developer, marketing manager")
         args.signal = ask("Signal strength (hot / warm / any)", args.signal or "warm")
     if "manual" in (args.source or []) and not (args.county or args.city or args.state):
-        cities = [(c, "NJ") for c in sorted({r["city"] for r in csv.DictReader(open(args.manual, encoding="utf-8"))})]
+        cities = [(c, (args.state or "NJ").upper()) for c in sorted({r["city"] for r in csv.DictReader(open(args.manual, encoding="utf-8"))})]
     elif args.county:
-        cities = sources.county_cities(args.county)
+        cities = geo.county_cities(args.county, args.state or "NJ")
     elif args.city:
         cities = [parse_city(c) for c in args.city]
-    elif (args.state or "").upper() == "NJ":
-        cities = sources.nj_cities()
+    elif args.state:
+        cities = geo.statewide(args.state)
     else:
-        raise SystemExit("Give --county Middlesex, --city 'City, ST' or --state NJ")
+        raise SystemExit("Give --state NJ --county Middlesex, --city 'City, ST' or --state NJ for a statewide sweep")
     professions = [p.strip() for p in (args.profession or "").split(",") if p.strip()]
     cfg = config.load(args.config)
     if args.exclude_large:
@@ -145,6 +145,7 @@ def run(args):
                  presence_data=load_presence(args.presence) if args.presence else None,
                  checker=checker, priority_first="manual" in (args.source or []), group_by_specialty=args.group_by_specialty)
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    written = []
     stages = [args.target] if args.target else [int(x) for x in args.stages.split(",") if x.strip()]
     batch_no = 0
     while True:
@@ -167,6 +168,7 @@ def run(args):
         export.write_csv(base + ".csv", leads)
         if os.path.exists(args.template):
             export.write_workbook(args.template, base + ".xlsx", leads, cfg, [c for c, _ in cities], args.industry)
+        written.append(base + ".csv")
         print(f"Saved {len(leads)} leads -> {base}.csv" + (f" and {base}.xlsx" if os.path.exists(args.template) else ""))
         if len(leads) < size:
             print(f"Only {len(leads)} of the {size} requested qualified: sources are exhausted. "
@@ -179,21 +181,23 @@ def run(args):
             break
         if ask(f"Next stage: {nxt} more leads? (y/n)", "n").lower() not in ("y", "yes"):
             break
+    return written
 
 
-def main(argv=None):
+def build_parser():
     ap = argparse.ArgumentParser(prog="leadengine", description="Point at a city, industry and profession; get scored leads.")
-    ap.add_argument("command", nargs="?", default="run", choices=["run", "doctor"])
+    ap.add_argument("command", nargs="?", default="run", choices=["run", "doctor"])  # "campaign ..." is handled in main()
     ap.add_argument("--city", action="append", help="'City, ST' (repeatable). Omit to be prompted.")
     ap.add_argument("--industry", default="")
+    ap.add_argument("--places-query", action="append", help="Google Places search phrase (repeatable); defaults to --industry")
     ap.add_argument("--profession", default="")
     ap.add_argument("--signal", choices=["hot", "warm", "any"], help="signal strength to keep (default warm; any for nppes)")
-    ap.add_argument("--county", action="append", help="NJ county (repeatable), e.g. --county Middlesex --county Somerset")
-    ap.add_argument("--state", help="two-letter state for a statewide sweep, e.g. NJ (nppes uses data/nj_cities.txt)")
+    ap.add_argument("--county", action="append", help="county name (repeatable) in --state (default NJ), e.g. --county Middlesex --county Somerset")
+    ap.add_argument("--state", help="two-letter state; with --county picks the state, alone sweeps data/geo/<ST>.json cities")
     ap.add_argument("--taxonomy", help="comma list of NPPES specialties, e.g. 'Family Medicine, Pediatrics'")
     ap.add_argument("--presence", help="CSV of web-presence results (npi or company, has_website, has_gbp, reviews)")
     ap.add_argument("--presence-check", choices=["places"], help="look each provider up in Google Places (needs a key)")
-    ap.add_argument("--tier", choices=["focus", "1", "2", "3", "all"], default="focus", help="NPPES specialty set from data/segments.json (default: focus = cardiology + ophthalmology)")
+    ap.add_argument("--tier", choices=["focus", "1", "2", "3", "all"], default="focus", help="NPPES specialty set from the healthcare-practices pack (default: focus = cardiology + ophthalmology)")
     ap.add_argument("--max-places-calls", type=int, default=200, help="hard cap on Places lookups per run")
     ap.add_argument("--monthly-places-cap", type=int, default=1000, help="hard cap per calendar month (default = Google's listed free allowance)")
     ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes", "manual"])
@@ -212,7 +216,15 @@ def main(argv=None):
     ap.add_argument("--group-by-specialty", action="store_true", help="order leads by specialty first, then by priority and score")
     ap.add_argument("--exclude-large", action="store_true", help="drop practices classed Large (see Config size thresholds)")
     ap.add_argument("--no-prompt", action="store_true")
-    args = ap.parse_args(argv)
+    return ap
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "campaign":
+        from . import campaign
+        raise SystemExit(campaign.main(argv[1:]))
+    args = build_parser().parse_args(argv)
     if args.command == "doctor":
         raise SystemExit(doctor())
     run(args)
