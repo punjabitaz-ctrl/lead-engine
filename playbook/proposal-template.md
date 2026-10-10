@@ -10,7 +10,8 @@
 * Live within 72 hours after payment and your completed intake form
 
 **Price:** $[250 | 500]  Payment: [single page: in full before work begins | 3-page: 50% deposit ($250) before work begins, balance at launch]. No payment, no work.
-**Optional monthly care plan:** Basic upkeep $9.99 (site kept online and secure, no changes) | Upkeep + 1 change $20 | Priority upkeep $50 (tier 1 support, advanced upkeep, up to 5 code changes a month of up to 190 minutes each)
+**Optional monthly care plan:** Basic upkeep $9.99 (site kept online and secure, no changes) | Upkeep + 1 change $20 | Priority upkeep $99 (tier 1 support, advanced upkeep, up to 5 changes a month, 2 hours of work in total)
+**Launch pricing:** these are introductory prices for the first 90 days [through DATE]; sign during the launch and they are locked for [__] months.
 
 **Not included:** logo design, copywriting beyond light edits, photography, online booking, patient portals, anything that collects patient information. One round of revisions is included.
 

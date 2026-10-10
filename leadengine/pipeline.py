@@ -17,7 +17,7 @@ from . import campaign
 STAGES = ["Contacted", "Replied", "Call booked", "Proposal sent", "Won", "In build", "Delivered", "Lost"]
 BOOKED = ("Won", "In build", "Delivered")
 FIELDS = ["Deal ID", "Lead Key", "Company", "Contact", "Product", "Plan", "Stage", "One-time $", "Paid $", "Monthly $", "Intake complete",
-          "Source", "Signal", "First channel", "Created", "Updated", "Won date", "Start date", "Lost reason", "Furthest", "Notes"]
+          "Source", "Signal", "First channel", "Created", "Updated", "Won date", "Launch price", "Price lock until", "Start date", "Call required", "Lost reason", "Furthest", "Notes"]
 PATH = "pipeline.csv"
 
 
@@ -115,6 +115,10 @@ def move_deal(name, deal_id, stage, one_time=None, monthly=None, reason="", note
             raise SystemExit("Won needs a product on the deal or --one-time")
         deal["One-time $"] = one_time if one_time is not None else (deal["One-time $"] or prod["price"])
         deal["Won date"] = today.isoformat()
+        if campaign.in_launch(spec, today):
+            lm = spec["offer"]["launch"].get("lock_months")
+            deal["Launch price"] = "Y"
+            deal["Price lock until"] = str(campaign.add_months(today, lm)) if lm is not None else "TBD"
         if deal["Plan"] and not _num(deal["Monthly $"]) and monthly is None:
             deal["Monthly $"] = _plan(spec, deal["Plan"])["price"]
     elif one_time is not None:
@@ -129,6 +133,17 @@ def move_deal(name, deal_id, stage, one_time=None, monthly=None, reason="", note
     _save(name, root, rows)
     campaign.log(name, "deal_move", root, deal=deal_id, stage=stage)
     return deal, in_person_eligible(deal, spec)
+
+
+def require_call(name, deal_id, reason, root=campaign.ROOT, today=None):
+    """Calls are off by default (outreach.phone_policy). This records the one reason a call is absolutely required."""
+    rows = _load(name, root)
+    deal = _find(rows, deal_id)
+    deal["Call required"] = reason
+    deal["Updated"] = (today or dt.date.today()).isoformat()
+    _save(name, root, rows)
+    campaign.log(name, "call_required", root, deal=deal_id, reason=reason)
+    return deal
 
 
 def record_payment(name, deal_id, amount, root=campaign.ROOT, today=None):
@@ -167,6 +182,9 @@ def start_work(name, deal_id, root=campaign.ROOT, today=None):
     if missing:
         raise SystemExit("Work cannot start yet:\n  - " + "\n  - ".join(missing))
     today = today or dt.date.today()
+    limit = spec["offer"].get("max_parallel_builds", 3)
+    if sum(1 for r in rows if r["Stage"] == "In build") >= limit:
+        raise SystemExit(f"{limit} projects are already in build (offer.max_parallel_builds). Deliver one first, then start this one.")
     deal.update(Stage="In build", **{"Start date": today.isoformat(), "Updated": today.isoformat(), "Furthest": "In build"})
     _save(name, root, rows)
     campaign.log(name, "work_started", root, deal=deal_id)
@@ -194,6 +212,9 @@ def report(name, root=campaign.ROOT, today=None):
     return {"deals": len(rows), "by_stage": {s: sum(1 for r in rows if r["Stage"] == s) for s in STAGES}, "funnel_reached": funnel,
             "conversion": conv, "booked": len(booked), "one_time_booked": sum(_num(r["One-time $"]) for r in booked),
             "cash_collected": sum(_num(r["Paid $"]) for r in rows), "monthly_recurring_booked": sum(_num(r["Monthly $"]) for r in booked),
+            "in_build": [f"{r['Deal ID']} {r['Company']}" for r in rows if r["Stage"] == "In build"], "max_parallel_builds": spec["offer"].get("max_parallel_builds", 3),
+            "calls_needed": [f"{r['Deal ID']} {r['Company']}: {r['Call required']}" for r in rows if r["Call required"] and r["Stage"] not in ("Lost", "Delivered")],
+            "launch_deals": sum(1 for r in rows if r["Launch price"] == "Y"),
             "waiting_to_start": [f"{r['Deal ID']} {r['Company']}" for r in rows if r["Stage"] == "Won"],
             "lost_reasons": sorted({r["Lost reason"] for r in rows if r["Lost reason"]}),
             "capacity": {"per_week": cap, "stated": spec["offer"]["capacity_per_week"], "started_this_week": len(started), "full": len(started) >= cap},

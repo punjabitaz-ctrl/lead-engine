@@ -28,7 +28,7 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 
 ## After a reply
 
-* Add the deal: `campaign deal add <name> --lead-key <key> --product page1|page3 [--plan care9|care20|care50]` (only approved leads can enter).
+* Add the deal: `campaign deal add <name> --lead-key <key> --product page1|page3 [--plan care9|care20|care99]` (only approved leads can enter).
 * Move it as the human reports progress: `campaign deal move <name> D001 "Call booked"`; `Lost` needs a reason; `Won` defaults to the product price.
 * Work cannot start until the deal is Won, paid (page1 in full; page3 50% deposit) and the intake is complete: `deal pay`, `deal intake`, `deal start`. Do not work around it.
 * `campaign pipeline <name>` reports funnel, conversion by source/signal/channel, revenue, weekly capacity and in-person-eligible deals.
@@ -40,7 +40,9 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 
 * The operator works after 10pm. Prepare, plan and run `batch preview` for them to read at night; the export carries a send window (default 09:30-11:30 recipient time).
   Never suggest sending at night.
-* Calls are scheduled only in the Friday 10:00-15:00 block (`outreach.call_window`); anything outside the operator's daytime blocks is marked "NEEDS A DAYTIME BLOCK". Do not add call times yourself.
+* **No cold calling.** Phone is off (`outreach.phone_policy: on_request_only`). Only when the operator says a call is absolutely required: `campaign deal call <name> <deal> --reason "..."`; the call goes in the Friday 10:00-15:00 block. Do not add call steps or times yourself.
+* **Launch pricing:** the 90-day window starts with `campaign launch <name> --start DATE` (ask the operator for the date); deals won inside it are marked as locked. Do not quote list prices: none are set yet.
+* **Up to 3 builds at once:** `deal start` enforces it.
 * Weekly capacity is the lower of `offer.capacity_per_week` and what `operator.hours_per_week` allows (`status` shows `effective_capacity`).
 * Over-limit requests (more than a plan allows) are quoted as separate paid work: do not agree scope or price for the operator.
 

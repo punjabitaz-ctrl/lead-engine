@@ -48,35 +48,38 @@ DEFAULT_SPEC = {
              "includes": "keeps the site online and secure; no changes"},
             {"id": "care20", "name": "Upkeep + 1 change", "price": 20, "changes_per_month": 1, "max_minutes_per_change": 30, "monthly_minutes_cap": 30,
              "includes": "upkeep plus one change or update a month, up to 30 minutes of work"},
-            {"id": "care50", "name": "Priority upkeep", "price": 50, "changes_per_month": 5, "max_minutes_per_change": 190, "monthly_minutes_cap": 240,
-             "includes": "tier 1 support, advanced upkeep, up to 5 code changes a month (each up to 190 minutes), 4 hours of work in total a month"},
+            {"id": "care99", "name": "Priority upkeep", "price": 99, "changes_per_month": 5, "max_minutes_per_change": 120, "monthly_minutes_cap": 120,
+             "includes": "tier 1 support, advanced upkeep, up to 5 changes a month, 2 hours of work in total a month (no single change over 2 hours)"},
         ],
         "plan_terms": {"rollover": False, "over_limit": "Anything beyond a plan's limits is quoted as separate paid work (written quote, ownership on payment)."},
+        "launch": {"start": None, "days": 90, "lock_months": None,
+                   "terms": "Prices in this offer are introductory launch prices for the first 90 days. Clients who sign during the launch keep their launch prices for the lock period."},
+        "max_parallel_builds": 3,
         "capacity_per_week": 10,
         "in_person_min_monthly_value": 5000,
         "target_hourly": 50,
         "add_ons": [
-            {"id": "privacy-policy", "name": "Privacy and data-retention policy drafted from the template; the client's attorney reviews it", "price": None, "suggested": 195},
-            {"id": "logo-brand", "name": "Logo and brand basics (logo, 2 colors, 1 font, vector files, one revision round)", "price": None, "suggested": 350},
-            {"id": "copywriting", "name": "Copywriting beyond light edits, per page, from the client's facts", "price": None, "suggested": 150, "unit": "page"},
-            {"id": "out-of-plan", "name": "Work beyond a plan's limits (hourly, 1-hour minimum, 30-minute blocks)", "price": None, "suggested": 85, "unit": "hour"},
+            {"id": "privacy-policy", "name": "Privacy and data-retention policy drafted from the template; the client's attorney reviews it", "price": 195, "list_price": None},
+            {"id": "logo-brand", "name": "Logo and brand basics (logo, 2 colors, 1 font, vector files, one revision round)", "price": 350, "list_price": None},
+            {"id": "copywriting", "name": "Copywriting beyond light edits, per page, from the client's facts", "price": 150, "list_price": None, "unit": "page"},
+            {"id": "out-of-plan", "name": "Work beyond a plan's limits (hourly, 1-hour minimum, 30-minute blocks)", "price": 85, "list_price": None, "unit": "hour"},
         ],
         "delivery_hours_estimate": [2, 3],
         "intake_required": ["logo and branding", "imagery", "text copy", "videos (if any)", "legal or other business data",
                             "privacy and data-retention policy"],
     },
-    "operator": {"night_window": "22:00-24:00", "nights_per_week": 5, "hours_per_night": 2, "hours_per_week": 10, "outreach_share": 0.4,
+    "operator": {"night_window": "22:00-24:00", "nights_per_week": 5, "hours_per_night": 2, "hours_per_week": 10, "outreach_share": 0.4, "parallel_efficiency": 1.0,
                  "timezone": "America/New_York", "daytime_blocks": [{"days": ["Fri"], "start": "10:00", "end": "15:00"}]},
     "outreach": {
         "send_window": {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "09:30", "end": "11:30"},
         "call_window": {"days": ["Fri"], "start": "10:00", "end": "15:00"},
         "daily_caps": {"email": 20, "phone": 10, "linkedin": 15},
+        "phone_policy": "on_request_only",
         "sequence": [
             {"day": 0, "channel": "email", "action": "Send the approved email 1"},
             {"day": 3, "channel": "linkedin", "action": "Connect with a short note; engage with a recent post"},
             {"day": 5, "channel": "email", "action": "Follow-up 1: one new angle, two sentences"},
-            {"day": 8, "channel": "phone", "action": "Call; check the Do-Not-Call list first"},
-            {"day": 14, "channel": "email", "action": "Last note: offer to close the loop"},
+            {"day": 12, "channel": "email", "action": "Last note: offer to close the loop"},
         ],
     },
 }
@@ -201,6 +204,13 @@ def validate(spec):
             bad.append(f"outreach step {i}: 'day' must be a whole number, not earlier than the previous step")
         else:
             last = st["day"]
+    if spec.get("outreach", {}).get("phone_policy") == "on_request_only" and any(st.get("channel") == "phone" for st in seq):
+        bad.append("outreach.phone_policy is on_request_only: remove phone steps from the sequence (calls happen only when a deal needs one: `deal call`)")
+    lau = off.get("launch", {})
+    if not isinstance(lau.get("days"), int) or lau.get("days", 0) < 1:
+        bad.append("offer.launch.days must be a whole number of days")
+    if not isinstance(off.get("max_parallel_builds"), int) or off.get("max_parallel_builds", 0) < 1:
+        bad.append("offer.max_parallel_builds must be a whole number of projects")
     for ch in {s.get("channel") for s in seq}:
         if ch in CHANNELS and not spec["outreach"].get("daily_caps", {}).get(ch):
             bad.append(f"outreach: set daily_caps for {ch}")
@@ -241,9 +251,16 @@ def offer_warnings(spec):
             worst = min(n * mins, cap) if cap else n * mins
             hours = worst / 60
             rate = p["price"] / hours
-            if rate < target:
+            if rate < target * 0.95:
                 out.append(f"plan {p['id']} (${p['price']:g}/mo): worst case {hours:.1f} h of work a month = ${rate:.2f}/h, below your ${target:g}/h target"
                            f"; at that cap it would need to be ${hours * target:,.0f}/mo, or the cap {p['price'] / target * 60:.0f} min")
+    lau = off.get("launch", {})
+    if not lau.get("start"):
+        out.append("the 90-day launch window has not started: run `campaign launch <name> --start YYYY-MM-DD` when the first outreach goes out")
+    if lau.get("lock_months") is None:
+        out.append("how long launch prices are locked for clients who sign during the launch (offer.launch.lock_months) is undecided")
+    if not any(x.get("list_price") for x in off.get("products", []) + off.get("plans", []) + off.get("add_ons", [])):
+        out.append("no list prices are set for after the launch (list_price on products, plans and add-ons)")
     for ao in off.get("add_ons", []):
         if ao.get("price") is None:
             out.append(f"add-on {ao['id']} has no price yet (suggested ${ao['suggested']}); quote requests cannot be answered consistently" if ao.get("suggested") else f"add-on {ao['id']} has no price yet")
@@ -255,6 +272,26 @@ def offer_warnings(spec):
     return out
 
 
+def launch_window(spec):
+    st = spec.get("offer", {}).get("launch", {}).get("start")
+    if not st:
+        return None
+    start = dt.date.fromisoformat(st)
+    return start, start + dt.timedelta(days=spec["offer"]["launch"]["days"])
+
+
+def in_launch(spec, day):
+    w = launch_window(spec)
+    return bool(w and w[0] <= day < w[1])
+
+
+def add_months(day, months):
+    y, m = divmod(day.month - 1 + int(months), 12)
+    y, m = day.year + y, m + 1
+    last = [31, 29 if y % 4 == 0 and (y % 100 or y % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1]
+    return dt.date(y, m, min(day.day, last))
+
+
 def effective_capacity(spec):
     """Projects a week you can really deliver: the lower of the stated limit and what your hours allow after outreach time."""
     off, op = spec["offer"], spec.get("operator", {})
@@ -262,7 +299,7 @@ def effective_capacity(spec):
     hours = op.get("hours_per_week") or (op.get("nights_per_week", 0) * op.get("hours_per_night", 0))
     if not hours:
         return stated
-    per = max(off.get("delivery_hours_estimate", [3])) or 3
+    per = (max(off.get("delivery_hours_estimate", [3])) or 3) / (op.get("parallel_efficiency") or 1.0)
     return max(0, min(stated, int(hours * (1 - op.get("outreach_share", 0.4)) / per)))
 
 
@@ -529,7 +566,7 @@ def status(name, root=ROOT, today=None):
     cap = pipeline.report(name, root, today)["capacity"]
     if cap["full"]:
         nxt = f"PAUSE outreach: {cap['started_this_week']} of {cap['per_week']} projects already started this week. " + nxt
-    return {"campaign": name, "capacity": cap, "effective_capacity": effective_capacity(spec), "offer_warnings": offer_warnings(spec), "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
+    return {"campaign": name, "capacity": cap, "effective_capacity": effective_capacity(spec), "launch": ({"starts": str(launch_window(spec)[0]), "ends": str(launch_window(spec)[1])} if launch_window(spec) else None), "offer_warnings": offer_warnings(spec), "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
             "outreach_files": outs, "problems": problems, "blockers": todo, "next_action": nxt}
 
 
@@ -557,6 +594,10 @@ def main(argv):
     p.add_argument("name")
     p.add_argument("--start", required=True, help="YYYY-MM-DD")
     p.add_argument("--force", action="store_true", help="plan even if compliance checks fail (not recommended)")
+    p = sub.add_parser("launch", help="start the introductory-pricing window (default 90 days)")
+    p.add_argument("name")
+    p.add_argument("--start", required=True, help="YYYY-MM-DD")
+    p.add_argument("--lock-months", type=int, help="how long launch prices stay locked for clients who sign during the launch")
     p = sub.add_parser("batch", help="review and approve a day's first-contact emails together")
     bsub = p.add_subparsers(dest="batch_cmd", required=True)
     for c in ("preview", "approve", "export"):
@@ -578,6 +619,10 @@ def main(argv):
     q.add_argument("--channel", default="email")
     q.add_argument("--monthly", type=float, default=0)
     q.add_argument("--plan", default="")
+    q = dsub.add_parser("call", help="record that a phone call is absolutely required for this deal (calls are otherwise off)")
+    q.add_argument("name")
+    q.add_argument("deal_id")
+    q.add_argument("--reason", required=True)
     q = dsub.add_parser("pay")
     q.add_argument("name")
     q.add_argument("deal_id")
@@ -635,6 +680,14 @@ def main(argv):
         print(f"{n} tasks -> {out}; {len(skipped)} skipped")
         for x in block + warn:
             print("  note:", x)
+    elif a.cmd == "launch":
+        spec = load(a.name, root)
+        spec["offer"]["launch"]["start"] = a.start
+        if a.lock_months is not None:
+            spec["offer"]["launch"]["lock_months"] = a.lock_months
+        _write_json(os.path.join(folder(a.name, root), "spec.json"), spec)
+        log(a.name, "launch", root, start=a.start, lock_months=spec["offer"]["launch"]["lock_months"])
+        print(f"Launch pricing runs {launch_window(spec)[0]} to {launch_window(spec)[1]}")
     elif a.cmd == "batch":
         from . import batch
         if a.batch_cmd == "preview":
@@ -651,6 +704,9 @@ def main(argv):
         if a.deal_cmd == "add":
             d = pipeline.add_deal(a.name, a.product, a.lead_key, a.company, a.contact, a.channel, a.monthly, plan=a.plan, root=root)
             print("Added", d["Deal ID"], d["Company"])
+        elif a.deal_cmd == "call":
+            d = pipeline.require_call(a.name, a.deal_id, a.reason, root=root)
+            print(f"{d['Deal ID']}: call required ({a.reason}); do it in the Friday 10:00-15:00 block")
         elif a.deal_cmd == "pay":
             d = pipeline.record_payment(a.name, a.deal_id, a.amount, root=root)
             print(f"{d['Deal ID']}: ${float(d['Paid $']):,.2f} received")

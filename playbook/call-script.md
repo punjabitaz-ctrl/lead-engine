@@ -1,4 +1,4 @@
-# Call script (5-7 minutes, remote first)
+# Call script (only when a call is required: Fridays 10:00-15:00; no cold calls)
 
 **Goal:** find out whether they need a site or a better one, and either book the proposal or close the loop politely. Not to demo or to negotiate on the first call.
 

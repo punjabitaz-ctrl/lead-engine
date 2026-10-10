@@ -18,7 +18,9 @@ python3 -m leadengine campaign approve nj-dental reviewed.csv   # after a human 
 python3 -m leadengine campaign outreach nj-dental --start 2026-10-19   # dated tasks; nothing is sent
 python3 -m leadengine campaign batch preview nj-dental 2026-10-19      # read one file, then: batch approve --hash H, batch export
 python3 -m leadengine campaign deal add nj-dental --lead-key <key> --product page1   # after a reply
+python3 -m leadengine campaign launch nj-dental --start 2026-10-19 --lock-months 6   # 90-day introductory pricing; sign inside it and the price is locked
 python3 -m leadengine campaign deal move nj-dental D001 "Call booked"
+python3 -m leadengine campaign deal call nj-dental D001 --reason "..."   # calls are off unless one is absolutely required (Fridays 10-3)
 python3 -m leadengine campaign deal pay nj-dental D001 250      # then: deal intake, deal start (refuses until paid and intake complete)
 python3 -m leadengine campaign pipeline nj-dental          # funnel, revenue, weekly capacity, in-person eligibility
 ```

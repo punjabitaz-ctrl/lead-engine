@@ -1,8 +1,7 @@
 # Pricing guidance (draft, 2026-10-10)
 
-Prices for the add-ons and out-of-plan work are still **TBD**. This page gives starting points to test, with the market ranges they come from. Market figures are from vendor
-and marketing pages, which have a stake in the answer and disagree with each other; treat them as rough. Suggested values are in `offer.add_ons[].suggested` and do not
-become real prices until you set `price`.
+The suggested add-on prices below were adopted as **introductory launch prices** on 2026-10-10 (first 90 days; list prices after the launch are still to be set). This page gives the market ranges they come from. Market figures are from vendor
+and marketing pages, which have a stake in the answer and disagree with each other; treat them as rough. The add-on prices are set in `offer.add_ons[].price`.
 
 ## How to set a price
 
@@ -34,9 +33,9 @@ and means there is room to raise them once you are busy.
 | Logo and brand basics | **$350**: logo, two colors, one font, vector files and commercial rights, one revision round | simple-logo market $200-$800; about 5 hours at about $70 an hour. Confirm in writing that they receive source files and full rights. |
 | Copywriting beyond light edits | **$150 per page**, from the client's facts and approval | bottom of the $150-$500 per-page market because you write from supplied facts; raise if you start interviewing and researching. |
 
-## The $50 care plan (decide this)
+## The top care plan (decided: option B, $99 with a 2-hour cap)
 
-At its current terms the $50 plan can cost you 4 hours for $50 ($12.50 an hour at the limit). Options:
+At its earlier terms the $50 plan could cost you 4 hours for $50 ($12.50 an hour at the limit). Options considered (B chosen on 2026-10-10):
 
 | Option | Price | Cap | Worst case per hour |
 |---|---|---|---|

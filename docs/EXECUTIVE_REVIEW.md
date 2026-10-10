@@ -149,6 +149,19 @@ Hours: **2 a night, up to 5 nights a week (10 hours)**, with **Fridays 10am-3pm*
 per sale, even 2 sales a week needs about 440 contacts a week, which is far more than 10 hours of hand work can reach. Outreach must be templated and batch-approved, with calls
 reserved for warm replies on Fridays. At capacity, the lever is price: if you are booked more than 2 weeks out, raise prices. See `docs/PRICING_GUIDANCE.md`.
 
+## Update 2026-10-10 (5): launch pricing, $99 plan, digital-only, parallel builds
+
+Decisions: all prices are **introductory launch prices for 90 days** and locked for clients who sign inside the window (lock length and later list prices still to decide); the top
+care plan is **$99 with a 2-hour monthly cap** (worst case $49.50 an hour); the add-ons are $195 (privacy policy draft), $350 (logo and brand basics), $150 a page (copy) and $85 an
+hour (out-of-plan work); **no cold calling**: email and LinkedIn first, a call only when absolutely required (Friday 10am-3pm); up to **3 sites in build at once**.
+
+* **Dropping cold calls cuts the strongest local channel but fits your hours.** Email and LinkedIn at 10 hours a week scale only if templated and batch-approved. Expect lower reply
+  rates than calling; the 14-day sprint is how to measure it.
+* **"Digital inbound" is worth building properly.** Outbound email that leads to your own properties turns interest into measurable engagement (the Events tab and tracker). A landing page
+  for practices with a booking link and a sample medical-practice site would convert replies better than email alone. Not built yet.
+* **Parallel builds raise throughput only if your hours per site fall.** The limit of 3 is enforced; a faster rate is not assumed until you measure it (`operator.parallel_efficiency`).
+* **Launch pricing as a deadline helps close.** A 90-day window with a lock gives prospects a reason to decide now; set the end date in the proposal.
+
 ## What to stop, start, and decide
 
 **Stop** (until the first sale): adding counties and specialties, the price-file analysis (it informs which specialties spend most, not whether a practice

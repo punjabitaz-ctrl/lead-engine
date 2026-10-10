@@ -161,23 +161,39 @@ class CampaignTests(unittest.TestCase):
         self.assertIn("sender", str(cm.exception))
         self.sender()
         out, n, skipped, block, warn = campaign.plan_outreach("nj-test", START, self.root)
-        self.assertEqual((n, block), (5, []))
-        self.assertTrue(any("Do-Not-Call" in w for w in warn))
+        self.assertEqual((n, block), (4, []))                     # email, linkedin, email, email: no phone step by default
+        self.assertFalse(any("Do-Not-Call" in w for w in warn))
 
     def test_windows_on_tasks(self):
         self.sender()
         self.approved(1)
         out, *_ = campaign.plan_outreach("nj-test", START, self.root)
         tasks = {t["Channel"]: t for t in campaign._read_csv(out)[0]}
+        self.assertNotIn("phone", tasks)                                                           # digital only by default
         self.assertIn("do not send at night", tasks["email"]["Window"])
-        self.assertIn("call Fri 10:00-15:00", tasks["phone"]["Window"])
-        self.assertNotIn("NEEDS", tasks["phone"]["Window"])
-        self.assertEqual(dt.date.fromisoformat(tasks["phone"]["Date"]).weekday(), 4)               # calls land on Fridays only
+        self.assertIn("evening", tasks["linkedin"]["Window"])
         spec = campaign.load("nj-test", self.root)
+        self.assertIn("call Fri 10:00-15:00", campaign.window_for(spec, "phone"))
         spec["outreach"]["call_window"] = {"days": ["Tue"], "start": "09:00", "end": "17:00"}      # not inside any daytime block
         self.assertIn("NEEDS A DAYTIME BLOCK", campaign.window_for(spec, "phone"))
-        self.assertTrue(any("daytime blocks" in x for x in campaign.offer_warnings(spec)))
-        self.assertIn("evening", tasks["linkedin"]["Window"])
+
+    def test_phone_steps_only_on_fridays_when_allowed(self):
+        self.sender()
+        self.approved(2)
+        spec = campaign.load("nj-test", self.root)
+        spec["outreach"]["phone_policy"] = "allowed"
+        spec["outreach"]["sequence"].insert(2, {"day": 4, "channel": "phone", "action": "Call"})
+        with open(os.path.join(self.d, "spec.json"), "w") as fh:
+            json.dump(spec, fh)
+        out, *_ = campaign.plan_outreach("nj-test", START, self.root)
+        calls = [t for t in campaign._read_csv(out)[0] if t["Channel"] == "phone"]
+        self.assertTrue(calls)
+        self.assertTrue(all(dt.date.fromisoformat(t["Date"]).weekday() == 4 for t in calls))
+
+    def test_phone_steps_rejected_when_calls_are_on_request_only(self):
+        spec = campaign.load("nj-test", self.root)
+        spec["outreach"]["sequence"].append({"day": 20, "channel": "phone", "action": "Call"})
+        self.assertTrue(any("on_request_only" in p for p in campaign.validate(spec)))
 
     def test_outreach_caps_weekends_spacing(self):
         self.sender()
@@ -272,18 +288,21 @@ class PipelineTests(unittest.TestCase):
         o = campaign.load("nj-test", self.root)["offer"]
         self.assertEqual([(p["id"], p["price"], p["payment"]["type"]) for p in o["products"]], [("page1", 250, "full_upfront"), ("page3", 500, "deposit")])
         self.assertEqual([(p["id"], p["price"], p["changes_per_month"], p["max_minutes_per_change"], p["monthly_minutes_cap"]) for p in o["plans"]],
-                         [("care9", 9.99, 0, 0, 0), ("care20", 20, 1, 30, 30), ("care50", 50, 5, 190, 240)])
+                         [("care9", 9.99, 0, 0, 0), ("care20", 20, 1, 30, 30), ("care99", 99, 5, 120, 120)])
+        self.assertEqual({a["id"]: a["price"] for a in o["add_ons"]}, {"privacy-policy": 195, "logo-brand": 350, "copywriting": 150, "out-of-plan": 85})
+        self.assertEqual((o["launch"]["days"], o["max_parallel_builds"]), (90, 3))
         self.assertFalse(o["plan_terms"]["rollover"])
         self.assertEqual((o["capacity_per_week"], o["in_person_min_monthly_value"]), (10, 5000))
         self.assertEqual(campaign.validate(campaign.load("nj-test", self.root)), [])
 
     def test_plan_warnings(self):
         w = " ".join(campaign.offer_warnings(campaign.load("nj-test", self.root)))
-        self.assertIn("plan care50 ($50/mo): worst case 4.0 h of work a month = $12.50/h", w)      # capped at 4 hours, still under $50/h
-        self.assertIn("$200/mo", w)
+        self.assertNotIn("plan care99", w)                                                        # $99 for at most 2 hours = $49.50/h, within tolerance
         self.assertIn("plan care20", w)                                                           # 30 minutes for $20 = $40/h
+        self.assertIn("launch window has not started", w)
+        self.assertIn("lock_months", w)
+        self.assertIn("no list prices", w)
         self.assertNotIn("plan care9", w)
-        self.assertIn("add-on privacy-policy has no price", w)
         self.assertNotIn("operator hours are not set", w)                                           # 2 h x 5 nights
         self.assertNotIn("daytime blocks", w)                                                      # the Friday 10-3 block covers calls
         self.assertNotIn("15.8 h", w)
@@ -389,6 +408,51 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(pipeline.report("nj-test", self.root, today=self.day + dt.timedelta(days=7))["capacity"]["full"])
         write(os.path.join(self.d, "review", "pack-01.csv"), [{"Company": "x", "Lead Key": "x"}], ["Company", "Lead Key"])
         self.assertIn("PAUSE", campaign.status("nj-test", self.root, today=self.day)["next_action"])
+
+    def test_launch_window_and_price_lock(self):
+        from leadengine import pipeline
+        self.spec_edit(lambda s: s["offer"]["launch"].update(start="2026-10-12", lock_months=6))
+        early = self.won("D001", "page1", plan="care20")                  # signed 2026-10-14, inside the window
+        self.assertEqual((early[0]["Launch price"], early[0]["Price lock until"]), ("Y", "2027-04-14"))
+        spec = campaign.load("nj-test", self.root)
+        self.assertEqual([str(x) for x in campaign.launch_window(spec)], ["2026-10-12", "2027-01-10"])
+        self.assertFalse(campaign.in_launch(spec, dt.date(2027, 1, 10)))
+        pipeline.add_deal("nj-test", "page1", company="Late Co", root=self.root, today=dt.date(2027, 2, 1))
+        late, _ = pipeline.move_deal("nj-test", "D002", "Won", root=self.root, today=dt.date(2027, 2, 1))
+        self.assertEqual(late["Launch price"], "")
+        self.assertEqual(campaign.add_months(dt.date(2026, 8, 31), 6), dt.date(2027, 2, 28))
+
+    def test_lock_is_marked_tbd_until_decided(self):
+        self.spec_edit(lambda s: s["offer"]["launch"].update(start="2026-10-12"))
+        d, _ = self.won("D001", "page1")
+        self.assertEqual((d["Launch price"], d["Price lock until"]), ("Y", "TBD"))
+
+    def test_three_builds_at_a_time(self):
+        from leadengine import pipeline
+        for i in (1, 2, 3, 4):
+            self.won(f"D00{i}", "page1")
+            pipeline.record_payment("nj-test", f"D00{i}", 250, root=self.root)
+            pipeline.mark_intake("nj-test", f"D00{i}", root=self.root)
+        for i in (1, 2, 3):
+            pipeline.start_work("nj-test", f"D00{i}", root=self.root, today=self.day)
+        with self.assertRaises(SystemExit) as cm:
+            pipeline.start_work("nj-test", "D004", root=self.root, today=self.day)
+        self.assertIn("3 projects are already in build", str(cm.exception))
+        pipeline.move_deal("nj-test", "D001", "Delivered", root=self.root, today=self.day)
+        self.assertEqual(pipeline.start_work("nj-test", "D004", root=self.root, today=self.day)["Stage"], "In build")
+
+    def test_call_only_when_recorded(self):
+        from leadengine import pipeline
+        pipeline.add_deal("nj-test", "page1", company="Needs Call Co", root=self.root, today=self.day)
+        self.assertEqual(pipeline.report("nj-test", self.root, today=self.day)["calls_needed"], [])
+        pipeline.require_call("nj-test", "D001", "owner only answers by phone", root=self.root, today=self.day)
+        self.assertEqual(pipeline.report("nj-test", self.root, today=self.day)["calls_needed"], ["D001 Needs Call Co: owner only answers by phone"])
+
+    def test_parallel_efficiency_raises_capacity(self):
+        spec = campaign.load("nj-test", self.root)
+        self.assertEqual(campaign.effective_capacity(spec), 2)
+        spec["operator"]["parallel_efficiency"] = 1.5                     # 3 h per site -> 2 h per site: 6 / 2 = 3 sites
+        self.assertEqual(campaign.effective_capacity(spec), 3)
 
     def test_in_person_unlocks_only_at_five_thousand_a_month(self):
         from leadengine import pipeline
