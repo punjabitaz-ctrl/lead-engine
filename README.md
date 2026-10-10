@@ -35,23 +35,19 @@ Segments (`--tier`, from `leadengine/data/segments.json`): **focus** (default) c
 `--taxonomy "A, B"` overrides. The specialty strings are not yet verified against the live registry; the first live run warns on any
 that return nothing.
 
-## Lists in this repo (private repo)
+## Candidate lists
 
-`data/candidates/*.csv` are the hand-assembled candidate lists (from directory listings found by web search, 2026-10-09: unverified) for Middlesex and
-Somerset counties: cardiology, ophthalmology, physical therapy, dentists (by specialty), mental health (group practices, psychiatry, testing and child psychology) and primary care (family medicine, internal medicine, pediatrics). `lists/` holds the generated workbooks:
-`NJ_<segment>_review_*.xlsx` (review checklist, one sheet per specialty plus Overview and Individuals), `NJ_<segment>_practices_*` and
-`NJ_<segment>_individuals_*` (the filled lead-engine template, ordered by specialty). Rebuild with:
+The hand-assembled lead lists for named practices (Middlesex and Somerset counties, NJ) are kept in a private copy and are not in this public version. Put CSV files
+with the columns in `data/candidates/README.md` into `data/candidates/`, then:
 
 ```
-python3 tools/build_lists.py      # writes data/candidates/*.csv
 python3 tools/run_lists.py        # runs the engine, writes lists/*.xlsx and *.csv
 python3 tools/build_review.py lists
 python3 tools/build_template.py lead-engine-template.xlsx   # regenerates the Sheets template
 ```
 
-Primary care note: most primary care in these counties is owned by RWJBarnabas, Hackensack Meridian, Atlantic Health, Saint Peter's or Hunterdon. Those
-locations are in the primary care list under the sub-specialty "System-owned practices", marked Large with the owner as the basis, so `--exclude-large` or the
-Size filter hides them. Concierge practices (MDVIP) are not included.
+Primary care note: system-owned locations (RWJBarnabas, Hackensack Meridian, Atlantic Health, Saint Peter's, Hunterdon) belong in their own sub-specialty marked Large
+with the owner as the basis, so `--exclude-large` or the Size filter hides them.
 
 ## Filtering large groups
 
@@ -74,7 +70,7 @@ python3 -m leadengine run --source nppes --county Middlesex --county Somerset --
 
 | Source | Needs | Gives | Status |
 |---|---|---|---|
-| `--postings file.csv` | any job-board export (see `samples/`) | hiring signals | tested |
+| `--postings file.csv` | any job-board export (see `examples/postings_example.csv`) | hiring signals | tested |
 | `nppes` | internet access to `npiregistry.cms.hhs.gov` (free, no key) | NJ practice name, phone, specialty, authorized official | parser tested on canned data; **API call not tested live** |
 | `manual` + `--manual file.csv` | a hand-assembled practice list (practice, specialty, city, address, phone, priority 1-3, evidence, source, providers, size_override) | ranks by independence evidence first; keep real-name lists out of git (`private/` is ignored) | tested |
 | `--presence file.csv` | your manual or tool results: `npi`/`company`, `has_website`, `has_gbp`, `reviews` | confirmed web-presence gaps | tested |
@@ -96,5 +92,5 @@ python3 -m leadengine run --source nppes --county Middlesex --county Somerset --
 ## Files
 
 `docs/SETUP.md` network, Google key, sending-domain checklist · `tracker/` click/visit tracker · `lead-engine-template.xlsx` Sheets template (Leads, Queue, Call Queue, Events, Dashboard, Templates, Config) ·
-`apps-script/Code.gs` optional Gmail-draft / reply-sync helper (untested live) · `samples/` the 2026-10-08 six-city run ·
+`apps-script/Code.gs` optional Gmail-draft / reply-sync helper (untested live) · `examples/` a tiny made-up postings file ·
 tests: `python3 -m unittest discover -s tests`

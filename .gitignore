@@ -2,3 +2,6 @@
 .leadengine/
 __pycache__/
 output/
+data/candidates/*.csv
+lists/
+samples/
