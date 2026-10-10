@@ -299,8 +299,6 @@ add2("primary_care","Internal medicine",[
 ("SD Medical","Spotswood","407 Main St, Suite 1","",2,"Internal medicine providers listed","Directory listing","","","Medium",PC_CHK),
 ("South Plainfield Primary Care","South Plainfield","2509 Park Ave","",2,"NPI record lists family and internal medicine; last updated January 2022. Same address as Clear Conscience Counseling (mental health list)","NPI listing","","","High","Still open? Shares a building with another listing."),
 ("Internal medicine practice at 1636 Stelton Rd, Suite 301 (name unconfirmed)","Piscataway","1636 Stelton Rd, Suite 301","",3,"Zocdoc listing: individualized treatment plans, 25+ years of experience","Zocdoc","","","High","Find the practice name and owner."),
-("MDVIP concierge practice (225 May St)","Edison","225 May St","",3,"MDVIP concierge internal medicine; physician-owned, membership model","MDVIP directory","1","","Medium","Different offer (membership). Physician name, website, own marketing?","","Evidence: MDVIP physician-owned network"),
-("MDVIP concierge practice (267 Central Ave)","Metuchen","267 Central Ave","",3,"MDVIP concierge internal medicine; membership model","MDVIP directory","1","","Medium","Different offer (membership). Physician name, website, own marketing?","","Evidence: MDVIP physician-owned network"),
 ("Lijing Shen, MD","Edison","906 Inman Ave","",3,"Internist","Medifind","1","","Medium","Practice name, website, phone.","individual"),
 ("Harry Lin, MD","Metuchen","201 Bridge St","",3,"Internist","Medifind","1","","Medium","Practice name, website, phone.","individual"),
 ("Inderjit Kainth, MD","South Brunswick","","",3,"Internist; offices in South Brunswick, Kendall Park and Metuchen","Zocdoc","1","","Medium","Practice name, website, phone. Three offices: still solo?","individual"),
@@ -315,6 +313,20 @@ add2("primary_care","Pediatrics",[
 ("Shelley Carolan, MD","Edison","Route 27 (Edison Health)","",3,"Board-certified pediatrician","Zocdoc","1","","Medium","Employed by Edison Health or owner?","individual"),
 ("Laura Senator, MD","Hillsborough","349 Doctors Way","",3,"Pediatrician at Pediatric Associates of Hillsborough","Macaroni Kid directory","1","","Medium","Part of the Hillsborough practice above.","individual"),
 ],spec="Pediatrics")
+add2("primary_care","System-owned practices",[
+("Hunterdon Family Medicine at Bridgewater","Bridgewater","","",3,"Internal medicine and two family medicine physicians listed on the Hunterdon Health site","Hunterdon Health provider page","3","Large","Low","System-owned: different buyer (system marketing), filter out for independent-practice outreach.","","Evidence: Hunterdon Health practice"),
+("Bay Family Medicine (Hospital Plaza)","Old Bridge","3 Hospital Plaza, Suite 200","732-360-4085",3,"Two family physicians listed on the Hackensack Meridian page","HMH location page","2","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: Hackensack Meridian Health"),
+("Saint Peter's Family Health Center","New Brunswick","","",3,"Adult primary care internal medicine roles posted","Saint Peter's careers page","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: Saint Peter's Healthcare System"),
+("Atlantic Medical Group primary care at Branchburg","Branchburg","","",3,"Growing practice with an established team","Atlantic Health job posting","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: Atlantic Health System"),
+("RWJPE Somerset Family Practice","Somerville","","",3,"Listed on the RWJBarnabas outpatient map","RWJBH outpatient map","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: RWJBarnabas Health"),
+("Central Jersey Internal Medicine (RWJPE)","Somerville","","",3,"Listed on the RWJBarnabas outpatient map","RWJBH outpatient map","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: RWJBarnabas Health"),
+("PROUD Family Health","Somerville","","",3,"Listed on the RWJBarnabas outpatient map","RWJBH outpatient map","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: RWJBarnabas Health"),
+("RWJPE Primary Care Center at Hillsborough","Hillsborough","","",3,"Listed on the RWJBarnabas outpatient map","RWJBH outpatient map","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: RWJBarnabas Health"),
+("RWJPE Comprehensive Family Medicine","Warren","","",3,"Listed on the RWJBarnabas outpatient map","RWJBH outpatient map","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: RWJBarnabas Health"),
+("RWJPE Warren Internal Medicine","Warren","","",3,"Listed on the RWJBarnabas outpatient map","RWJBH outpatient map","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: RWJBarnabas Health"),
+("RWJ Franklin Family Practice","Somerset","29 Clyde Rd","",3,"Accepting new patients; Kendall Park office also listed","Directory listing","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: RWJ branding in the name"),
+("Princeton Medicine Physicians - Family Medicine Monroe","Monroe Township","2 Centre Dr, Suite 200","",3,"Internal medicine and geriatrics physician listed","Directory listing","","Large","Low","System-owned: filter out for independent-practice outreach.","","Evidence: Princeton Health system practice"),
+],spec="Family medicine")
 # -------- size marking for existing rows (basis stated)
 MARK={ # name: (override, basis)
 "Strive Physical Therapy of Monroe":("Large","Evidence: 18-location network"),

@@ -140,7 +140,7 @@ def build(seg, label):
     notes = ["Every row is unverified. Start with the High-priority rows, then Medium, then Low.",
              "Size: Large and Medium are marked only where there is evidence or a stated suspicion (see 'Size basis'); Unknown is not the same as small.",
              "Individuals are kept on their own sheet; ownership is the main unknown for them.",
-             "Hospital- and system-owned sites were excluded from the lists."]
+             ("System-owned locations are listed on their own sheet, marked Large with the owner as the basis." if seg == "primary_care" else "Hospital- and system-owned sites were excluded from the lists.")]
     for i, t in enumerate(notes, n + 2):
         c = ov.cell(row=i, column=1, value=t)
         c.font = F(italic=True, color="595959")

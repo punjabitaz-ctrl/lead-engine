@@ -49,8 +49,9 @@ python3 tools/build_review.py lists
 python3 tools/build_template.py lead-engine-template.xlsx   # regenerates the Sheets template
 ```
 
-Primary care note: most primary care in these counties is owned by RWJBarnabas, Hackensack Meridian, Atlantic Health, Saint Peter's or Hunterdon. Those sites
-are excluded and recorded in `data/candidates/excluded_system_owned.csv`; the primary care list holds only practices whose ownership still needs checking.
+Primary care note: most primary care in these counties is owned by RWJBarnabas, Hackensack Meridian, Atlantic Health, Saint Peter's or Hunterdon. Those
+locations are in the primary care list under the sub-specialty "System-owned practices", marked Large with the owner as the basis, so `--exclude-large` or the
+Size filter hides them. Concierge practices (MDVIP) are not included.
 
 ## Filtering large groups
 
