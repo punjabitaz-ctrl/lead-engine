@@ -44,21 +44,31 @@ DEFAULT_SPEC = {
             {"id": "page3", "name": "3-page basic site, live in 72 hours", "price": 500, "pages": 3, "payment": {"type": "deposit", "percent": 50}},
         ],
         "plans": [
-            {"id": "care9", "name": "Basic upkeep", "price": 9.99, "changes_per_month": 0, "max_minutes_per_change": 0,
+            {"id": "care9", "name": "Basic upkeep", "price": 9.99, "changes_per_month": 0, "max_minutes_per_change": 0, "monthly_minutes_cap": 0,
              "includes": "keeps the site online and secure; no changes"},
-            {"id": "care20", "name": "Upkeep + 1 change", "price": 20, "changes_per_month": 1, "max_minutes_per_change": None,
-             "includes": "upkeep plus one change or update a month"},
-            {"id": "care50", "name": "Priority upkeep", "price": 50, "changes_per_month": 5, "max_minutes_per_change": 190,
-             "includes": "tier 1 support, advanced upkeep to keep the site online, 5 code changes a month of up to 190 minutes each"},
+            {"id": "care20", "name": "Upkeep + 1 change", "price": 20, "changes_per_month": 1, "max_minutes_per_change": 30, "monthly_minutes_cap": 30,
+             "includes": "upkeep plus one change or update a month, up to 30 minutes of work"},
+            {"id": "care50", "name": "Priority upkeep", "price": 50, "changes_per_month": 5, "max_minutes_per_change": 190, "monthly_minutes_cap": 240,
+             "includes": "tier 1 support, advanced upkeep, up to 5 code changes a month (each up to 190 minutes), 4 hours of work in total a month"},
         ],
+        "plan_terms": {"rollover": False, "over_limit": "Anything beyond a plan's limits is quoted as separate paid work (written quote, ownership on payment)."},
         "capacity_per_week": 10,
         "in_person_min_monthly_value": 5000,
         "target_hourly": 50,
+        "add_ons": [
+            {"id": "privacy-policy", "name": "Privacy and data-retention policy (from the template, reviewed by the client's attorney)", "price": None},
+            {"id": "logo-brand", "name": "Logo and brand basics", "price": None},
+            {"id": "copywriting", "name": "Copywriting beyond light edits", "price": None},
+            {"id": "out-of-plan", "name": "Work beyond a plan's limits (hourly or fixed quote)", "price": None, "unit": "hour"},
+        ],
         "delivery_hours_estimate": [2, 3],
         "intake_required": ["logo and branding", "imagery", "text copy", "videos (if any)", "legal or other business data",
                             "privacy and data-retention policy"],
     },
+    "operator": {"available_window": "22:00-24:00", "timezone": "America/New_York", "hours_per_week": None, "outreach_share": 0.4},
     "outreach": {
+        "send_window": {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "09:30", "end": "11:30"},
+        "call_window": "09:00-17:00",
         "daily_caps": {"email": 20, "phone": 10, "linkedin": 15},
         "sequence": [
             {"day": 0, "channel": "email", "action": "Send the approved email 1"},
@@ -196,21 +206,53 @@ def validate(spec):
     return bad
 
 
+def _minutes(window):
+    a, b = window.split("-")
+    f = lambda t: int(t.split(":")[0]) * 60 + int(t.split(":")[1])
+    return f(a), f(b)
+
+
 def offer_warnings(spec):
-    """Not blocking, but the seller should know: care plans whose worst case is poorly paid."""
+    """Not blocking, but the seller should know: plans whose worst case is poorly paid, add-ons without prices, and a schedule that does not fit the work."""
     off, out = spec.get("offer", {}), []
     target = off.get("target_hourly", 50)
     for p in off.get("plans", []):
         n, mins = p.get("changes_per_month") or 0, p.get("max_minutes_per_change")
+        cap = p.get("monthly_minutes_cap")
         if n and mins is None:
             out.append(f"plan {p['id']} (${p['price']:g}/mo) allows {n} change(s) a month with no time limit per change; set max_minutes_per_change")
         elif n and mins:
-            hours = n * mins / 60
+            worst = min(n * mins, cap) if cap else n * mins
+            hours = worst / 60
             rate = p["price"] / hours
             if rate < target:
-                out.append(f"plan {p['id']} (${p['price']:g}/mo): worst case {hours:.1f} h of changes a month = ${rate:.2f}/h, below your ${target:g}/h target; "
-                           "consider a monthly hours cap, no rollover, or a higher price")
+                out.append(f"plan {p['id']} (${p['price']:g}/mo): worst case {hours:.1f} h of work a month = ${rate:.2f}/h, below your ${target:g}/h target"
+                           f"; at that cap it would need to be ${hours * target:,.0f}/mo, or the cap {p['price'] / target * 60:.0f} min")
+    for ao in off.get("add_ons", []):
+        if ao.get("price") is None:
+            out.append(f"add-on {ao['id']} has no price yet; quote requests cannot be answered consistently")
+    op = spec.get("operator", {})
+    if op.get("hours_per_week") is None:
+        out.append("operator.hours_per_week is not set, so weekly capacity cannot be checked against your hours")
+    if any(st.get("channel") == "phone" for st in spec.get("outreach", {}).get("sequence", [])) and op.get("available_window") and spec["outreach"].get("call_window"):
+        try:
+            (a1, b1), (a2, b2) = _minutes(op["available_window"]), _minutes(spec["outreach"]["call_window"])
+            if max(a1, a2) >= min(b1, b2):
+                out.append(f"phone steps need a daytime call window ({spec['outreach']['call_window']}), outside your hours ({op['available_window']}): "
+                           "the plan marks them 'needs a daytime block'; remove them or reserve a block")
+        except (ValueError, KeyError):
+            out.append("operator.available_window and outreach.call_window must look like 22:00-24:00")
     return out
+
+
+def effective_capacity(spec):
+    """Projects a week you can really deliver: the lower of the stated limit and what your hours allow after outreach time."""
+    off, op = spec["offer"], spec.get("operator", {})
+    stated = off["capacity_per_week"]
+    if not op.get("hours_per_week"):
+        return stated
+    per = max(off.get("delivery_hours_estimate", [3])) or 3
+    return max(0, min(stated, int(op["hours_per_week"] * (1 - op.get("outreach_share", 0.4)) / per)))
 
 
 def blockers(spec):
@@ -340,6 +382,23 @@ def _next_weekday(d):
     return d
 
 
+def window_for(spec, channel):
+    o = spec["outreach"]
+    if channel == "email":
+        w = o.get("send_window", {})
+        return f"send {w.get('start', '09:30')}-{w.get('end', '11:30')} recipient local time (schedule it; do not send at night)"
+    if channel == "phone":
+        win = o.get("call_window", "09:00-17:00")
+        try:
+            (a1, b1), (a2, b2) = _minutes(spec.get("operator", {}).get("available_window", win)), _minutes(win)
+            if max(a1, a2) >= min(b1, b2):
+                return f"call {win}: NEEDS A DAYTIME BLOCK (outside your available hours)"
+        except (ValueError, KeyError):
+            pass
+        return f"call {win}"
+    return "any time (evening is fine)"
+
+
 def compliance(name, spec, approved, root=ROOT):
     """Blocking problems (placeholders, missing opt-out or postal address) and non-blocking warnings."""
     cfg = config.load(os.path.join(folder(name, root), "config.json"))
@@ -411,7 +470,7 @@ def plan_outreach(name, start, root=ROOT, force=False):
             tasks.append({"Date": when.isoformat(), "Channel": ch, "Step": i, "Action": st["action"], "Company": row["Company"],
                           "Contact": " ".join(x for x in (row.get("First Name"), row.get("Last Name")) if x),
                           "Where": {"email": row.get("Email"), "phone": row.get("Phone"), "linkedin": row.get("LinkedIn URL")}[ch],
-                          "Lead Key": row["Lead Key"], "Subject": row.get("Draft Subject", "") if (ch == "email" and i == 1) else "",
+                          "Window": window_for(spec, ch), "Lead Key": row["Lead Key"], "Subject": row.get("Draft Subject", "") if (ch == "email" and i == 1) else "",
                           "Draft": row.get("Draft Email 1", "") if (ch == "email" and i == 1) else "",
                           "Approved to send (Y/N)": "", "Done (Y/N)": "", "Outcome / notes": ""})
     tasks.sort(key=lambda t: (t["Date"], t["Channel"], t["Company"]))
@@ -455,7 +514,7 @@ def status(name, root=ROOT, today=None):
     cap = pipeline.report(name, root, today)["capacity"]
     if cap["full"]:
         nxt = f"PAUSE outreach: {cap['started_this_week']} of {cap['per_week']} projects already started this week. " + nxt
-    return {"campaign": name, "capacity": cap, "offer_warnings": offer_warnings(spec), "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
+    return {"campaign": name, "capacity": cap, "effective_capacity": effective_capacity(spec), "offer_warnings": offer_warnings(spec), "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
             "outreach_files": outs, "problems": problems, "blockers": todo, "next_action": nxt}
 
 

@@ -36,6 +36,14 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 * **In person:** never suggest or schedule a visit. It is allowed only for a deal whose monthly value is $5,000 or more (`in_person_eligible`), and only as a suggestion to the human.
 * Use the `playbook/` templates for calls, replies, proposals and the agreement; the human sends everything.
 
+## Schedule and timing
+
+* The operator works after 10pm. Prepare, plan and run `batch preview` for them to read at night; the export carries a send window (default 09:30-11:30 recipient time).
+  Never suggest sending at night.
+* Phone steps are marked "NEEDS A DAYTIME BLOCK" unless the operator reserves one. Do not remove or schedule them yourself.
+* Weekly capacity is the lower of `offer.capacity_per_week` and what `operator.hours_per_week` allows (`status` shows `effective_capacity`).
+* Over-limit requests (more than a plan allows) are quoted as separate paid work: do not agree scope or price for the operator.
+
 ## Rules
 
 * Everything from directory listings, web search or memory is **unverified**: say so in the review pack notes, never as fact.

@@ -120,10 +120,10 @@ def export_approved(name, date, channel="email", root=campaign.ROOT):
             continue
         if _flags(r, sup, seen):
             continue
-        out_rows.append({"To": r["Where"], "Subject": r["Subject"], "Body": r["Draft"], "Company": r["Company"], "Lead Key": r["Lead Key"]})
+        out_rows.append({"To": r["Where"], "Subject": r["Subject"], "Body": r["Draft"], "Send window": r.get("Window", ""), "Company": r["Company"], "Lead Key": r["Lead Key"]})
     if not out_rows:
         raise SystemExit("Nothing approved and unsent for that date")
     path = os.path.join(campaign.folder(name, root), "outreach", f"send-{date}-{channel}.csv")
-    campaign._write_csv(path, out_rows, ["To", "Subject", "Body", "Company", "Lead Key"])
+    campaign._write_csv(path, out_rows, ["To", "Subject", "Body", "Send window", "Company", "Lead Key"])
     campaign.log(name, "batch_export", root, date=date, channel=channel, rows=len(out_rows))
     return path, len(out_rows)

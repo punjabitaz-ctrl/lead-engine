@@ -184,7 +184,7 @@ def report(name, root=campaign.ROOT, today=None):
     booked = [r for r in rows if r["Stage"] in BOOKED]
     week = today.isocalendar()[:2]
     started = [r for r in rows if r["Start date"] and dt.date.fromisoformat(r["Start date"]).isocalendar()[:2] == week]
-    cap = spec["offer"]["capacity_per_week"]
+    cap = campaign.effective_capacity(spec)
     by = {}
     for key in ("Source", "Signal", "First channel", "Plan"):
         for r in rows:
@@ -196,6 +196,6 @@ def report(name, root=campaign.ROOT, today=None):
             "cash_collected": sum(_num(r["Paid $"]) for r in rows), "monthly_recurring_booked": sum(_num(r["Monthly $"]) for r in booked),
             "waiting_to_start": [f"{r['Deal ID']} {r['Company']}" for r in rows if r["Stage"] == "Won"],
             "lost_reasons": sorted({r["Lost reason"] for r in rows if r["Lost reason"]}),
-            "capacity": {"per_week": cap, "started_this_week": len(started), "full": len(started) >= cap},
+            "capacity": {"per_week": cap, "stated": spec["offer"]["capacity_per_week"], "started_this_week": len(started), "full": len(started) >= cap},
             "in_person_eligible": [r["Deal ID"] + " " + r["Company"] for r in rows if r["Stage"] not in ("Lost", "Delivered") and in_person_eligible(r, spec)],
             "booked_rate_by": {k: f"{w}/{n}" for k, (n, w) in sorted(by.items())}}

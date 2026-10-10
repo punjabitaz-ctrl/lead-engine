@@ -8,7 +8,7 @@ Work does not start, and the 72-hour clock does not run, until every item below 
 3. **Text copy:** practice description, services (up to 8), doctors' or clinicians' names and credentials, "about" text
 4. **Videos** (if any): links or files
 5. **Legal or other business data:** legal practice name, address, phone, email for the site, hours (and holiday hours), license or registration text you want shown, insurance accepted
-6. **Privacy and data-retention policy:** supplied by you. If you do not have one, tell me before we start: it is not included in the price.
+6. **Privacy and data-retention policy:** supplied by you. If you do not have one, a drafted version from my template can be quoted separately for your attorney to review; work starts once it exists.
 
 **Also helpful**
 7. Your Google Business Profile link (or "I do not have one")

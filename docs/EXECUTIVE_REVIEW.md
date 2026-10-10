@@ -130,6 +130,19 @@ What the plans do to the case:
 Net: the offer works as a door-opener and a low-touch product *if* outreach is templated (about 4 minutes per contact or less) and you cap what each plan can consume.
 At current prices it will not pay for hand-worked prospecting.
 
+## Update 2026-10-10 (3): caps, schedule and capacity
+
+Decisions: the $50 plan is fully capped (5 changes, 190 minutes each, **4 hours in total a month**, no rollover); the $20 plan's one change is limited to **30 minutes**;
+anything over a plan's limit is quoted as separate paid work; clients without a privacy policy, logo or copy get a separate quote and the build waits for the materials; work
+happens **after 10pm**.
+
+* **Even capped, the $50 plan is $12.50 an hour at its limit.** To be $50 an hour at the limit it needs to be $200 a month, or capped at 60 minutes. Whether to hold the
+  price for the sake of the $50 tier as a stepping stone is a business call; the tool keeps flagging it.
+* **Late nights change capacity.** At 2.5-3 hours a site, 10 hours a week with 40% spent on outreach delivers about 2 sites a week, not 10. Set `operator.hours_per_week`.
+* **Calls and nights do not mix.** Practices answer in business hours. Either reserve a daytime block, or run the sprint on email and LinkedIn, which suits evenings,
+  with sends scheduled for 09:30-11:30 recipient time.
+* **A privacy-policy add-on is both a sale and a risk.** Drafting from a template for the client's attorney to review is reasonable; do not present it as legal advice.
+
 ## What to stop, start, and decide
 
 **Stop** (until the first sale): adding counties and specialties, the price-file analysis (it informs which specialties spend most, not whether a practice

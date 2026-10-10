@@ -164,6 +164,15 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual((n, block), (5, []))
         self.assertTrue(any("Do-Not-Call" in w for w in warn))
 
+    def test_windows_on_tasks(self):
+        self.sender()
+        self.approved(1)
+        out, *_ = campaign.plan_outreach("nj-test", START, self.root)
+        tasks = {t["Channel"]: t for t in campaign._read_csv(out)[0]}
+        self.assertIn("do not send at night", tasks["email"]["Window"])
+        self.assertIn("NEEDS A DAYTIME BLOCK", tasks["phone"]["Window"])
+        self.assertIn("evening", tasks["linkedin"]["Window"])
+
     def test_outreach_caps_weekends_spacing(self):
         self.sender()
         spec = campaign.load("nj-test", self.root)
@@ -256,15 +265,35 @@ class PipelineTests(unittest.TestCase):
     def test_defaults_match_the_offer(self):
         o = campaign.load("nj-test", self.root)["offer"]
         self.assertEqual([(p["id"], p["price"], p["payment"]["type"]) for p in o["products"]], [("page1", 250, "full_upfront"), ("page3", 500, "deposit")])
-        self.assertEqual([(p["id"], p["price"], p["changes_per_month"]) for p in o["plans"]], [("care9", 9.99, 0), ("care20", 20, 1), ("care50", 50, 5)])
+        self.assertEqual([(p["id"], p["price"], p["changes_per_month"], p["max_minutes_per_change"], p["monthly_minutes_cap"]) for p in o["plans"]],
+                         [("care9", 9.99, 0, 0, 0), ("care20", 20, 1, 30, 30), ("care50", 50, 5, 190, 240)])
+        self.assertFalse(o["plan_terms"]["rollover"])
         self.assertEqual((o["capacity_per_week"], o["in_person_min_monthly_value"]), (10, 5000))
         self.assertEqual(campaign.validate(campaign.load("nj-test", self.root)), [])
 
     def test_plan_warnings(self):
         w = " ".join(campaign.offer_warnings(campaign.load("nj-test", self.root)))
-        self.assertIn("care20", w)                  # no per-change limit
-        self.assertIn("15.8 h", w)                  # 5 x 190 minutes for $50
-        self.assertNotIn("care9", w)
+        self.assertIn("plan care50 ($50/mo): worst case 4.0 h of work a month = $12.50/h", w)      # capped at 4 hours, still under $50/h
+        self.assertIn("$200/mo", w)
+        self.assertIn("plan care20", w)                                                           # 30 minutes for $20 = $40/h
+        self.assertNotIn("plan care9", w)
+        self.assertIn("add-on privacy-policy has no price", w)
+        self.assertIn("hours_per_week", w)
+        self.assertIn("daytime call window", w)                                                    # 22:00-24:00 cannot overlap business hours
+        self.assertNotIn("15.8 h", w)
+
+    def test_uncapped_plan_is_flagged(self):
+        spec = campaign.load("nj-test", self.root)
+        spec["offer"]["plans"][1]["max_minutes_per_change"] = None
+        self.assertIn("no time limit per change", " ".join(campaign.offer_warnings(spec)))
+
+    def test_effective_capacity_follows_your_hours(self):
+        spec = campaign.load("nj-test", self.root)
+        self.assertEqual(campaign.effective_capacity(spec), 10)                  # hours unknown: the stated limit
+        spec["operator"]["hours_per_week"] = 10                                  # 10 h x 60% / 3 h = 2 sites
+        self.assertEqual(campaign.effective_capacity(spec), 2)
+        spec["operator"]["hours_per_week"] = 200
+        self.assertEqual(campaign.effective_capacity(spec), 10)                  # never above the stated limit
 
     def test_only_approved_leads_enter(self):
         from leadengine import pipeline
