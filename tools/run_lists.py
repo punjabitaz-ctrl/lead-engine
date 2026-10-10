@@ -3,9 +3,9 @@ Usage: python3 tools/run_lists.py   (needs lead-engine-template.xlsx in the repo
 import glob, os, shutil, subprocess, sys, tempfile
 
 STAMP = "2026-10-09"
-INDUSTRY = {"pt": "Physical therapy practice", "dentist": "Dental practice", "mental_health": "Mental health practice"}
+INDUSTRY = {"pt": "Physical therapy practice", "dentist": "Dental practice", "mental_health": "Mental health practice", "primary_care": "Primary care practice"}
 os.makedirs("lists", exist_ok=True)
-for seg in ("cardiology", "ophthalmology", "pt", "dentist", "mental_health"):
+for seg in ("cardiology", "ophthalmology", "pt", "dentist", "mental_health", "primary_care"):
     for kind in ("practices", "individuals"):
         src = f"data/candidates/{seg}_{kind}.csv"
         with tempfile.TemporaryDirectory() as tmp:

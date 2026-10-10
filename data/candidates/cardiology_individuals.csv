@@ -1,4 +1,0 @@
-practice,specialty,city,address,phone,priority,evidence,source,providers,size_override,review,check,kind,segment,subspecialty,size_basis
-"Nihir Shah, MD",Cardiovascular Disease,New Brunswick,"317 George St, Suite 440",,3,Individual physician listing; ownership unknown,Directory listing,1,,Medium,"Independent office or hospital-owned practice? Practice name, website.",individual,cardiology,Cardiology,
-"Howard Blau, MD",Cardiovascular Disease,North Brunswick,"1950 State Route 27, Suite H",,3,Individual physician listing; ownership unknown,Directory listing,1,,Medium,"Solo, or part of a group? Practice name, website, phone.",individual,cardiology,Cardiology,
-"Henry Altszuler, MD",Cardiovascular Disease,South Plainfield,,,3,Individual physician listing; offices in South Plainfield and Metuchen,Directory listing,1,,Medium,"Still practicing? Two offices (South Plainfield, Metuchen). Practice name and website.",individual,cardiology,Cardiology,
