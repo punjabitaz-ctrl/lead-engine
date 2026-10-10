@@ -21,7 +21,8 @@ define ──> discover ──> enrich/score ──> REVIEW GATE ──> outreac
  built      built*        built           built           built             send              Events sheet
 ```
 
-* Discover and score are automated. **No contact is made by the tool**, ever: the outreach plan is a task list and each send needs `Approved to send = Y`.
+* Discover and score are automated. **No contact is made by the tool**, ever: the outreach plan is a task list and each send needs `Approved to send = Y`, set either one by one or
+  for a whole day with `campaign batch preview|approve|export` (approve needs the hash of the batch you read; any later edit voids it; flagged drafts block or are left out).
 * The review gate is a CSV (or the workbook) with `Decision` = Keep / Drop / Unsure. Only Keep rows reach outreach planning. Dropped leads never resurface (`.state/seen.json`).
 * Stages deliver 59, then 100, then 250 leads per pack (`spec.stages`); each run produces one pack.
 * State is files, so every stage is resumable and an agent can read `campaign status --json` to know what to do next.
@@ -34,7 +35,8 @@ define ──> discover ──> enrich/score ──> REVIEW GATE ──> outreac
 | `leadengine/campaign.py` | spec, validate, status, run (discover), approve, outreach plan, audit log |
 | `leadengine/geo.py` | geography registry: county/city/state -> places |
 | `leadengine/packs.py` | vertical packs: tiers of search terms per source |
-| `leadengine/pipeline.py` | deals after the reply: stages, win/loss reasons, capacity per week, in-person eligibility, conversion by source and signal |
+| `leadengine/batch.py` | batch review of a day's first-contact emails: preview with hash and flags, approve exactly what was read, export for mail merge |
+| `leadengine/pipeline.py` | deals after the reply: stages, payment and intake gates before work starts, capacity per week, in-person eligibility, win/loss reasons, conversion by source and signal |
 | `playbook/` | call script, objections, follow-ups, proposal, agreement, intake form, 72-hour delivery checklist |
 | `leadengine/sources.py` | adapters: nppes, places, adzuna, csv postings, manual list |
 | `leadengine/engine.py`, `scoring.py`, `drafts.py` | ingest, filter, enrich, score, draft |

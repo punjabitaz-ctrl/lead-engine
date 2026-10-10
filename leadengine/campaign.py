@@ -40,11 +40,23 @@ DEFAULT_SPEC = {
     "template": "lead-engine-template.xlsx",
     "offer": {
         "products": [
-            {"id": "page1", "name": "Single-page site, live in 72 hours", "price": 250, "pages": 1},
-            {"id": "page3", "name": "3-page basic site, live in 72 hours", "price": 500, "pages": 3},
+            {"id": "page1", "name": "Single-page site, live in 72 hours", "price": 250, "pages": 1, "payment": {"type": "full_upfront"}},
+            {"id": "page3", "name": "3-page basic site, live in 72 hours", "price": 500, "pages": 3, "payment": {"type": "deposit", "percent": 50}},
+        ],
+        "plans": [
+            {"id": "care9", "name": "Basic upkeep", "price": 9.99, "changes_per_month": 0, "max_minutes_per_change": 0,
+             "includes": "keeps the site online and secure; no changes"},
+            {"id": "care20", "name": "Upkeep + 1 change", "price": 20, "changes_per_month": 1, "max_minutes_per_change": None,
+             "includes": "upkeep plus one change or update a month"},
+            {"id": "care50", "name": "Priority upkeep", "price": 50, "changes_per_month": 5, "max_minutes_per_change": 190,
+             "includes": "tier 1 support, advanced upkeep to keep the site online, 5 code changes a month of up to 190 minutes each"},
         ],
         "capacity_per_week": 10,
         "in_person_min_monthly_value": 5000,
+        "target_hourly": 50,
+        "delivery_hours_estimate": [2, 3],
+        "intake_required": ["logo and branding", "imagery", "text copy", "videos (if any)", "legal or other business data",
+                            "privacy and data-retention policy"],
     },
     "outreach": {
         "daily_caps": {"email": 20, "phone": 10, "linkedin": 15},
@@ -159,6 +171,15 @@ def validate(spec):
         bad.append("offer.capacity_per_week must be a whole number of projects")
     if not isinstance(off.get("in_person_min_monthly_value"), (int, float)):
         bad.append("offer.in_person_min_monthly_value must be a number (monthly contract value that unlocks an in-person visit)")
+    for p in off.get("products", []):
+        pay = p.get("payment", {})
+        if pay.get("type") not in ("full_upfront", "deposit") or (pay.get("type") == "deposit" and not 0 < pay.get("percent", 0) <= 100):
+            bad.append(f"offer.products {p.get('id')}: payment must be full_upfront or a deposit with a percent")
+    for p in off.get("plans", []):
+        if not p.get("id") or not isinstance(p.get("price"), (int, float)) or p["price"] <= 0:
+            bad.append("offer.plans: each plan needs an id and a positive price")
+    if not off.get("intake_required"):
+        bad.append("offer.intake_required lists what the client must supply before work starts")
     seq, last = spec.get("outreach", {}).get("sequence", []), -1
     for i, st in enumerate(seq, 1):
         if st.get("channel") in ("in_person", "in-person", "visit"):
@@ -173,6 +194,23 @@ def validate(spec):
         if ch in CHANNELS and not spec["outreach"].get("daily_caps", {}).get(ch):
             bad.append(f"outreach: set daily_caps for {ch}")
     return bad
+
+
+def offer_warnings(spec):
+    """Not blocking, but the seller should know: care plans whose worst case is poorly paid."""
+    off, out = spec.get("offer", {}), []
+    target = off.get("target_hourly", 50)
+    for p in off.get("plans", []):
+        n, mins = p.get("changes_per_month") or 0, p.get("max_minutes_per_change")
+        if n and mins is None:
+            out.append(f"plan {p['id']} (${p['price']:g}/mo) allows {n} change(s) a month with no time limit per change; set max_minutes_per_change")
+        elif n and mins:
+            hours = n * mins / 60
+            rate = p["price"] / hours
+            if rate < target:
+                out.append(f"plan {p['id']} (${p['price']:g}/mo): worst case {hours:.1f} h of changes a month = ${rate:.2f}/h, below your ${target:g}/h target; "
+                           "consider a monthly hours cap, no rollover, or a higher price")
+    return out
 
 
 def blockers(spec):
@@ -386,7 +424,7 @@ def plan_outreach(name, start, root=ROOT, force=False):
 
 
 # ---- status ---------------------------------------------------------------
-def status(name, root=ROOT):
+def status(name, root=ROOT, today=None):
     spec = load(name, root)
     d = folder(name, root)
     problems = validate(spec)
@@ -414,10 +452,10 @@ def status(name, root=ROOT):
     else:
         nxt = f"agent: leadengine campaign run {name} for the next stage, or a human starts sending from {outs[-1] if outs else 'the task list'}"
     from . import pipeline
-    cap = pipeline.report(name, root)["capacity"]
+    cap = pipeline.report(name, root, today)["capacity"]
     if cap["full"]:
         nxt = f"PAUSE outreach: {cap['started_this_week']} of {cap['per_week']} projects already started this week. " + nxt
-    return {"campaign": name, "capacity": cap, "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
+    return {"campaign": name, "capacity": cap, "offer_warnings": offer_warnings(spec), "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
             "outreach_files": outs, "problems": problems, "blockers": todo, "next_action": nxt}
 
 
@@ -445,6 +483,16 @@ def main(argv):
     p.add_argument("name")
     p.add_argument("--start", required=True, help="YYYY-MM-DD")
     p.add_argument("--force", action="store_true", help="plan even if compliance checks fail (not recommended)")
+    p = sub.add_parser("batch", help="review and approve a day's first-contact emails together")
+    bsub = p.add_subparsers(dest="batch_cmd", required=True)
+    for c in ("preview", "approve", "export"):
+        q = bsub.add_parser(c)
+        q.add_argument("name")
+        q.add_argument("date", help="YYYY-MM-DD, the task date")
+        q.add_argument("--channel", default="email")
+        if c == "approve":
+            q.add_argument("--hash", required=True, help="the hash printed by preview")
+            q.add_argument("--exclude-flagged", action="store_true")
     p = sub.add_parser("deal", help="add a deal or move it through the pipeline")
     dsub = p.add_subparsers(dest="deal_cmd", required=True)
     q = dsub.add_parser("add")
@@ -455,6 +503,18 @@ def main(argv):
     q.add_argument("--product", default="")
     q.add_argument("--channel", default="email")
     q.add_argument("--monthly", type=float, default=0)
+    q.add_argument("--plan", default="")
+    q = dsub.add_parser("pay")
+    q.add_argument("name")
+    q.add_argument("deal_id")
+    q.add_argument("amount", type=float)
+    q = dsub.add_parser("intake", help="mark the client's intake complete (--incomplete to undo)")
+    q.add_argument("name")
+    q.add_argument("deal_id")
+    q.add_argument("--incomplete", action="store_true")
+    q = dsub.add_parser("start", help="start the 72-hour clock: needs Won, payment as required, complete intake")
+    q.add_argument("name")
+    q.add_argument("deal_id")
     q = dsub.add_parser("move")
     q.add_argument("name")
     q.add_argument("deal_id")
@@ -463,6 +523,7 @@ def main(argv):
     q.add_argument("--monthly", type=float)
     q.add_argument("--reason", default="")
     q.add_argument("--notes", default="")
+    q.add_argument("--plan", default=None)
     p = sub.add_parser("pipeline", help="funnel, conversion, revenue, capacity, in-person eligibility")
     p.add_argument("name")
     a = ap.parse_args(argv)
@@ -500,13 +561,33 @@ def main(argv):
         print(f"{n} tasks -> {out}; {len(skipped)} skipped")
         for x in block + warn:
             print("  note:", x)
+    elif a.cmd == "batch":
+        from . import batch
+        if a.batch_cmd == "preview":
+            info = batch.preview(a.name, a.date, a.channel, root)
+            print(f"{info['count']} drafts, {len(info['flagged'])} flagged, hash {info['hash']}\nRead: {info['path']}")
+        elif a.batch_cmd == "approve":
+            n, left = batch.approve(a.name, a.date, a.hash, a.channel, a.exclude_flagged, root)
+            print(f"Approved {n}; left out {left}. Next: leadengine campaign batch export {a.name} {a.date}")
+        else:
+            path, n = batch.export_approved(a.name, a.date, a.channel, root)
+            print(f"{n} rows -> {path}")
     elif a.cmd == "deal":
         from . import pipeline
         if a.deal_cmd == "add":
-            d = pipeline.add_deal(a.name, a.product, a.lead_key, a.company, a.contact, a.channel, a.monthly, root=root)
+            d = pipeline.add_deal(a.name, a.product, a.lead_key, a.company, a.contact, a.channel, a.monthly, plan=a.plan, root=root)
             print("Added", d["Deal ID"], d["Company"])
+        elif a.deal_cmd == "pay":
+            d = pipeline.record_payment(a.name, a.deal_id, a.amount, root=root)
+            print(f"{d['Deal ID']}: ${float(d['Paid $']):,.2f} received")
+        elif a.deal_cmd == "intake":
+            d = pipeline.mark_intake(a.name, a.deal_id, not a.incomplete, root=root)
+            print(f"{d['Deal ID']}: intake complete = {d['Intake complete']}")
+        elif a.deal_cmd == "start":
+            d = pipeline.start_work(a.name, a.deal_id, root=root)
+            print(f"{d['Deal ID']} {d['Company']}: work started {d['Start date']}; deliver within 72 hours")
         else:
-            d, visit = pipeline.move_deal(a.name, a.deal_id, a.stage, a.one_time, a.monthly, a.reason, a.notes, root=root)
+            d, visit = pipeline.move_deal(a.name, a.deal_id, a.stage, a.one_time, a.monthly, a.reason, a.notes, a.plan, root=root)
             print(f"{d['Deal ID']} {d['Company']} -> {d['Stage']}" + ("  [monthly value qualifies for an in-person visit]" if visit else ""))
     elif a.cmd == "pipeline":
         from . import pipeline

@@ -9,7 +9,7 @@
    * Weak site: "I looked at [website] on a phone and [issue]."
    * Thin reviews: "You have [n] Google reviews; most practices nearby have more."
 3. **Questions (2 min):** How do most new patients find you today? Is the site something you update yourself? Anything you have wanted to fix? Who decides on this? What did you try before?
-4. **Offer (1 min):** "I build a clean, mobile-friendly site in 72 hours once I have your details: one page for $250, three pages for $500. No patient information is collected through it."
+4. **Offer (1 min):** "I build a clean, mobile-friendly site in 72 hours once I have payment and your details: one page for $250 paid up front, or three pages for $500 with a 50% deposit. Upkeep plans start at $9.99 a month. No patient information is collected through the site."
 5. **Next step (30 s):** "I can send a one-page proposal and a quick homepage mock-up today. What email should I use?" Book a 10-minute follow-up.
 6. **Close the loop:** if not interested, ask: "What would have to be true for this to matter?" Log the answer as the Lost reason.
 

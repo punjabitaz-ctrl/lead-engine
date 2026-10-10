@@ -101,6 +101,35 @@ Revised sprint: same 14 days and 30 prospects, but measure *minutes per contact*
 monthly plan price with every prospect who talks to you. Continue if you reach a projected $50 an hour including the plan; otherwise change the offer
 (for example a bigger first product aimed at multi-provider practices) before changing the list.
 
+## Update 2026-10-10 (2): care plans, payment rules and delivery time
+
+Confirmed: care plans of **$9.99** (upkeep, no changes), **$20** (upkeep + 1 change a month) and **$50** (tier 1 support, advanced upkeep, up to 5 code changes a month of
+up to 190 minutes each); a single page is paid in full before work, a 3-page site needs a 50% deposit or nothing starts; delivery takes **2-3 hours** when the client
+supplies everything up front (logo, branding, imagery, copy, videos, legal or business data, privacy and data-retention policy).
+
+Re-run with these (`python3 tools/funnel.py`; sales mix 60/40, 40% of clients buy a plan, 50/35/15 split across the plans, a year of plan life, card fees 2.9% + $0.30;
+the support hours per plan per month are my assumptions: 0.1, 0.75 and 3):
+
+| Scenario | Sales from 250 leads | Revenue (sale + year of plan cash) | Per hour, by hand | Per hour, templated outreach |
+|---|---|---|---|---|
+| Low | 0.15 | $66 | $1 | $7 |
+| Base | 0.56 | $247 | $5 | $21 |
+| High | 1.57 | $692 | $13 | $38 |
+
+What the plans do to the case:
+* **The $9.99 plan is fine only if it takes almost no time.** It nets about $9.40 after card fees; break-even against a $50 hour is about 11 minutes of work a month.
+* **The $20 plan breaks even at about 23 minutes a month,** so the single included change needs a time limit (for example 30 minutes).
+* **The $50 plan has an open-ended worst case:** 5 changes x 190 minutes = 15.8 hours for $50, about $3 an hour. Even at 3 hours a month it loses about $100 a month against a $50 hour.
+  This is the largest hole in the offer. Options: a monthly hours cap (e.g. 4 hours), no rollover, a fair-use clause, or a higher price. `campaign status` flags it.
+* **The plans do not rescue the economics at this volume.** Their job is retention and a path to bigger work. A client on the $50 plan is a sign to quote a
+  larger project, not a profit centre.
+* **Requiring complete materials before starting is the right call.** It is what keeps delivery at 2-3 hours. Expect friction: many practices do not have a privacy
+  policy or branding ready. Decide whether you refer them elsewhere, quote that work, or lose the sale.
+* **Cash-flow rules are sound:** full payment up front on $250, 50% deposit on $500. `deal start` enforces them.
+
+Net: the offer works as a door-opener and a low-touch product *if* outreach is templated (about 4 minutes per contact or less) and you cap what each plan can consume.
+At current prices it will not pay for hand-worked prospecting.
+
 ## What to stop, start, and decide
 
 **Stop** (until the first sale): adding counties and specialties, the price-file analysis (it informs which specialties spend most, not whether a practice
@@ -108,6 +137,7 @@ will buy a website), polishing the Sheet, more modules.
 
 **Start (a 14-day validation sprint, about 25 hours total):**
 1. Day 1-2: set the offer (fixed price, retainer, three-line proof) and a one-page proposal. Start the sending-domain warm-up now, because it takes weeks.
+1b. Also before launch: set a monthly hours cap or fair-use clause on the $50 plan and a time limit on the $20 plan's change.
 2. Day 2-4: take the top 30 leads (priority 1, confirmed independent). Verify each by hand: open, owner, site, phone. Add owner name and a direct number or email.
 3. Day 4-6: build a quick homepage mock-up for the 10 best.
 4. Day 6-14: for the 30: a call, an email with the mock-up, a LinkedIn note, one follow-up. Log every touch and outcome in one sheet.

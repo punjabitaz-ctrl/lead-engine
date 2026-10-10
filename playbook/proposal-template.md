@@ -9,12 +9,12 @@
 * Mobile-friendly design, your hours, services, address and map, a contact form that does not collect health information, a link to your Google Business Profile
 * Live within 72 hours after payment and your completed intake form
 
-**Price:** $[250 | 500]  Payment: [in full before work | 50% now, 50% at launch]
-**Optional monthly plan:** [$__/month: hosting, updates, __ edits a month, Google Business Profile upkeep]
+**Price:** $[250 | 500]  Payment: [single page: in full before work begins | 3-page: 50% deposit ($250) before work begins, balance at launch]. No payment, no work.
+**Optional monthly care plan:** Basic upkeep $9.99 (site kept online and secure, no changes) | Upkeep + 1 change $20 | Priority upkeep $50 (tier 1 support, advanced upkeep, up to 5 code changes a month of up to 190 minutes each)
 
 **Not included:** logo design, copywriting beyond light edits, photography, online booking, patient portals, anything that collects patient information. One round of revisions is included.
 
-**What I need from you:** the intake form (15 minutes), your logo and photos if you have them, access to your domain registrar if you have a domain.
+**What I need from you before I start:** logo and branding, imagery, text copy, any videos, legal or business details, and your privacy and data-retention policy (the intake form lists them). The 72 hours begins when I have payment and everything on the list.
 
 **Examples:** [2-3 links]
 

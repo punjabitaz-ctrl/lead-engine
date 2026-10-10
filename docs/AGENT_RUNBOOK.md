@@ -18,10 +18,19 @@ Goal: deliver lists of leads for humans to review, then plan outreach for the on
 
 3. After every action, rerun `status` and report in one or two lines: what changed, what is blocked, what the human must do.
 
+## Batch approval (human reads, agent runs the commands)
+
+1. `campaign outreach <name> --start DATE` plans the tasks.
+2. `campaign batch preview <name> DATE` writes `outreach/batch-DATE-email.md`. Give the human that file; it has the hash, flags, samples and every recipient.
+3. Only after the human says approve: `campaign batch approve <name> DATE --hash <hash>` (add `--exclude-flagged` if they accept leaving flagged ones out).
+4. `campaign batch export <name> DATE` writes the mail-merge CSV. The human sends; you never do.
+Never invent or reuse a hash, and never approve a batch the human has not read in this form.
+
 ## After a reply
 
-* Add the deal: `campaign deal add <name> --lead-key <key> --product page1|page3` (only approved leads can enter).
+* Add the deal: `campaign deal add <name> --lead-key <key> --product page1|page3 [--plan care9|care20|care50]` (only approved leads can enter).
 * Move it as the human reports progress: `campaign deal move <name> D001 "Call booked"`; `Lost` needs a reason; `Won` defaults to the product price.
+* Work cannot start until the deal is Won, paid (page1 in full; page3 50% deposit) and the intake is complete: `deal pay`, `deal intake`, `deal start`. Do not work around it.
 * `campaign pipeline <name>` reports funnel, conversion by source/signal/channel, revenue, weekly capacity and in-person-eligible deals.
 * **Capacity:** when the pipeline shows 10 projects started this week, `status` says PAUSE outreach. Do not plan new outreach until the next ISO week.
 * **In person:** never suggest or schedule a visit. It is allowed only for a deal whose monthly value is $5,000 or more (`in_person_eligible`), and only as a suggestion to the human.

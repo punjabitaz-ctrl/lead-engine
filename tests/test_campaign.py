@@ -242,10 +242,29 @@ class PipelineTests(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def test_defaults_match_the_offer(self):
+    def spec_edit(self, fn):
         spec = campaign.load("nj-test", self.root)
-        self.assertEqual([(p["id"], p["price"]) for p in spec["offer"]["products"]], [("page1", 250), ("page3", 500)])
-        self.assertEqual((spec["offer"]["capacity_per_week"], spec["offer"]["in_person_min_monthly_value"]), (10, 5000))
+        fn(spec)
+        with open(os.path.join(self.d, "spec.json"), "w") as fh:
+            json.dump(spec, fh)
+
+    def won(self, pid, product="page1", company=None, **kw):
+        from leadengine import pipeline
+        pipeline.add_deal("nj-test", product, company=company or f"Co {pid}", root=self.root, today=self.day, **kw)
+        return pipeline.move_deal("nj-test", pid, "Won", root=self.root, today=self.day)
+
+    def test_defaults_match_the_offer(self):
+        o = campaign.load("nj-test", self.root)["offer"]
+        self.assertEqual([(p["id"], p["price"], p["payment"]["type"]) for p in o["products"]], [("page1", 250, "full_upfront"), ("page3", 500, "deposit")])
+        self.assertEqual([(p["id"], p["price"], p["changes_per_month"]) for p in o["plans"]], [("care9", 9.99, 0), ("care20", 20, 1), ("care50", 50, 5)])
+        self.assertEqual((o["capacity_per_week"], o["in_person_min_monthly_value"]), (10, 5000))
+        self.assertEqual(campaign.validate(campaign.load("nj-test", self.root)), [])
+
+    def test_plan_warnings(self):
+        w = " ".join(campaign.offer_warnings(campaign.load("nj-test", self.root)))
+        self.assertIn("care20", w)                  # no per-change limit
+        self.assertIn("15.8 h", w)                  # 5 x 190 minutes for $50
+        self.assertNotIn("care9", w)
 
     def test_only_approved_leads_enter(self):
         from leadengine import pipeline
@@ -255,17 +274,55 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual((d["Company"], d["Source"], d["Signal"]), ("Practice 0", "NPPES", "No Presence"))
         with self.assertRaises(SystemExit):
             pipeline.add_deal("nj-test", "gold-plated", company="X", root=self.root)
+        with self.assertRaises(SystemExit):
+            pipeline.add_deal("nj-test", "page1", company="X", plan="platinum", root=self.root)
 
-    def test_won_defaults_to_product_price_and_lost_needs_reason(self):
+    def test_won_defaults_and_lost_needs_reason(self):
         from leadengine import pipeline
-        pipeline.add_deal("nj-test", "page3", lead_key="k0", root=self.root, today=self.day)
+        pipeline.add_deal("nj-test", "page3", plan="care20", lead_key="k0", root=self.root, today=self.day)
         with self.assertRaises(SystemExit):
             pipeline.move_deal("nj-test", "D001", "Lost", root=self.root)
-        pipeline.move_deal("nj-test", "D001", "Won", root=self.root, today=self.day)
-        rep = pipeline.report("nj-test", self.root, today=self.day)
-        self.assertEqual((rep["won"], rep["one_time_revenue"]), (1, 500.0))
+        d, _ = pipeline.move_deal("nj-test", "D001", "Won", root=self.root, today=self.day)
+        self.assertEqual((float(d["One-time $"]), float(d["Monthly $"])), (500.0, 20.0))     # plan price becomes the monthly value
         with self.assertRaises(SystemExit):
             pipeline.move_deal("nj-test", "D001", "Shipped", root=self.root)
+        with self.assertRaises(SystemExit):
+            pipeline.move_deal("nj-test", "D001", "In build", root=self.root)               # only `start` may do this
+
+    def test_cannot_start_unpaid_or_without_intake(self):
+        from leadengine import pipeline
+        self.won("D001", "page1")
+        with self.assertRaises(SystemExit) as cm:
+            pipeline.start_work("nj-test", "D001", root=self.root, today=self.day)
+        self.assertIn("$0.00 received, $250.00 required", str(cm.exception))
+        self.assertIn("intake", str(cm.exception))
+        pipeline.record_payment("nj-test", "D001", 250, root=self.root)
+        with self.assertRaises(SystemExit) as cm:
+            pipeline.start_work("nj-test", "D001", root=self.root, today=self.day)
+        self.assertNotIn("payment", str(cm.exception))
+        pipeline.mark_intake("nj-test", "D001", root=self.root)
+        deal = pipeline.start_work("nj-test", "D001", root=self.root, today=self.day)
+        self.assertEqual((deal["Stage"], deal["Start date"]), ("In build", "2026-10-14"))
+
+    def test_three_page_needs_fifty_percent_deposit(self):
+        from leadengine import pipeline
+        self.won("D001", "page3")
+        pipeline.mark_intake("nj-test", "D001", root=self.root)
+        pipeline.record_payment("nj-test", "D001", 249.99, root=self.root)
+        with self.assertRaises(SystemExit) as cm:
+            pipeline.start_work("nj-test", "D001", root=self.root, today=self.day)
+        self.assertIn("$250.00 required", str(cm.exception))
+        pipeline.record_payment("nj-test", "D001", 0.01, root=self.root)
+        self.assertEqual(pipeline.start_work("nj-test", "D001", root=self.root, today=self.day)["Stage"], "In build")
+
+    def test_only_won_deals_can_start(self):
+        from leadengine import pipeline
+        pipeline.add_deal("nj-test", "page1", company="Early Co", root=self.root, today=self.day)
+        pipeline.record_payment("nj-test", "D001", 250, root=self.root)
+        pipeline.mark_intake("nj-test", "D001", root=self.root)
+        with self.assertRaises(SystemExit) as cm:
+            pipeline.start_work("nj-test", "D001", root=self.root, today=self.day)
+        self.assertIn("must be Won", str(cm.exception))
 
     def test_funnel_counts_lost_at_furthest_stage(self):
         from leadengine import pipeline
@@ -276,39 +333,113 @@ class PipelineTests(unittest.TestCase):
         pipeline.move_deal("nj-test", "D001", "Lost", reason="has a nephew who builds sites", root=self.root, today=self.day)
         pipeline.move_deal("nj-test", "D002", "Replied", root=self.root, today=self.day)
         f = pipeline.report("nj-test", self.root, today=self.day)
-        self.assertEqual(f["funnel_reached"]["Contacted"], 3)
-        self.assertEqual(f["funnel_reached"]["Replied"], 2)
-        self.assertEqual(f["funnel_reached"]["Call booked"], 1)
+        self.assertEqual([f["funnel_reached"][k] for k in ("Contacted", "Replied", "Call booked")], [3, 2, 1])
         self.assertEqual(f["conversion"]["Replied -> Call booked"], 0.5)
         self.assertEqual(f["lost_reasons"], ["has a nephew who builds sites"])
 
-    def test_capacity_pauses_outreach(self):
+    def test_capacity_counts_started_projects_and_pauses_outreach(self):
         from leadengine import pipeline
-        spec = campaign.load("nj-test", self.root)
-        spec["offer"]["capacity_per_week"] = 2
-        json.dump(spec, open(os.path.join(self.d, "spec.json"), "w"))
-        for i in range(3):
-            pipeline.add_deal("nj-test", "page1", company=f"Co {i}", root=self.root, today=self.day)
-        for i in range(1, 3):
-            pipeline.move_deal("nj-test", f"D00{i}", "Won", root=self.root, today=self.day)
+        self.spec_edit(lambda s: s["offer"].update(capacity_per_week=2))
+        for i in (1, 2, 3):
+            self.won(f"D00{i}", "page1")
+            pipeline.record_payment("nj-test", f"D00{i}", 250, root=self.root)
+            pipeline.mark_intake("nj-test", f"D00{i}", root=self.root)
+        self.assertFalse(pipeline.report("nj-test", self.root, today=self.day)["capacity"]["full"])     # won but not started
+        for i in (1, 2):
+            pipeline.start_work("nj-test", f"D00{i}", root=self.root, today=self.day)
         self.assertTrue(pipeline.report("nj-test", self.root, today=self.day)["capacity"]["full"])
         self.assertFalse(pipeline.report("nj-test", self.root, today=self.day + dt.timedelta(days=7))["capacity"]["full"])
+        write(os.path.join(self.d, "review", "pack-01.csv"), [{"Company": "x", "Lead Key": "x"}], ["Company", "Lead Key"])
+        self.assertIn("PAUSE", campaign.status("nj-test", self.root, today=self.day)["next_action"])
 
     def test_in_person_unlocks_only_at_five_thousand_a_month(self):
         from leadengine import pipeline
         pipeline.add_deal("nj-test", "page1", company="Small Co", monthly=4999, root=self.root, today=self.day)
         pipeline.add_deal("nj-test", "page1", company="Big Co", monthly=5000, root=self.root, today=self.day)
-        rep = pipeline.report("nj-test", self.root, today=self.day)
-        self.assertEqual(rep["in_person_eligible"], ["D002 Big Co"])
-        _, visit = pipeline.move_deal("nj-test", "D001", "Replied", root=self.root, today=self.day)
-        self.assertFalse(visit)
-        _, visit = pipeline.move_deal("nj-test", "D002", "Replied", root=self.root, today=self.day)
-        self.assertTrue(visit)
+        self.assertEqual(pipeline.report("nj-test", self.root, today=self.day)["in_person_eligible"], ["D002 Big Co"])
+        self.assertFalse(pipeline.move_deal("nj-test", "D001", "Replied", root=self.root, today=self.day)[1])
+        self.assertTrue(pipeline.move_deal("nj-test", "D002", "Replied", root=self.root, today=self.day)[1])
 
     def test_in_person_is_not_a_sequence_step(self):
         spec = campaign.load("nj-test", self.root)
         spec["outreach"]["sequence"].append({"day": 20, "channel": "in_person", "action": "Drop by"})
         self.assertTrue(any("in-person" in p for p in campaign.validate(spec)))
+
+
+class BatchTests(CampaignTests):
+    """Reuses CampaignTests' fixtures (sender(), approved(), pack_rows())."""
+
+    def planned(self, n=3, mutate=None):
+        self.sender()
+        rows, fields = self.pack_rows(n)
+        if mutate:
+            mutate(rows)
+        write(os.path.join(self.d, "approved.csv"), rows, fields)
+        out, *_ = campaign.plan_outreach("nj-test", START, self.root)
+        return out
+
+    def test_preview_approve_export(self):
+        from leadengine import batch
+        self.planned(3)
+        info = batch.preview("nj-test", "2026-10-12", root=self.root)
+        self.assertEqual((info["count"], info["flagged"]), (3, {}))
+        text = open(info["path"]).read()
+        self.assertIn(info["hash"], text)
+        self.assertIn("Practice 0", text)
+        with self.assertRaises(SystemExit):
+            batch.approve("nj-test", "2026-10-12", "deadbeef0000", root=self.root)       # wrong hash
+        self.assertEqual(batch.approve("nj-test", "2026-10-12", info["hash"], root=self.root), (3, 0))
+        path, n = batch.export_approved("nj-test", "2026-10-12", root=self.root)
+        rows = campaign._read_csv(path)[0]
+        self.assertEqual((n, rows[0]["To"]), (3, "doc0@practice0.test"))
+        with self.assertRaises(SystemExit):
+            batch.preview("nj-test", "2026-10-12", root=self.root)                       # nothing left unapproved
+
+    def test_changed_batch_voids_the_hash(self):
+        from leadengine import batch
+        out = self.planned(2)
+        h = batch.preview("nj-test", "2026-10-12", root=self.root)["hash"]
+        rows, fields = campaign._read_csv(out)
+        for r in rows:
+            if r["Draft"]:
+                r["Draft"] += "\nP.S. new line"
+        campaign._write_csv(out, rows, fields)
+        with self.assertRaises(SystemExit) as cm:
+            batch.approve("nj-test", "2026-10-12", h, root=self.root)
+        self.assertIn("changed", str(cm.exception))
+
+    def test_flagged_drafts_block_or_are_left_out(self):
+        from leadengine import batch
+
+        def bad(rows):
+            rows[1]["Draft Email 1"] = "Hi [First name], we noticed {company}.\nReply \"no thanks\" to opt out."
+        self.planned(3, bad)
+        info = batch.preview("nj-test", "2026-10-12", root=self.root)
+        self.assertEqual(len(info["flagged"]), 1)
+        with self.assertRaises(SystemExit):
+            batch.approve("nj-test", "2026-10-12", info["hash"], root=self.root)
+        self.assertEqual(batch.approve("nj-test", "2026-10-12", info["hash"], exclude_flagged=True, root=self.root), (2, 1))
+        path, n = batch.export_approved("nj-test", "2026-10-12", root=self.root)
+        self.assertNotIn("doc1@practice1.test", open(path).read())
+
+    def test_suppression_added_after_planning_is_caught(self):
+        from leadengine import batch
+        self.planned(2)
+        write(os.path.join(self.d, "suppress.csv"), [{"value": "doc0@practice0.test"}], ["value"])
+        info = batch.preview("nj-test", "2026-10-12", root=self.root)
+        self.assertTrue(any("suppressed" in " ".join(v) for v in info["flagged"].values()))
+
+    def test_over_cap_blocks(self):
+        from leadengine import batch
+        self.planned(3)
+        spec = campaign.load("nj-test", self.root)
+        spec["outreach"]["daily_caps"]["email"] = 1
+        with open(os.path.join(self.d, "spec.json"), "w") as fh:
+            json.dump(spec, fh)
+        info = batch.preview("nj-test", "2026-10-12", root=self.root)
+        self.assertTrue(info["over_cap"])
+        with self.assertRaises(SystemExit):
+            batch.approve("nj-test", "2026-10-12", info["hash"], root=self.root)
 
 
 if __name__ == "__main__":
