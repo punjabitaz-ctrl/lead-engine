@@ -25,11 +25,14 @@ e-commerce, forms that collect health information, more than one round of revisi
 
 Record with `deal pay <campaign> <deal> <amount>`, then `deal intake`, then `deal start`.
 
-## Launch pricing (first 90 days)
+## Launch pricing (opens November 1, 2026)
 
-Everything on this page is **introductory launch pricing** for 90 days from `campaign launch <name> --start DATE` (`offer.launch`). Clients who sign during the launch are **price-locked**:
-the tool records "Launch price = Y" and the lock end date on the deal. Still to decide: how many months the lock lasts (`--lock-months`), and the list prices that apply afterwards
-(`list_price` on each product, plan and add-on). Until then the lock end shows "TBD" and `campaign status` flags both gaps.
+Everything on this page is **introductory launch pricing**.
+* **Window:** 90 days from `campaign launch <name> --start 2026-11-01`: it ends **January 30, 2027** (the last day to sign is **January 29**). The end date is stored and fixed; it does not move if settings change.
+* **Lock:** the **first 100 clients** who sign inside the window keep their launch prices for **12 months from signing**. The 101st signer, or anyone signing after the window, pays regular prices.
+  The tool records "Launch price = Y" and the lock end date on each qualifying deal, and `campaign status` shows the slots left.
+* **What the lock covers (confirm):** the care plan prices, the add-on prices and the out-of-plan hourly rate for those 12 months. The one-time site price is simply what they pay at signing.
+* **Regular prices after the launch:** still to be set (`list_price` on each product, plan and add-on). Suggestions are in `docs/PRICING_GUIDANCE.md`. Do not advertise a "was/now" or "% off" comparison until the regular price has genuinely been offered; say "regular prices apply from <date>" instead.
 
 ## Care plans (monthly; set in `offer.plans`), all fully capped
 

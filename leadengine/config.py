@@ -10,6 +10,7 @@ DEFAULTS = {
         "address": "[Street, City, State ZIP]",
         "portfolio_url": "https://example.com/portfolio",
         "booking_link": "",
+        "reply_email": "",
         "tracker_base": "",
         "link_mode": "utm",
         "offer": "[One sentence: what you do and how fast]",

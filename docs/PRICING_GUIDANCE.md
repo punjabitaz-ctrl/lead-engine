@@ -47,6 +47,28 @@ At its earlier terms the $50 plan could cost you 4 hours for $50 ($12.50 an hour
 Most months a client will use far less than the cap, so the typical hourly rate is better than the worst case. Still, A or B keeps the tier honest. B puts the plan at the low end of
 the $50-$500 market, where its "tier 1 support" claim is more credible.
 
+## Suggested regular (list) prices for after the launch
+
+Still to be decided by you; these are starting points (stored as `suggested_list_price`, not used). More market data found for this: a 5-page small-business site from a freelancer is mostly
+**$1,500-$5,000** ([PlayCode](https://playcode.io/blog/how-much-does-a-website-cost), [Seahawk Media](https://seahawkmedia.com/tech/small-business-website-costs/)); budget freelancers go as low as
+$299-$499 with inconsistent quality; template or DIY tiers for a practice run **$0-$1,000** ([Project Cost Estimator](https://projectcostestimator.com/blog/dental-practice-website-cost-2026)).
+Both prices are far below the freelancer market, so there is room to roughly double after the launch.
+
+| Item | Launch | Suggested regular | Reasoning |
+|---|---|---|---|
+| One-page site | $250 | $500 | top of the budget-freelancer band; still under the $1,000 template-tier ceiling |
+| Three-page site | $500 | $1,000 | half the $1,500 freelancer floor for 5 pages; fixed scope and 72-hour delivery justify it |
+| Basic upkeep | $9.99 | $19 | still under the $30-$50 low end of care plans, and card fees matter at this size |
+| Upkeep + 1 change | $20 | $39 | one 30-minute change is worth about $55 at $110 an hour |
+| Priority upkeep | $99 | $149 | the cap is 2 hours; $149 is $74.50 an hour at the limit and below the $100-$300 typical plan |
+| Privacy policy draft | $195 | $295 | about 2 hours; far below attorney drafting (about $1,130) |
+| Logo and brand basics | $350 | $495 | within the $200-$800 simple-logo range |
+| Copywriting | $150/page | $200/page | bottom of the $150-$500 market |
+| Out-of-plan work | $85/h | $110/h | upper-middle of the $50-$100+ freelancer band |
+
+Notes: roughly 1.5x to 2x the launch price keeps the step visible without sticker shock. A launch price below the market can signal low quality, so the page frames it as introductory with a fixed end date
+and a real cap. Do not use "was/now" or "% off" wording until the higher price has genuinely been offered.
+
 ## Rules of thumb
 
 * **Publish a one-page price card** and quote from it. Do not negotiate on the first call; remove scope instead of discounting.

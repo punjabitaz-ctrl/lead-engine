@@ -41,7 +41,8 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 * The operator works after 10pm. Prepare, plan and run `batch preview` for them to read at night; the export carries a send window (default 09:30-11:30 recipient time).
   Never suggest sending at night.
 * **No cold calling.** Phone is off (`outreach.phone_policy: on_request_only`). Only when the operator says a call is absolutely required: `campaign deal call <name> <deal> --reason "..."`; the call goes in the Friday 10:00-15:00 block. Do not add call steps or times yourself.
-* **Launch pricing:** the 90-day window starts with `campaign launch <name> --start DATE` (ask the operator for the date); deals won inside it are marked as locked. Do not quote list prices: none are set yet.
+* **Launch pricing:** the window opens 2026-11-01 and ends 2027-01-30 (set with `campaign launch <name> --start 2026-11-01`; the end date is fixed). The first 100 signers are locked for 12 months. Do not quote regular prices: none are set yet. Never describe the offer as discounted or `% off`.
+* **Landing page:** `campaign landing <name>` writes `campaigns/<name>/landing/index.html` from the spec and sender config. Do not hand-edit prices on it; change the spec and regenerate. Do not add testimonials, counters or claims that are not true.
 * **Up to 3 builds at once:** `deal start` enforces it.
 * Weekly capacity is the lower of `offer.capacity_per_week` and what `operator.hours_per_week` allows (`status` shows `effective_capacity`).
 * Over-limit requests (more than a plan allows) are quoted as separate paid work: do not agree scope or price for the operator.

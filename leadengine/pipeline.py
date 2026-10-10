@@ -115,10 +115,11 @@ def move_deal(name, deal_id, stage, one_time=None, monthly=None, reason="", note
             raise SystemExit("Won needs a product on the deal or --one-time")
         deal["One-time $"] = one_time if one_time is not None else (deal["One-time $"] or prod["price"])
         deal["Won date"] = today.isoformat()
-        if campaign.in_launch(spec, today):
-            lm = spec["offer"]["launch"].get("lock_months")
+        lau = spec["offer"]["launch"]
+        taken = sum(1 for r in rows if r["Launch price"] == "Y")
+        if campaign.in_launch(spec, today) and taken < lau.get("max_customers", 100):
             deal["Launch price"] = "Y"
-            deal["Price lock until"] = str(campaign.add_months(today, lm)) if lm is not None else "TBD"
+            deal["Price lock until"] = str(campaign.add_months(today, lau["lock_months"])) if lau.get("lock_months") is not None else "TBD"
         if deal["Plan"] and not _num(deal["Monthly $"]) and monthly is None:
             deal["Monthly $"] = _plan(spec, deal["Plan"])["price"]
     elif one_time is not None:

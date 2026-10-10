@@ -40,29 +40,29 @@ DEFAULT_SPEC = {
     "template": "lead-engine-template.xlsx",
     "offer": {
         "products": [
-            {"id": "page1", "name": "Single-page site, live in 72 hours", "price": 250, "pages": 1, "payment": {"type": "full_upfront"}},
-            {"id": "page3", "name": "3-page basic site, live in 72 hours", "price": 500, "pages": 3, "payment": {"type": "deposit", "percent": 50}},
+            {"id": "page1", "suggested_list_price": 500, "name": "Single-page site, live in 72 hours", "price": 250, "pages": 1, "payment": {"type": "full_upfront"}},
+            {"id": "page3", "suggested_list_price": 1000, "name": "3-page basic site, live in 72 hours", "price": 500, "pages": 3, "payment": {"type": "deposit", "percent": 50}},
         ],
         "plans": [
-            {"id": "care9", "name": "Basic upkeep", "price": 9.99, "changes_per_month": 0, "max_minutes_per_change": 0, "monthly_minutes_cap": 0,
+            {"id": "care9", "suggested_list_price": 19, "name": "Basic upkeep", "price": 9.99, "changes_per_month": 0, "max_minutes_per_change": 0, "monthly_minutes_cap": 0,
              "includes": "keeps the site online and secure; no changes"},
-            {"id": "care20", "name": "Upkeep + 1 change", "price": 20, "changes_per_month": 1, "max_minutes_per_change": 30, "monthly_minutes_cap": 30,
+            {"id": "care20", "suggested_list_price": 39, "name": "Upkeep + 1 change", "price": 20, "changes_per_month": 1, "max_minutes_per_change": 30, "monthly_minutes_cap": 30,
              "includes": "upkeep plus one change or update a month, up to 30 minutes of work"},
-            {"id": "care99", "name": "Priority upkeep", "price": 99, "changes_per_month": 5, "max_minutes_per_change": 120, "monthly_minutes_cap": 120,
+            {"id": "care99", "suggested_list_price": 149, "name": "Priority upkeep", "price": 99, "changes_per_month": 5, "max_minutes_per_change": 120, "monthly_minutes_cap": 120,
              "includes": "tier 1 support, advanced upkeep, up to 5 changes a month, 2 hours of work in total a month (no single change over 2 hours)"},
         ],
         "plan_terms": {"rollover": False, "over_limit": "Anything beyond a plan's limits is quoted as separate paid work (written quote, ownership on payment)."},
-        "launch": {"start": None, "days": 90, "lock_months": None,
-                   "terms": "Prices in this offer are introductory launch prices for the first 90 days. Clients who sign during the launch keep their launch prices for the lock period."},
+        "launch": {"start": None, "end": None, "days": 90, "lock_months": 12, "max_customers": 100,
+                   "terms": "Introductory launch prices. The first 100 clients who sign before the end date keep them for 12 months from signing. The end date is fixed."},
         "max_parallel_builds": 3,
         "capacity_per_week": 10,
         "in_person_min_monthly_value": 5000,
         "target_hourly": 50,
         "add_ons": [
-            {"id": "privacy-policy", "name": "Privacy and data-retention policy drafted from the template; the client's attorney reviews it", "price": 195, "list_price": None},
-            {"id": "logo-brand", "name": "Logo and brand basics (logo, 2 colors, 1 font, vector files, one revision round)", "price": 350, "list_price": None},
-            {"id": "copywriting", "name": "Copywriting beyond light edits, per page, from the client's facts", "price": 150, "list_price": None, "unit": "page"},
-            {"id": "out-of-plan", "name": "Work beyond a plan's limits (hourly, 1-hour minimum, 30-minute blocks)", "price": 85, "list_price": None, "unit": "hour"},
+            {"id": "privacy-policy", "suggested_list_price": 295, "name": "Privacy and data-retention policy drafted from the template; the client's attorney reviews it", "price": 195, "list_price": None},
+            {"id": "logo-brand", "suggested_list_price": 495, "name": "Logo and brand basics (logo, 2 colors, 1 font, vector files, one revision round)", "price": 350, "list_price": None},
+            {"id": "copywriting", "suggested_list_price": 200, "name": "Copywriting beyond light edits, per page, from the client's facts", "price": 150, "list_price": None, "unit": "page"},
+            {"id": "out-of-plan", "suggested_list_price": 110, "name": "Work beyond a plan's limits (hourly, 1-hour minimum, 30-minute blocks)", "price": 85, "list_price": None, "unit": "hour"},
         ],
         "delivery_hours_estimate": [2, 3],
         "intake_required": ["logo and branding", "imagery", "text copy", "videos (if any)", "legal or other business data",
@@ -276,8 +276,9 @@ def launch_window(spec):
     st = spec.get("offer", {}).get("launch", {}).get("start")
     if not st:
         return None
+    lau = spec["offer"]["launch"]
     start = dt.date.fromisoformat(st)
-    return start, start + dt.timedelta(days=spec["offer"]["launch"]["days"])
+    return start, (dt.date.fromisoformat(lau["end"]) if lau.get("end") else start + dt.timedelta(days=lau["days"]))
 
 
 def in_launch(spec, day):
@@ -535,6 +536,10 @@ def plan_outreach(name, start, root=ROOT, force=False):
 
 
 # ---- status ---------------------------------------------------------------
+def _launch_locked(name, root):
+    return sum(1 for r in _read_csv(os.path.join(folder(name, root), "pipeline.csv"))[0] if r.get("Launch price") == "Y")
+
+
 def status(name, root=ROOT, today=None):
     spec = load(name, root)
     d = folder(name, root)
@@ -566,7 +571,8 @@ def status(name, root=ROOT, today=None):
     cap = pipeline.report(name, root, today)["capacity"]
     if cap["full"]:
         nxt = f"PAUSE outreach: {cap['started_this_week']} of {cap['per_week']} projects already started this week. " + nxt
-    return {"campaign": name, "capacity": cap, "effective_capacity": effective_capacity(spec), "launch": ({"starts": str(launch_window(spec)[0]), "ends": str(launch_window(spec)[1])} if launch_window(spec) else None), "offer_warnings": offer_warnings(spec), "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
+    return {"campaign": name, "capacity": cap, "effective_capacity": effective_capacity(spec), "launch": ({"starts": str(launch_window(spec)[0]), "ends": str(launch_window(spec)[1]), "last_day_to_sign": str(launch_window(spec)[1] - dt.timedelta(days=1)),
+                    "slots_left": spec["offer"]["launch"]["max_customers"] - _launch_locked(name, root)} if launch_window(spec) else None), "offer_warnings": offer_warnings(spec), "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
             "outreach_files": outs, "problems": problems, "blockers": todo, "next_action": nxt}
 
 
@@ -594,6 +600,8 @@ def main(argv):
     p.add_argument("name")
     p.add_argument("--start", required=True, help="YYYY-MM-DD")
     p.add_argument("--force", action="store_true", help="plan even if compliance checks fail (not recommended)")
+    p = sub.add_parser("landing", help="write the one-page landing page from the spec and sender config")
+    p.add_argument("name")
     p = sub.add_parser("launch", help="start the introductory-pricing window (default 90 days)")
     p.add_argument("name")
     p.add_argument("--start", required=True, help="YYYY-MM-DD")
@@ -680,14 +688,23 @@ def main(argv):
         print(f"{n} tasks -> {out}; {len(skipped)} skipped")
         for x in block + warn:
             print("  note:", x)
+    elif a.cmd == "landing":
+        from . import landing
+        out, warnings = landing.write(a.name, root)
+        print("Wrote", out)
+        for x in warnings:
+            print("  note:", x)
     elif a.cmd == "launch":
         spec = load(a.name, root)
         spec["offer"]["launch"]["start"] = a.start
+        spec["offer"]["launch"]["end"] = str(dt.date.fromisoformat(a.start) + dt.timedelta(days=spec["offer"]["launch"]["days"]))     # fixed: not recomputed later
         if a.lock_months is not None:
             spec["offer"]["launch"]["lock_months"] = a.lock_months
         _write_json(os.path.join(folder(a.name, root), "spec.json"), spec)
         log(a.name, "launch", root, start=a.start, lock_months=spec["offer"]["launch"]["lock_months"])
-        print(f"Launch pricing runs {launch_window(spec)[0]} to {launch_window(spec)[1]}")
+        w = launch_window(spec)
+        print(f"Launch pricing opens {w[0]}; ends {w[1]} (last day to sign: {w[1] - dt.timedelta(days=1)}). First {spec['offer']['launch']['max_customers']} signers are locked for "
+              f"{spec['offer']['launch']['lock_months']} months.")
     elif a.cmd == "batch":
         from . import batch
         if a.batch_cmd == "preview":

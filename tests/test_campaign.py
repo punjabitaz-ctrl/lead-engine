@@ -300,7 +300,6 @@ class PipelineTests(unittest.TestCase):
         self.assertNotIn("plan care99", w)                                                        # $99 for at most 2 hours = $49.50/h, within tolerance
         self.assertIn("plan care20", w)                                                           # 30 minutes for $20 = $40/h
         self.assertIn("launch window has not started", w)
-        self.assertIn("lock_months", w)
         self.assertIn("no list prices", w)
         self.assertNotIn("plan care9", w)
         self.assertNotIn("operator hours are not set", w)                                           # 2 h x 5 nights
@@ -423,9 +422,38 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(campaign.add_months(dt.date(2026, 8, 31), 6), dt.date(2027, 2, 28))
 
     def test_lock_is_marked_tbd_until_decided(self):
-        self.spec_edit(lambda s: s["offer"]["launch"].update(start="2026-10-12"))
+        self.spec_edit(lambda s: s["offer"]["launch"].update(start="2026-10-12", lock_months=None))
         d, _ = self.won("D001", "page1")
         self.assertEqual((d["Launch price"], d["Price lock until"]), ("Y", "TBD"))
+
+    def test_default_lock_is_year_one_for_the_first_hundred(self):
+        o = campaign.load("nj-test", self.root)["offer"]["launch"]
+        self.assertEqual((o["lock_months"], o["max_customers"], o["days"]), (12, 100, 90))
+        self.spec_edit(lambda s: s["offer"]["launch"].update(start="2026-10-12"))
+        d, _ = self.won("D001", "page1")
+        self.assertEqual(d["Price lock until"], "2027-10-14")
+
+    def test_only_the_first_n_signers_are_locked(self):
+        from leadengine import pipeline
+        self.spec_edit(lambda s: s["offer"]["launch"].update(start="2026-10-12", max_customers=2))
+        for i in (1, 2, 3):
+            self.won(f"D00{i}", "page1")
+        rows = {r["Deal ID"]: r["Launch price"] for r in pipeline._load("nj-test", self.root)}
+        self.assertEqual(rows, {"D001": "Y", "D002": "Y", "D003": ""})
+        self.assertEqual(campaign.status("nj-test", self.root, today=self.day)["launch"]["slots_left"], 0)
+
+    def test_launch_command_fixes_the_end_date(self):
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            campaign.main(["--root", self.root, "launch", "nj-test", "--start", "2026-11-01"])
+        spec = campaign.load("nj-test", self.root)
+        self.assertEqual((spec["offer"]["launch"]["start"], spec["offer"]["launch"]["end"]), ("2026-11-01", "2027-01-30"))
+        self.assertIn("last day to sign: 2027-01-29", out.getvalue())
+        self.assertTrue(campaign.in_launch(spec, dt.date(2027, 1, 29)))
+        self.assertFalse(campaign.in_launch(spec, dt.date(2027, 1, 30)))
+        spec["offer"]["launch"]["days"] = 365                      # changing days later must not move the fixed end
+        self.assertEqual(str(campaign.launch_window(spec)[1]), "2027-01-30")
 
     def test_three_builds_at_a_time(self):
         from leadengine import pipeline
@@ -542,6 +570,58 @@ class BatchTests(CampaignTests):
         self.assertTrue(info["over_cap"])
         with self.assertRaises(SystemExit):
             batch.approve("nj-test", "2026-10-12", info["hash"], root=self.root)
+
+
+class LandingTests(unittest.TestCase):
+    def setUp(self):
+        from leadengine import config
+        self.spec = campaign.copy.deepcopy(campaign.DEFAULT_SPEC)
+        self.spec["offer"]["launch"].update(start="2026-11-01", end="2027-01-30")
+        self.cfg = config.load()
+        self.cfg["sender"].update(business="Acme <Web> & Co", address="1 Main St, Edison, NJ", reply_email="hi@acme.test", booking_link="https://cal.acme.test/15")
+
+    def test_prices_dates_and_limits_come_from_the_spec(self):
+        from leadengine import landing
+        page, warnings = landing.render(self.spec, self.cfg)
+        for needle in ("$250", "$500", "$9.99", "$20", "$99", "$195", "$350", "$150/page", "$85/hour", "January 30, 2027", "first 100 clients", "12 months", "72 hours"):
+            self.assertIn(needle, page)
+        self.assertEqual(warnings, [])
+
+    def test_changing_the_offer_changes_the_page(self):
+        from leadengine import landing
+        self.spec["offer"]["products"][0]["price"] = 300
+        self.spec["offer"]["launch"]["max_customers"] = 50
+        page, _ = landing.render(self.spec, self.cfg)
+        self.assertIn("$300", page)
+        self.assertNotIn('<p class="price">$250', page)                      # ($250 still appears as the 3-page deposit)
+        self.assertIn("$300 in full for one page", page)
+        self.assertIn("first 50 clients", page)
+
+    def test_html_is_escaped_and_nothing_external_loads(self):
+        import re as _re
+        from leadengine import landing
+        page, _ = landing.render(self.spec, self.cfg)
+        self.assertIn("Acme &lt;Web&gt; &amp; Co", page)
+        self.assertNotIn("Acme <Web>", page)
+        self.assertIsNone(_re.search(r"<script[^>]+src=|<link[^>]+href=|<img[^>]+src=", page))
+        self.assertNotIn("<script>", page)                                   # no tracker unless configured
+
+    def test_tracker_only_when_configured_and_points_at_the_configured_host(self):
+        from leadengine import landing
+        self.cfg["sender"]["tracker_base"] = "https://t.acme.test/functions/v1/lead-tracker"
+        page, _ = landing.render(self.spec, self.cfg)
+        self.assertIn('"https://t.acme.test/functions/v1/lead-tracker/e"', page)
+        self.assertNotIn("supabase.co", page)
+        self.assertIn("we record that you visited", page)
+
+    def test_warnings(self):
+        from leadengine import config, landing
+        cfg = config.load()                                                  # placeholders everywhere
+        spec = campaign.copy.deepcopy(campaign.DEFAULT_SPEC)                 # launch not started
+        _, warnings = landing.render(spec, cfg)
+        text = " ".join(warnings)
+        for needle in ("placeholder", "booking_link or sender.reply_email", "launch window has not started"):
+            self.assertIn(needle, text)
 
 
 if __name__ == "__main__":

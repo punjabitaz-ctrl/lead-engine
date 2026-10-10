@@ -162,6 +162,18 @@ hour (out-of-plan work); **no cold calling**: email and LinkedIn first, a call o
 * **Parallel builds raise throughput only if your hours per site fall.** The limit of 3 is enforced; a faster rate is not assumed until you measure it (`operator.parallel_efficiency`).
 * **Launch pricing as a deadline helps close.** A 90-day window with a lock gives prospects a reason to decide now; set the end date in the proposal.
 
+## Update 2026-10-10 (6): locked terms, landing page, timeline
+
+Decisions: launch window opens **November 1, 2026** and ends **January 30, 2027** (fixed; last day to sign January 29); the **first 100 signers** are locked for **12 months** from signing; regular
+prices are to be set (suggestions in `docs/PRICING_GUIDANCE.md`); a **one-page landing page** is built and generated from the spec (`campaign landing`).
+
+* **The cap of 100 will not bind.** At about 2 sites a week for 13 weeks the most you can deliver is about 26. The lock is therefore a fixed-date offer in practice, and the page states the cap and date
+  as facts, with no counter or fake scarcity.
+* **The lock is a liability you control.** Up to 100 clients at fixed care-plan and hourly prices for a year; at 2 sites a week it is far fewer. Decide whether the lock covers plans and add-ons only (assumed here).
+* **Timeline:** today is October 10. Domain warm-up takes weeks, so start it now to be ready November 1. October 18-31 can be the hand-verified pre-launch test (top 30 leads, landing page live, a sample medical-practice site
+  if you build one), and live outreach begins November 1 with 13 weeks of runway.
+* **The page is the proof piece.** A practice owner will judge the 72-hour promise by this page and by one medical-practice sample, which is still missing.
+
 ## What to stop, start, and decide
 
 **Stop** (until the first sale): adding counties and specialties, the price-file analysis (it informs which specialties spend most, not whether a practice
