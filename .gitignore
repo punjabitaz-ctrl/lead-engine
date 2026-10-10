@@ -5,3 +5,5 @@ output/
 data/candidates/*.csv
 lists/
 samples/
+campaigns/*
+!campaigns/README.md

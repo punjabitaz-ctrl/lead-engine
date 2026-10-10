@@ -1,4 +1,5 @@
-"""Defaults mirror the Config tab of lead-engine-template.xlsx. Override with --config path/to/file.json."""
+"""Defaults mirror the Config tab of lead-engine-template.xlsx. Sender details are placeholders on purpose: set them in
+campaigns/<name>/config.json (or --config path/to/file.json); campaign outreach planning refuses to run until they are filled in."""
 import copy
 import json
 
@@ -7,12 +8,11 @@ DEFAULTS = {
         "name": "[Your name]",
         "business": "[Your business name]",
         "address": "[Street, City, State ZIP]",
-        "portfolio_url": "https://tazabbas.com/projects",
+        "portfolio_url": "https://example.com/portfolio",
         "booking_link": "",
-        "tracker_base": "https://mzsrtwrbpdpehthwmkwt.supabase.co/functions/v1/lead-tracker",
+        "tracker_base": "",
         "link_mode": "utm",
-        "offer": ("I build and launch business websites in 72 hours, and can extend that into app and tool "
-                  "development and business marketing strategy."),
+        "offer": "[One sentence: what you do and how fast]",
     },
     "target": {"employees_min": 20, "employees_max": 250},
     "points": {

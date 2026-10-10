@@ -1,0 +1,23 @@
+{
+ "id": "tech-hiring",
+ "label": "Companies hiring for digital roles (job-board signals)",
+ "industry": "",
+ "sources": [
+  "adzuna"
+ ],
+ "tier_order": [
+  "focus"
+ ],
+ "tiers": {
+  "focus": {
+   "label": "Roles that signal a digital project",
+   "professions": [
+    "web developer",
+    "marketing manager",
+    "ecommerce manager",
+    "UX designer"
+   ]
+  }
+ },
+ "_note": "The original use case: a hiring post is the signal. Needs ADZUNA_APP_ID/ADZUNA_APP_KEY or a job-board CSV export."
+}

@@ -1,0 +1,59 @@
+{
+ "_note": "taxonomy strings are passed to the NPPES taxonomy_description filter. They are written from memory of the NUCC taxonomy and have NOT been checked against the live registry: the first live run prints a warning for any string that returns zero results. Tier 2 and 3 order is PROVISIONAL, from web-search snippets only (see docs/specialty_rubric.md, 'Findings so far'); it will be re-ranked when the CMS files can be downloaded.",
+ "id": "healthcare-practices",
+ "label": "Privately owned medical, dental and therapy practices",
+ "industry": "Medical practice",
+ "sources": [
+  "nppes"
+ ],
+ "tier_order": [
+  "focus",
+  "tier1",
+  "tier2",
+  "tier3"
+ ],
+ "tiers": {
+  "focus": {
+   "label": "Cardiology and ophthalmology (your focus, 2026-10-09)",
+   "taxonomies": [
+    "Cardiovascular Disease",
+    "Ophthalmology"
+   ]
+  },
+  "tier1": {
+   "label": "Dentists, physical therapists, mental health, primary care",
+   "taxonomies": [
+    "Dentist",
+    "Physical Therapist",
+    "Psychologist",
+    "Counselor",
+    "Clinical Social Worker",
+    "Marriage & Family Therapist",
+    "Psychiatry",
+    "Family Medicine",
+    "Internal Medicine",
+    "Pediatrics"
+   ]
+  },
+  "tier2": {
+   "label": "High referral volume and high cost (provisional)",
+   "taxonomies": [
+    "Orthopaedic Surgery",
+    "Gastroenterology",
+    "Cardiovascular Disease"
+   ]
+  },
+  "tier3": {
+   "label": "Cost or local-fit candidates (provisional, unvalidated)",
+   "taxonomies": [
+    "Medical Oncology",
+    "Ophthalmology",
+    "Dermatology",
+    "Urology",
+    "Neurology",
+    "Pain Medicine",
+    "Obstetrics & Gynecology"
+   ]
+  }
+ }
+}
