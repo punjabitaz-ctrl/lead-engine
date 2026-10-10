@@ -170,7 +170,13 @@ class CampaignTests(unittest.TestCase):
         out, *_ = campaign.plan_outreach("nj-test", START, self.root)
         tasks = {t["Channel"]: t for t in campaign._read_csv(out)[0]}
         self.assertIn("do not send at night", tasks["email"]["Window"])
-        self.assertIn("NEEDS A DAYTIME BLOCK", tasks["phone"]["Window"])
+        self.assertIn("call Fri 10:00-15:00", tasks["phone"]["Window"])
+        self.assertNotIn("NEEDS", tasks["phone"]["Window"])
+        self.assertEqual(dt.date.fromisoformat(tasks["phone"]["Date"]).weekday(), 4)               # calls land on Fridays only
+        spec = campaign.load("nj-test", self.root)
+        spec["outreach"]["call_window"] = {"days": ["Tue"], "start": "09:00", "end": "17:00"}      # not inside any daytime block
+        self.assertIn("NEEDS A DAYTIME BLOCK", campaign.window_for(spec, "phone"))
+        self.assertTrue(any("daytime blocks" in x for x in campaign.offer_warnings(spec)))
         self.assertIn("evening", tasks["linkedin"]["Window"])
 
     def test_outreach_caps_weekends_spacing(self):
@@ -278,8 +284,8 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("plan care20", w)                                                           # 30 minutes for $20 = $40/h
         self.assertNotIn("plan care9", w)
         self.assertIn("add-on privacy-policy has no price", w)
-        self.assertIn("hours_per_week", w)
-        self.assertIn("daytime call window", w)                                                    # 22:00-24:00 cannot overlap business hours
+        self.assertNotIn("operator hours are not set", w)                                           # 2 h x 5 nights
+        self.assertNotIn("daytime blocks", w)                                                      # the Friday 10-3 block covers calls
         self.assertNotIn("15.8 h", w)
 
     def test_uncapped_plan_is_flagged(self):
@@ -289,8 +295,11 @@ class PipelineTests(unittest.TestCase):
 
     def test_effective_capacity_follows_your_hours(self):
         spec = campaign.load("nj-test", self.root)
+        self.assertEqual(campaign.effective_capacity(spec), 2)                   # 2 h x 5 nights = 10 h x 60% / 3 h = 2 sites
+        spec["operator"]["hours_per_week"] = None
+        spec["operator"]["nights_per_week"] = spec["operator"]["hours_per_night"] = 0
         self.assertEqual(campaign.effective_capacity(spec), 10)                  # hours unknown: the stated limit
-        spec["operator"]["hours_per_week"] = 10                                  # 10 h x 60% / 3 h = 2 sites
+        spec["operator"]["hours_per_week"] = 10
         self.assertEqual(campaign.effective_capacity(spec), 2)
         spec["operator"]["hours_per_week"] = 200
         self.assertEqual(campaign.effective_capacity(spec), 10)                  # never above the stated limit

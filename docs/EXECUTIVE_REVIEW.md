@@ -143,6 +143,12 @@ happens **after 10pm**.
   with sends scheduled for 09:30-11:30 recipient time.
 * **A privacy-policy add-on is both a sale and a risk.** Drafting from a template for the client's attorney to review is reasonable; do not present it as legal advice.
 
+## Update 2026-10-10 (4): confirmed hours
+
+Hours: **2 a night, up to 5 nights a week (10 hours)**, with **Fridays 10am-3pm** for calls. Capacity is therefore about **2 sites a week**, not 10: at the base case's roughly 220 contacts
+per sale, even 2 sales a week needs about 440 contacts a week, which is far more than 10 hours of hand work can reach. Outreach must be templated and batch-approved, with calls
+reserved for warm replies on Fridays. At capacity, the lever is price: if you are booked more than 2 weeks out, raise prices. See `docs/PRICING_GUIDANCE.md`.
+
 ## What to stop, start, and decide
 
 **Stop** (until the first sale): adding counties and specialties, the price-file analysis (it informs which specialties spend most, not whether a practice

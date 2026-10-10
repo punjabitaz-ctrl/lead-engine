@@ -42,22 +42,22 @@ or 4 hours a month on the $50 plan) is quoted in writing as a separate project, 
 * The $20 plan with a 30-minute limit is $40 an hour at the limit, below a $50 target but workable.
 * The $50 plan even capped at 4 hours is $12.50 an hour at the limit. To be $50 an hour at the limit it would need to be $200 a month, or capped at 60 minutes.
 
-## Add-ons (quoted separately; prices are yours to set in `offer.add_ons`)
+## Add-ons (quoted separately; prices TBD, guidance in `docs/PRICING_GUIDANCE.md`)
 
-| Add-on | Price |
+| Add-on | Suggested starting price (to test) |
 |---|---|
-| Privacy and data-retention policy: drafted from `privacy-policy-template.md`; the client's attorney must review it | [$__] |
-| Logo and brand basics | [$__] |
-| Copywriting beyond light edits | [$__] |
-| Out-of-plan work | [$__/hour or fixed quote] |
+| Privacy and data-retention policy: drafted from `privacy-policy-template.md`; the client's attorney must review it | $195 |
+| Logo and brand basics (logo, 2 colors, 1 font, vector files, one revision round) | $350 |
+| Copywriting beyond light edits, from the client's facts | $150 per page |
+| Out-of-plan work: hourly, 1-hour minimum, 30-minute blocks (fixed quote for known jobs) | $85 per hour |
 
 If a client has no privacy policy, logo, copy or imagery, quote these separately. The build does not start until the materials exist.
 
-## Your schedule (late nights, after 10pm)
+## Your schedule (2 hours a night, up to 5 nights, after 10pm; Fridays 10am-3pm for calls)
 
-* **Build, review and approve** at night. **Send** during the recipient's business hours: the tool exports a send window (09:30-11:30 by default) so batches are scheduled, not sent at night.
-* **Phone calls need a daytime block.** Nights do not overlap call hours; the plan marks phone steps "NEEDS A DAYTIME BLOCK". Drop the phone step or reserve a block (for example 30 minutes at lunch).
-* **Capacity follows your hours, not the 10-a-week ceiling.** At 2.5-3 hours a site, 10 hours a week with 40% going to outreach delivers about 2 sites a week. Set `operator.hours_per_week` and the tool computes it.
+* **Build, review and approve at night.** **Send during the recipient's business hours:** the tool exports a send window (09:30-11:30 by default) so batches are scheduled, not sent at night.
+* **Calls happen Fridays 10:00-15:00** (`outreach.call_window`, covered by `operator.daytime_blocks`). Phone steps are only scheduled on Fridays, at most 10 a day.
+* **Capacity follows your hours.** 10 hours a week, 40% to outreach, 2.5-3 hours a site is about **2 sites a week** (`campaign status` shows `effective_capacity`). If you are booked past two weeks, raise prices.
 
 ## Rules
 

@@ -56,19 +56,20 @@ DEFAULT_SPEC = {
         "in_person_min_monthly_value": 5000,
         "target_hourly": 50,
         "add_ons": [
-            {"id": "privacy-policy", "name": "Privacy and data-retention policy (from the template, reviewed by the client's attorney)", "price": None},
-            {"id": "logo-brand", "name": "Logo and brand basics", "price": None},
-            {"id": "copywriting", "name": "Copywriting beyond light edits", "price": None},
-            {"id": "out-of-plan", "name": "Work beyond a plan's limits (hourly or fixed quote)", "price": None, "unit": "hour"},
+            {"id": "privacy-policy", "name": "Privacy and data-retention policy drafted from the template; the client's attorney reviews it", "price": None, "suggested": 195},
+            {"id": "logo-brand", "name": "Logo and brand basics (logo, 2 colors, 1 font, vector files, one revision round)", "price": None, "suggested": 350},
+            {"id": "copywriting", "name": "Copywriting beyond light edits, per page, from the client's facts", "price": None, "suggested": 150, "unit": "page"},
+            {"id": "out-of-plan", "name": "Work beyond a plan's limits (hourly, 1-hour minimum, 30-minute blocks)", "price": None, "suggested": 85, "unit": "hour"},
         ],
         "delivery_hours_estimate": [2, 3],
         "intake_required": ["logo and branding", "imagery", "text copy", "videos (if any)", "legal or other business data",
                             "privacy and data-retention policy"],
     },
-    "operator": {"available_window": "22:00-24:00", "timezone": "America/New_York", "hours_per_week": None, "outreach_share": 0.4},
+    "operator": {"night_window": "22:00-24:00", "nights_per_week": 5, "hours_per_night": 2, "hours_per_week": 10, "outreach_share": 0.4,
+                 "timezone": "America/New_York", "daytime_blocks": [{"days": ["Fri"], "start": "10:00", "end": "15:00"}]},
     "outreach": {
         "send_window": {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "09:30", "end": "11:30"},
-        "call_window": "09:00-17:00",
+        "call_window": {"days": ["Fri"], "start": "10:00", "end": "15:00"},
         "daily_caps": {"email": 20, "phone": 10, "linkedin": 15},
         "sequence": [
             {"day": 0, "channel": "email", "action": "Send the approved email 1"},
@@ -212,6 +213,21 @@ def _minutes(window):
     return f(a), f(b)
 
 
+DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+
+def _call_window_covered(spec):
+    cw = spec.get("outreach", {}).get("call_window")
+    if not isinstance(cw, dict):
+        return False
+    c0, c1 = _minutes(f"{cw['start']}-{cw['end']}")
+    for blk in spec.get("operator", {}).get("daytime_blocks", []):
+        b0, b1 = _minutes(f"{blk['start']}-{blk['end']}")
+        if set(cw["days"]) <= set(blk["days"]) and b0 <= c0 and c1 <= b1:
+            return True
+    return False
+
+
 def offer_warnings(spec):
     """Not blocking, but the seller should know: plans whose worst case is poorly paid, add-ons without prices, and a schedule that does not fit the work."""
     off, out = spec.get("offer", {}), []
@@ -230,18 +246,12 @@ def offer_warnings(spec):
                            f"; at that cap it would need to be ${hours * target:,.0f}/mo, or the cap {p['price'] / target * 60:.0f} min")
     for ao in off.get("add_ons", []):
         if ao.get("price") is None:
-            out.append(f"add-on {ao['id']} has no price yet; quote requests cannot be answered consistently")
+            out.append(f"add-on {ao['id']} has no price yet (suggested ${ao['suggested']}); quote requests cannot be answered consistently" if ao.get("suggested") else f"add-on {ao['id']} has no price yet")
     op = spec.get("operator", {})
-    if op.get("hours_per_week") is None:
-        out.append("operator.hours_per_week is not set, so weekly capacity cannot be checked against your hours")
-    if any(st.get("channel") == "phone" for st in spec.get("outreach", {}).get("sequence", [])) and op.get("available_window") and spec["outreach"].get("call_window"):
-        try:
-            (a1, b1), (a2, b2) = _minutes(op["available_window"]), _minutes(spec["outreach"]["call_window"])
-            if max(a1, a2) >= min(b1, b2):
-                out.append(f"phone steps need a daytime call window ({spec['outreach']['call_window']}), outside your hours ({op['available_window']}): "
-                           "the plan marks them 'needs a daytime block'; remove them or reserve a block")
-        except (ValueError, KeyError):
-            out.append("operator.available_window and outreach.call_window must look like 22:00-24:00")
+    if not op.get("hours_per_week") and not (op.get("nights_per_week") and op.get("hours_per_night")):
+        out.append("operator hours are not set, so weekly capacity cannot be checked against your hours")
+    if any(st.get("channel") == "phone" for st in spec.get("outreach", {}).get("sequence", [])) and not _call_window_covered(spec):
+        out.append("phone steps are scheduled outside your daytime blocks (operator.daytime_blocks); they are marked 'needs a daytime block'")
     return out
 
 
@@ -249,10 +259,11 @@ def effective_capacity(spec):
     """Projects a week you can really deliver: the lower of the stated limit and what your hours allow after outreach time."""
     off, op = spec["offer"], spec.get("operator", {})
     stated = off["capacity_per_week"]
-    if not op.get("hours_per_week"):
+    hours = op.get("hours_per_week") or (op.get("nights_per_week", 0) * op.get("hours_per_night", 0))
+    if not hours:
         return stated
     per = max(off.get("delivery_hours_estimate", [3])) or 3
-    return max(0, min(stated, int(op["hours_per_week"] * (1 - op.get("outreach_share", 0.4)) / per)))
+    return max(0, min(stated, int(hours * (1 - op.get("outreach_share", 0.4)) / per)))
 
 
 def blockers(spec):
@@ -388,14 +399,9 @@ def window_for(spec, channel):
         w = o.get("send_window", {})
         return f"send {w.get('start', '09:30')}-{w.get('end', '11:30')} recipient local time (schedule it; do not send at night)"
     if channel == "phone":
-        win = o.get("call_window", "09:00-17:00")
-        try:
-            (a1, b1), (a2, b2) = _minutes(spec.get("operator", {}).get("available_window", win)), _minutes(win)
-            if max(a1, a2) >= min(b1, b2):
-                return f"call {win}: NEEDS A DAYTIME BLOCK (outside your available hours)"
-        except (ValueError, KeyError):
-            pass
-        return f"call {win}"
+        cw = o.get("call_window", {})
+        label = f"call {'/'.join(cw.get('days', []))} {cw.get('start', '')}-{cw.get('end', '')}"
+        return label if _call_window_covered(spec) else label + ": NEEDS A DAYTIME BLOCK (outside your available hours)"
     return "any time (evening is fine)"
 
 
@@ -442,10 +448,19 @@ def plan_outreach(name, start, root=ROOT, force=False):
                 load_[k] = load_.get(k, 0) + 1
     tasks, skipped = [], []
 
+    def allowed(ch):
+        o = spec["outreach"]
+        names = o.get("send_window", {}).get("days") if ch == "email" else o.get("call_window", {}).get("days") if ch == "phone" else DAYS[:5]
+        return {DAYS.index(n) for n in (names or DAYS[:5])}
+
     def slot(day, ch):
-        day = _next_weekday(day)
+        ok = allowed(ch)
+        while day.weekday() not in ok:
+            day += dt.timedelta(days=1)
         while load_.get((day, ch), 0) >= caps[ch]:
-            day = _next_weekday(day + dt.timedelta(days=1))
+            day += dt.timedelta(days=1)
+            while day.weekday() not in ok:
+                day += dt.timedelta(days=1)
         load_[(day, ch)] = load_.get((day, ch), 0) + 1
         return day
 
@@ -465,7 +480,7 @@ def plan_outreach(name, start, root=ROOT, force=False):
                 continue
             target = base + dt.timedelta(days=st["day"])
             when = slot(target, ch)
-            if when > target:                      # a full day or a weekend pushed this step: keep the later spacing
+            if when > target and ch != "phone":   # a full day or a weekend pushed this step: keep the later spacing (calls wait for their own block)
                 base += when - target
             tasks.append({"Date": when.isoformat(), "Channel": ch, "Step": i, "Action": st["action"], "Company": row["Company"],
                           "Contact": " ".join(x for x in (row.get("First Name"), row.get("Last Name")) if x),

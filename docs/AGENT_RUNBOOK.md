@@ -40,7 +40,7 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 
 * The operator works after 10pm. Prepare, plan and run `batch preview` for them to read at night; the export carries a send window (default 09:30-11:30 recipient time).
   Never suggest sending at night.
-* Phone steps are marked "NEEDS A DAYTIME BLOCK" unless the operator reserves one. Do not remove or schedule them yourself.
+* Calls are scheduled only in the Friday 10:00-15:00 block (`outreach.call_window`); anything outside the operator's daytime blocks is marked "NEEDS A DAYTIME BLOCK". Do not add call times yourself.
 * Weekly capacity is the lower of `offer.capacity_per_week` and what `operator.hours_per_week` allows (`status` shows `effective_capacity`).
 * Over-limit requests (more than a plan allows) are quoted as separate paid work: do not agree scope or price for the operator.
 
