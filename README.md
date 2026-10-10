@@ -16,9 +16,13 @@ python3 -m leadengine campaign status nj-dental --json     # what is done, what 
 python3 -m leadengine campaign run nj-dental               # next stage size -> campaigns/nj-dental/review/pack-01.csv
 python3 -m leadengine campaign approve nj-dental reviewed.csv   # after a human marks Keep / Drop / Unsure
 python3 -m leadengine campaign outreach nj-dental --start 2026-10-19   # dated tasks; nothing is sent
+python3 -m leadengine campaign deal add nj-dental --lead-key <key> --product page1   # after a reply
+python3 -m leadengine campaign deal move nj-dental D001 "Call booked"
+python3 -m leadengine campaign pipeline nj-dental          # funnel, revenue, weekly capacity, in-person eligibility
 ```
 
 Swap `--state`, `--county`/`--city` and `--vertical` (a pack in `leadengine/data/verticals/`) to run the same process anywhere.
+`playbook/` has the call script, proposal, agreement and delivery checklist. `docs/EXECUTIVE_REVIEW.md` has the business case and `python3 tools/funnel.py` the funnel math.
 See `docs/ARCHITECTURE.md` for the model and the gap list, and `docs/AGENT_RUNBOOK.md` for how an agent drives it.
 `campaigns/` holds lead data and sender details, so it is git-ignored except `campaigns/README.md`.
 

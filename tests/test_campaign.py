@@ -229,5 +229,87 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(lines[0]["event"], "init")
 
 
+class PipelineTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+        campaign.init("nj-test", "NJ", counties=["Middlesex"], root=self.root)
+        self.d = campaign.folder("nj-test", self.root)
+        rows = [{"Lead Key": f"k{i}", "Company": f"Practice {i}", "First Name": "Pat", "Last Name": "Lee", "Source": "NPPES", "Primary Signal": "No Presence"} for i in range(4)]
+        write(os.path.join(self.d, "approved.csv"), rows, list(rows[0]))
+        self.day = dt.date(2026, 10, 14)          # a Wednesday
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_defaults_match_the_offer(self):
+        spec = campaign.load("nj-test", self.root)
+        self.assertEqual([(p["id"], p["price"]) for p in spec["offer"]["products"]], [("page1", 250), ("page3", 500)])
+        self.assertEqual((spec["offer"]["capacity_per_week"], spec["offer"]["in_person_min_monthly_value"]), (10, 5000))
+
+    def test_only_approved_leads_enter(self):
+        from leadengine import pipeline
+        with self.assertRaises(SystemExit):
+            pipeline.add_deal("nj-test", "page1", lead_key="nope", root=self.root)
+        d = pipeline.add_deal("nj-test", "page1", lead_key="k0", root=self.root, today=self.day)
+        self.assertEqual((d["Company"], d["Source"], d["Signal"]), ("Practice 0", "NPPES", "No Presence"))
+        with self.assertRaises(SystemExit):
+            pipeline.add_deal("nj-test", "gold-plated", company="X", root=self.root)
+
+    def test_won_defaults_to_product_price_and_lost_needs_reason(self):
+        from leadengine import pipeline
+        pipeline.add_deal("nj-test", "page3", lead_key="k0", root=self.root, today=self.day)
+        with self.assertRaises(SystemExit):
+            pipeline.move_deal("nj-test", "D001", "Lost", root=self.root)
+        pipeline.move_deal("nj-test", "D001", "Won", root=self.root, today=self.day)
+        rep = pipeline.report("nj-test", self.root, today=self.day)
+        self.assertEqual((rep["won"], rep["one_time_revenue"]), (1, 500.0))
+        with self.assertRaises(SystemExit):
+            pipeline.move_deal("nj-test", "D001", "Shipped", root=self.root)
+
+    def test_funnel_counts_lost_at_furthest_stage(self):
+        from leadengine import pipeline
+        for i in range(3):
+            pipeline.add_deal("nj-test", "page1", lead_key=f"k{i}", root=self.root, today=self.day)
+        pipeline.move_deal("nj-test", "D001", "Replied", root=self.root, today=self.day)
+        pipeline.move_deal("nj-test", "D001", "Call booked", root=self.root, today=self.day)
+        pipeline.move_deal("nj-test", "D001", "Lost", reason="has a nephew who builds sites", root=self.root, today=self.day)
+        pipeline.move_deal("nj-test", "D002", "Replied", root=self.root, today=self.day)
+        f = pipeline.report("nj-test", self.root, today=self.day)
+        self.assertEqual(f["funnel_reached"]["Contacted"], 3)
+        self.assertEqual(f["funnel_reached"]["Replied"], 2)
+        self.assertEqual(f["funnel_reached"]["Call booked"], 1)
+        self.assertEqual(f["conversion"]["Replied -> Call booked"], 0.5)
+        self.assertEqual(f["lost_reasons"], ["has a nephew who builds sites"])
+
+    def test_capacity_pauses_outreach(self):
+        from leadengine import pipeline
+        spec = campaign.load("nj-test", self.root)
+        spec["offer"]["capacity_per_week"] = 2
+        json.dump(spec, open(os.path.join(self.d, "spec.json"), "w"))
+        for i in range(3):
+            pipeline.add_deal("nj-test", "page1", company=f"Co {i}", root=self.root, today=self.day)
+        for i in range(1, 3):
+            pipeline.move_deal("nj-test", f"D00{i}", "Won", root=self.root, today=self.day)
+        self.assertTrue(pipeline.report("nj-test", self.root, today=self.day)["capacity"]["full"])
+        self.assertFalse(pipeline.report("nj-test", self.root, today=self.day + dt.timedelta(days=7))["capacity"]["full"])
+
+    def test_in_person_unlocks_only_at_five_thousand_a_month(self):
+        from leadengine import pipeline
+        pipeline.add_deal("nj-test", "page1", company="Small Co", monthly=4999, root=self.root, today=self.day)
+        pipeline.add_deal("nj-test", "page1", company="Big Co", monthly=5000, root=self.root, today=self.day)
+        rep = pipeline.report("nj-test", self.root, today=self.day)
+        self.assertEqual(rep["in_person_eligible"], ["D002 Big Co"])
+        _, visit = pipeline.move_deal("nj-test", "D001", "Replied", root=self.root, today=self.day)
+        self.assertFalse(visit)
+        _, visit = pipeline.move_deal("nj-test", "D002", "Replied", root=self.root, today=self.day)
+        self.assertTrue(visit)
+
+    def test_in_person_is_not_a_sequence_step(self):
+        spec = campaign.load("nj-test", self.root)
+        spec["outreach"]["sequence"].append({"day": 20, "channel": "in_person", "action": "Drop by"})
+        self.assertTrue(any("in-person" in p for p in campaign.validate(spec)))
+
+
 if __name__ == "__main__":
     unittest.main()

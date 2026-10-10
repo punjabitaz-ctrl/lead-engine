@@ -77,6 +77,30 @@ conversion rate; doubling conversion or price does.
 piece for the partnerships and business-development roles you are pursuing (what you built, the funnel numbers, what you learned). That has value
 even if no practice buys. Treat it as a second reason to run the test, not as the reason to keep building.
 
+## Update 2026-10-10: real prices change the answer
+
+Your offer is **$250 for a single page and $500 for three pages**, up to **10 projects a week**, remote first, in person only for deals of $5,000 a month or more.
+The tables above assumed a $3,000 project and no longer apply. With the real prices (`python3 tools/funnel.py`; average sale $350; every other number still an assumption):
+
+| Scenario | Sales from 250 leads | Revenue | Revenue per hour, done by hand | Revenue per hour, batched outreach |
+|---|---|---|---|---|
+| Low | 0.15 | $53 | $1 | $6 |
+| Base | 0.56 | $197 | $4 | $20 |
+| High | 1.57 | $551 | $11 | $42 |
+
+* **A one-off $250-$500 site cannot pay for hand-worked outreach.** To earn $50 an hour you could spend about 1 minute per contact. Calling and
+  personalising each practice is out; templated outreach approved in batches is the only version that comes close, and only in the high case.
+* **The monthly plan decides it.** Adding a $99 plan taken by 40% of clients lifts base-case revenue to about $464 and batched revenue per hour to about $46.
+  Price and take-rate of the recurring plan matter more than list size or channel.
+* **10 projects a week is not the constraint.** At about 220 contacts per sale in the base case, 10 sales a week would need over 2,000 contacts a week.
+  One or two sales a week is a realistic first target; pause outreach at 10 (the pipeline does this).
+* **The $250 site is a door-opener, not the business.** Use it to get a practice as a client, then sell the monthly plan, local search work and, for larger
+  groups, bigger projects. In-person visits stay reserved for contracts of $5,000 a month or more, which will not come from the $250 product.
+
+Revised sprint: same 14 days and 30 prospects, but measure *minutes per contact* and *replies per 100 contacts* as well as conversations, and test one
+monthly plan price with every prospect who talks to you. Continue if you reach a projected $50 an hour including the plan; otherwise change the offer
+(for example a bigger first product aimed at multi-provider practices) before changing the list.
+
 ## What to stop, start, and decide
 
 **Stop** (until the first sale): adding counties and specialties, the price-file analysis (it informs which specialties spend most, not whether a practice

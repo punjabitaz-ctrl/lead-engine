@@ -38,6 +38,14 @@ DEFAULT_SPEC = {
     "signal": "any",
     "stages": [59, 100, 250],
     "template": "lead-engine-template.xlsx",
+    "offer": {
+        "products": [
+            {"id": "page1", "name": "Single-page site, live in 72 hours", "price": 250, "pages": 1},
+            {"id": "page3", "name": "3-page basic site, live in 72 hours", "price": 500, "pages": 3},
+        ],
+        "capacity_per_week": 10,
+        "in_person_min_monthly_value": 5000,
+    },
     "outreach": {
         "daily_caps": {"email": 20, "phone": 10, "linkedin": 15},
         "sequence": [
@@ -144,9 +152,18 @@ def validate(spec):
         bad.append("no sources")
     if not spec.get("stages") or any((not isinstance(n, int)) or n < 1 for n in spec["stages"]):
         bad.append("stages must be positive whole numbers, e.g. [59, 100, 250]")
+    off = spec.get("offer", {})
+    if not off.get("products") or any(not p.get("id") or not isinstance(p.get("price"), (int, float)) or p["price"] <= 0 for p in off.get("products", [])):
+        bad.append("offer.products needs at least one product with an id and a positive price")
+    if not isinstance(off.get("capacity_per_week"), int) or off.get("capacity_per_week", 0) < 1:
+        bad.append("offer.capacity_per_week must be a whole number of projects")
+    if not isinstance(off.get("in_person_min_monthly_value"), (int, float)):
+        bad.append("offer.in_person_min_monthly_value must be a number (monthly contract value that unlocks an in-person visit)")
     seq, last = spec.get("outreach", {}).get("sequence", []), -1
     for i, st in enumerate(seq, 1):
-        if st.get("channel") not in CHANNELS:
+        if st.get("channel") in ("in_person", "in-person", "visit"):
+            bad.append(f"outreach step {i}: in-person visits are not a sequence step; they unlock per deal at offer.in_person_min_monthly_value per month")
+        elif st.get("channel") not in CHANNELS:
             bad.append(f"outreach step {i}: channel must be one of {sorted(CHANNELS)}")
         if not isinstance(st.get("day"), int) or st["day"] < last:
             bad.append(f"outreach step {i}: 'day' must be a whole number, not earlier than the previous step")
@@ -396,7 +413,11 @@ def status(name, root=ROOT):
         nxt = f"agent: leadengine campaign outreach {name} --start YYYY-MM-DD (then a human approves each send)"
     else:
         nxt = f"agent: leadengine campaign run {name} for the next stage, or a human starts sending from {outs[-1] if outs else 'the task list'}"
-    return {"campaign": name, "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
+    from . import pipeline
+    cap = pipeline.report(name, root)["capacity"]
+    if cap["full"]:
+        nxt = f"PAUSE outreach: {cap['started_this_week']} of {cap['per_week']} projects already started this week. " + nxt
+    return {"campaign": name, "capacity": cap, "stages": stages, "review_packs": len(pk), "leads_delivered": delivered, "decisions": decided,
             "outreach_files": outs, "problems": problems, "blockers": todo, "next_action": nxt}
 
 
@@ -424,6 +445,26 @@ def main(argv):
     p.add_argument("name")
     p.add_argument("--start", required=True, help="YYYY-MM-DD")
     p.add_argument("--force", action="store_true", help="plan even if compliance checks fail (not recommended)")
+    p = sub.add_parser("deal", help="add a deal or move it through the pipeline")
+    dsub = p.add_subparsers(dest="deal_cmd", required=True)
+    q = dsub.add_parser("add")
+    q.add_argument("name")
+    q.add_argument("--lead-key", default="")
+    q.add_argument("--company", default="")
+    q.add_argument("--contact", default="")
+    q.add_argument("--product", default="")
+    q.add_argument("--channel", default="email")
+    q.add_argument("--monthly", type=float, default=0)
+    q = dsub.add_parser("move")
+    q.add_argument("name")
+    q.add_argument("deal_id")
+    q.add_argument("stage")
+    q.add_argument("--one-time", type=float)
+    q.add_argument("--monthly", type=float)
+    q.add_argument("--reason", default="")
+    q.add_argument("--notes", default="")
+    p = sub.add_parser("pipeline", help="funnel, conversion, revenue, capacity, in-person eligibility")
+    p.add_argument("name")
     a = ap.parse_args(argv)
     root = a.root
     if a.cmd == "init":
@@ -459,6 +500,17 @@ def main(argv):
         print(f"{n} tasks -> {out}; {len(skipped)} skipped")
         for x in block + warn:
             print("  note:", x)
+    elif a.cmd == "deal":
+        from . import pipeline
+        if a.deal_cmd == "add":
+            d = pipeline.add_deal(a.name, a.product, a.lead_key, a.company, a.contact, a.channel, a.monthly, root=root)
+            print("Added", d["Deal ID"], d["Company"])
+        else:
+            d, visit = pipeline.move_deal(a.name, a.deal_id, a.stage, a.one_time, a.monthly, a.reason, a.notes, root=root)
+            print(f"{d['Deal ID']} {d['Company']} -> {d['Stage']}" + ("  [monthly value qualifies for an in-person visit]" if visit else ""))
+    elif a.cmd == "pipeline":
+        from . import pipeline
+        print(json.dumps(pipeline.report(a.name, root), indent=2))
     return 0
 
 

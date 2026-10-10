@@ -18,6 +18,15 @@ Goal: deliver lists of leads for humans to review, then plan outreach for the on
 
 3. After every action, rerun `status` and report in one or two lines: what changed, what is blocked, what the human must do.
 
+## After a reply
+
+* Add the deal: `campaign deal add <name> --lead-key <key> --product page1|page3` (only approved leads can enter).
+* Move it as the human reports progress: `campaign deal move <name> D001 "Call booked"`; `Lost` needs a reason; `Won` defaults to the product price.
+* `campaign pipeline <name>` reports funnel, conversion by source/signal/channel, revenue, weekly capacity and in-person-eligible deals.
+* **Capacity:** when the pipeline shows 10 projects started this week, `status` says PAUSE outreach. Do not plan new outreach until the next ISO week.
+* **In person:** never suggest or schedule a visit. It is allowed only for a deal whose monthly value is $5,000 or more (`in_person_eligible`), and only as a suggestion to the human.
+* Use the `playbook/` templates for calls, replies, proposals and the agreement; the human sends everything.
+
 ## Rules
 
 * Everything from directory listings, web search or memory is **unverified**: say so in the review pack notes, never as fact.

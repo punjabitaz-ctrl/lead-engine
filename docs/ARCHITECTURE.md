@@ -34,6 +34,8 @@ define ──> discover ──> enrich/score ──> REVIEW GATE ──> outreac
 | `leadengine/campaign.py` | spec, validate, status, run (discover), approve, outreach plan, audit log |
 | `leadengine/geo.py` | geography registry: county/city/state -> places |
 | `leadengine/packs.py` | vertical packs: tiers of search terms per source |
+| `leadengine/pipeline.py` | deals after the reply: stages, win/loss reasons, capacity per week, in-person eligibility, conversion by source and signal |
+| `playbook/` | call script, objections, follow-ups, proposal, agreement, intake form, 72-hour delivery checklist |
 | `leadengine/sources.py` | adapters: nppes, places, adzuna, csv postings, manual list |
 | `leadengine/engine.py`, `scoring.py`, `drafts.py` | ingest, filter, enrich, score, draft |
 | `lead-engine-template.xlsx`, `apps-script/`, `tracker/` | no-code sheet, Gmail drafts + reply sync, click/visit tracking |
@@ -65,6 +67,7 @@ Found by reading every module for assumptions about NJ, healthcare or this one s
 | 6 | Review workbooks (`tools/build_review.py`) and `manual` lists use specialty/subspecialty | healthcare-shaped | rename to segment/subsegment; call the builder from `campaign run` | gap |
 | 7 | Sender details and tracker URL were hard-coded defaults | would send as the first seller | placeholders now; campaign outreach refuses to plan until filled | **built** |
 | 8 | No sequence state or opt-out handling | duplicate or ignored follow-ups | planned-lead ledger, shared daily caps, `suppress.csv` (email, domain, company), opt-out line check | **built** |
+| 15 | No pipeline after the reply; no close path | leads could not be tracked to a sale | deal pipeline with capacity and in-person rule; playbook templates | **built** |
 | 9 | Replies and engagement do not flow back to a campaign | no learning, no suppression from "no thanks" | import Gmail/Events data into the campaign: auto-suppress opt-outs, advance or stop the sequence, report reply/booking rate per source and signal | gap |
 | 10 | Scoring weights are fixed by hand | cannot tell which signals convert | log outcomes per lead; compare conversion by signal/source after ~200 contacts; tune weights | gap |
 | 11 | Compliance covers email basics only | texting, WhatsApp, cold calling and non-US markets have their own rules | per-channel and per-country rule files; block channels until consent/registry checks are recorded | gap (email opt-out and postal address built) |
