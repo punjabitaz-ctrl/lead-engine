@@ -126,6 +126,34 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(len(campaign._read_csv(os.path.join(self.d, "rejected.csv"))[0]), 1)
         self.assertEqual(campaign.status("nj-test", self.root)["stages"]["outreach_plan"], "ready")
 
+    def test_run_discover_from_a_private_manual_list(self):
+        import contextlib
+        import io
+        manual = os.path.join(self.root, "private.csv")
+        write(manual, [{"practice": "Edison Eye Associates", "specialty": "Ophthalmology", "city": "Edison", "priority": "1", "providers": "3", "evidence": "directory says independent"},
+                       {"practice": "Metuchen Heart PA", "specialty": "Cardiology", "city": "Metuchen", "priority": "2"}],
+              ["practice", "specialty", "city", "priority", "providers", "evidence"])
+        old = os.getcwd()
+        os.chdir(self.root)
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                packs_out = campaign.run_discover("nj-test", self.root, target=10, manual=manual)
+        finally:
+            os.chdir(old)
+        rows, fields = campaign._read_csv(packs_out[0])
+        self.assertEqual({r["Company"] for r in rows}, {"Edison Eye Associates", "Metuchen Heart PA"})
+        self.assertTrue(all(r["Lead Key"] and r["Decision"] == "" for r in rows))
+        self.assertIn("Draft Email 1", fields)
+        self.assertEqual(campaign.status("nj-test", self.root)["review_packs"], 1)
+
+    def test_manual_source_without_a_file_is_refused(self):
+        spec = campaign.load("nj-test", self.root)
+        spec["sources"] = ["manual"]
+        with open(os.path.join(self.d, "spec.json"), "w") as fh:
+            json.dump(spec, fh)
+        with self.assertRaises(SystemExit):
+            campaign.run_discover("nj-test", self.root)
+
     def test_approve_rejects_bad_input(self):
         rows, fields = self.pack_rows(2)
         rows[1]["Decision"] = "maybe"

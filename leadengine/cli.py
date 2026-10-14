@@ -224,6 +224,9 @@ def main(argv=None):
     if argv and argv[0] == "campaign":
         from . import campaign
         raise SystemExit(campaign.main(argv[1:]))
+    if argv and argv[0] == "site":
+        from . import sitebuilder
+        raise SystemExit(sitebuilder.main(argv[1:]))
     args = build_parser().parse_args(argv)
     if args.command == "doctor":
         raise SystemExit(doctor())

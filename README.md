@@ -5,6 +5,15 @@ each, and fills the Google Sheets template. Then it asks if you want more.
 
 Validate first with `lead-engine-template.xlsx` (no code). The CLI fills that same sheet.
 
+## Building the sites you sell
+
+```
+python3 -m leadengine site build intake.json --out site/ --pages 1     # or --pages 3
+python3 -m leadengine site qa site/ --intake intake.json               # the delivery checklist, automated
+```
+The intake JSON is the client's materials (see `examples/sample-practice/intake.json`; built examples in `examples/sample-practice/site-1page/` and `site-3page/`). The build refuses until the client
+has supplied everything (services, hours, contact details, privacy policy text, alt text for photos). The same builder makes the free mock-ups for top leads. Generated pages make no external requests.
+
 ## Campaigns: the repeatable version
 
 A campaign is one market plus one offer, run through fixed stages with a human gate before anyone is contacted:
@@ -14,6 +23,7 @@ A campaign is one market plus one offer, run through fixed stages with a human g
 python3 -m leadengine campaign init nj-dental --state NJ --county Middlesex --vertical healthcare-practices
 python3 -m leadengine campaign status nj-dental --json     # what is done, what is blocked, what is next (agents start here)
 python3 -m leadengine campaign run nj-dental               # next stage size -> campaigns/nj-dental/review/pack-01.csv
+python3 -m leadengine campaign run nj-dental --manual my_private_list.csv   # use a hand-assembled list kept outside the repo
 python3 -m leadengine campaign approve nj-dental reviewed.csv   # after a human marks Keep / Drop / Unsure
 python3 -m leadengine campaign outreach nj-dental --start 2026-10-19   # dated tasks; nothing is sent
 python3 -m leadengine campaign batch preview nj-dental 2026-10-19      # read one file, then: batch approve --hash H, batch export

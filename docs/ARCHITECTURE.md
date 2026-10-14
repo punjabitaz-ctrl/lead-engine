@@ -37,6 +37,8 @@ define ──> discover ──> enrich/score ──> REVIEW GATE ──> outreac
 | `leadengine/packs.py` | vertical packs: tiers of search terms per source |
 | `leadengine/batch.py` | batch review of a day's first-contact emails: preview with hash and flags, approve exactly what was read, export for mail merge |
 | `leadengine/pipeline.py` | deals after the reply: stages, payment and intake gates before work starts, capacity per week, in-person eligibility, win/loss reasons, conversion by source and signal |
+| `leadengine/sitebuilder.py` | intake JSON -> finished 1-page or 3-page static site, plus automated QA (the delivery checklist); also makes the free mock-ups |
+| `leadengine/landing.py` | the campaign's own one-page landing page, generated from the spec so prices and dates cannot drift |
 | `playbook/` | call script, objections, follow-ups, proposal, agreement, intake form, 72-hour delivery checklist |
 | `leadengine/sources.py` | adapters: nppes, places, adzuna, csv postings, manual list |
 | `leadengine/engine.py`, `scoring.py`, `drafts.py` | ingest, filter, enrich, score, draft |

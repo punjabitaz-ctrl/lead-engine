@@ -2,12 +2,12 @@
 
 **Before hour 0:** agreement signed (`deal move ... Won`), payment recorded (`deal pay`), intake complete (`deal intake`). Then `deal start <campaign> <deal>`; it refuses if any is missing. A $500 site needs its 50% deposit first.
 **Hour 0:** start the clock.
-**Hour 0-24:** page structure and copy from the intake; light edits only. Build on your template (target 2-3 hours of your own work in total).
+**Hour 0-24:** save the client's intake as JSON and run `leadengine site build intake.json --out site/ --pages 1|3`; it refuses until every required item is present. Light edits only (target 2-3 hours of your own work in total, less once the intake is clean).
 **Hour 24-48:** design pass, mobile first. Add map, hours, click-to-call, contact form (name, phone, general reason only; no health details). Basic privacy notice for 3-page.
 **Hour 48:** send the preview link. Client has until hour 60 to send one round of changes.
 **Hour 60-72:** apply changes; QA; launch; handoff.
 
-**QA before launch**
+**QA before launch** (`leadengine site qa site/ --intake intake.json` covers the automated items)
 * Mobile and desktop; Chrome and Safari
 * Mobile speed test passes (target 80+); images compressed
 * Phone number, address, hours and doctor names match the intake exactly
