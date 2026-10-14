@@ -174,6 +174,14 @@ prices are to be set (suggestions in `docs/PRICING_GUIDANCE.md`); a **one-page l
   if you build one), and live outreach begins November 1 with 13 weeks of runway.
 * **The page is the proof piece.** A practice owner will judge the 72-hour promise by this page and by one medical-practice sample, which is still missing.
 
+## Update 2026-10-14: site builder and private-list discovery
+
+* **A site builder now exists** (`leadengine site build|qa`, with a fictional sample in `examples/sample-practice/`). It turns a complete client intake into a 1-page or 3-page site and runs the
+  delivery checklist automatically. This is the productivity lever: it is what makes 2-3 hours per site credible, and it makes the free mock-ups for the top leads nearly free.
+* **The proof piece exists**, clearly labelled as a fictional sample. A real medical-practice example, with permission, would be stronger.
+* **The sprint can start without network access:** `campaign run <name> --manual my_private_list.csv` scores and drafts from the hand-assembled lists kept outside the repo. Contact details are still
+  missing from those lists, and finding them is still manual until the network is open.
+
 ## What to stop, start, and decide
 
 **Stop** (until the first sale): adding counties and specialties, the price-file analysis (it informs which specialties spend most, not whether a practice

@@ -318,14 +318,14 @@ def blockers(spec):
 REVIEW_EXTRA = ["Lead Key", "Decision", "Reviewer Notes"]
 
 
-def run_discover(name, root=ROOT, target=None):
+def run_discover(name, root=ROOT, target=None, manual=None, postings=None):
     """Runs the engine for the next stage size and turns its output into a review pack. Does not contact anyone."""
     from . import cli
     spec = load(name, root)
     problems = validate(spec)
     if problems:
         raise SystemExit("Spec problems:\n  - " + "\n  - ".join(problems))
-    need = blockers(spec)
+    need = [] if (manual or postings) else blockers(spec)
     if need:
         raise SystemExit("Blocked:\n  - " + "\n  - ".join(need))
     d = folder(name, root)
@@ -336,7 +336,14 @@ def run_discover(name, root=ROOT, target=None):
     argv = ["run", "--no-prompt", "--target", str(size), "--signal", spec.get("signal", "any"), "--out", os.path.join(d, "runs"),
             "--state-dir", os.path.join(d, ".state"), "--config", os.path.join(d, "config.json"), "--template", spec["template"],
             "--state", g["state"]]
-    for src in spec["sources"]:
+    sources = list(spec["sources"])
+    if manual:                                   # a hand-assembled CSV (kept private) replaces the network sources for this run
+        sources = ["manual"]
+        argv += ["--manual", manual, "--group-by-specialty"]
+    elif postings:
+        sources = ["csv"]
+        argv += ["--postings", postings]
+    for src in sources:
         argv += ["--source", src]
     for c in g.get("counties", []):
         argv += ["--county", c]
@@ -344,7 +351,7 @@ def run_discover(name, root=ROOT, target=None):
         argv += ["--city", c if "," in c else f"{c}, {g['state']}"]
     tiers = spec.get("tiers") or ["focus"]
     tier_names = ["all"] if tiers == ["all"] else tiers
-    if "nppes" in spec["sources"]:
+    if "nppes" in sources:
         argv += ["--taxonomy", ",".join(packs.terms(pack, "taxonomies", tier_names))]
     for q in packs.terms(pack, "places_queries", tier_names):
         argv += ["--places-query", q]
@@ -353,8 +360,8 @@ def run_discover(name, root=ROOT, target=None):
         argv += ["--profession", ",".join(profs)]
     if spec.get("industry"):
         argv += ["--industry", spec["industry"]]
-    if "manual" in spec["sources"] or "csv" in spec["sources"]:
-        raise SystemExit("manual and csv sources need a file: run `leadengine run ... --manual FILE` yourself, then pass the CSV to `campaign review-pack`.")
+    if ("manual" in sources and not manual) or ("csv" in sources and not postings):
+        raise SystemExit("manual and csv sources need a file: `campaign run <name> --manual FILE` or `--postings FILE`.")
     written = cli.run(cli.build_parser().parse_args(argv))
     packs_out = []
     for path in written or []:
@@ -593,6 +600,8 @@ def main(argv):
         sub.add_parser(c).add_argument("name")
     sub.choices["status"].add_argument("--json", action="store_true")
     sub.choices["run"].add_argument("--target", type=int)
+    sub.choices["run"].add_argument("--manual", help="hand-assembled practice list (CSV, kept private) instead of the network sources")
+    sub.choices["run"].add_argument("--postings", help="job-board export (CSV) instead of the network sources")
     p = sub.add_parser("approve", help="read a reviewed pack (Keep / Drop / Unsure)")
     p.add_argument("name")
     p.add_argument("file")
@@ -679,7 +688,7 @@ def main(argv):
                 print("  !", x)
             print("Next:", st["next_action"])
     elif a.cmd == "run":
-        for path in run_discover(a.name, root, a.target):
+        for path in run_discover(a.name, root, a.target, a.manual, a.postings):
             print("Review pack:", path)
     elif a.cmd == "approve":
         print(approve(a.name, a.file, root))

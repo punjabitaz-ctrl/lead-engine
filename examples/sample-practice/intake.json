@@ -1,0 +1,26 @@
+{
+  "sample": true,
+  "practice_name": "Example Family Dental",
+  "business_type": "dentist",
+  "tagline": "Gentle, modern dental care for the whole family in Edison, NJ",
+  "phone": "(732) 555-0142",
+  "email": "hello@example-family-dental.test",
+  "address": "123 Example Avenue",
+  "city": "Edison",
+  "state": "NJ",
+  "zip": "08817",
+  "brand_color": "#0b6e6e",
+  "hours": [
+    {"days": "Monday to Thursday", "hours": "8:00 am to 5:00 pm"},
+    {"days": "Friday", "hours": "8:00 am to 1:00 pm"},
+    {"days": "Saturday and Sunday", "hours": "Closed"}
+  ],
+  "services": ["Cleanings and exams", "Fillings and crowns", "Teeth whitening", "Children's dentistry", "Emergency visits", "Dental implants"],
+  "doctors": [{"name": "Dr. Alex Example", "credentials": "DDS", "bio": "Fictional dentist used for this sample site."}],
+  "insurance": ["Most major plans", "Self-pay options"],
+  "languages": ["English", "Spanish"],
+  "about": "Example Family Dental is a fictional practice created to show what a finished site looks like. A real practice would describe its team, history and approach to care here.",
+  "booking_url": "",
+  "google_business_url": "",
+  "privacy_policy_text": "Example Family Dental (we) operates this website. This is sample text for a fictional practice.\n\nPlease do not send health information through this website. To discuss care, call us. In an emergency, call 911.\n\nIf you use the contact form we collect your name, phone number, email address and the general reason for contacting us. We use it to reply to you and we keep it for 12 months, then delete it. We do not sell personal information. To ask us to delete your message sooner, email hello@example-family-dental.test."
+}

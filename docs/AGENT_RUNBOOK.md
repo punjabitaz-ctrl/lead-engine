@@ -36,6 +36,12 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 * **In person:** never suggest or schedule a visit. It is allowed only for a deal whose monthly value is $5,000 or more (`in_person_eligible`), and only as a suggestion to the human.
 * Use the `playbook/` templates for calls, replies, proposals and the agreement; the human sends everything.
 
+## Building sites
+
+* `leadengine site build intake.json --out DIR --pages 1|3` then `leadengine site qa DIR --intake intake.json`. Never invent intake content (services, hours, doctors, policy text): if an item is missing the build stops and the client supplies it.
+* The privacy and data-retention policy text must come from the client or the reviewed template; do not write legal text yourself.
+* Mock-ups for prospects must be labelled as samples (`"sample": true` adds the banner) and must not use a real practice's logo or text without their permission.
+
 ## Schedule and timing
 
 * The operator works after 10pm. Prepare, plan and run `batch preview` for them to read at night; the export carries a send window (default 09:30-11:30 recipient time).
