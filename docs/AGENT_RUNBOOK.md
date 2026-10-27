@@ -1,6 +1,6 @@
 # Agent runbook: driving a campaign
 
-Goal: deliver lists of leads for humans to review, then plan outreach for the ones they keep. Never contact anyone.
+Goal: deliver lists of leads for humans to review, then plan outreach for the ones they keep. You never send: only the human approves a batch and runs a send.
 
 ## Loop
 
@@ -23,8 +23,20 @@ Goal: deliver lists of leads for humans to review, then plan outreach for the on
 1. `campaign outreach <name> --start DATE` plans the tasks.
 2. `campaign batch preview <name> DATE` writes `outreach/batch-DATE-email.md`. Give the human that file; it has the hash, flags, samples and every recipient.
 3. Only after the human says approve: `campaign batch approve <name> DATE --hash <hash>` (add `--exclude-flagged` if they accept leaving flagged ones out).
-4. `campaign batch export <name> DATE` writes the mail-merge CSV. The human sends; you never do.
+4. `campaign batch export <name> DATE` writes the mail-merge CSV, or the human runs `campaign batch send <name> DATE` on their own computer.
+   You may run `batch send --dry-run` to show them the emails as files. Never run a send without `--dry-run`, and never pass `--yes`.
 Never invent or reuse a hash, and never approve a batch the human has not read in this form.
+
+## Marketing mailings (docs/EMAIL_SENDING.md)
+
+1. `campaign mail plan <name> <id> --template FILE` and `campaign mail preview <name> <id> --batch N`. Give the human the `batch-NN.md` file and the
+   left-out reasons in `excluded.csv`.
+2. Only after the human has read it and said approve: `campaign mail approve <name> <id> --batch N --hash <hash>`.
+3. You may run `mail send --dry-run` and `mail status`. The real `mail send` is the human's, typed at their own keyboard. Do not pass `--yes`,
+   raise caps, widen `allowed_email_status` or shorten `delay_seconds` unless the human asks in their own words.
+4. Run `campaign mail sync <name>` (or `events import`) before planning the next mailing, so opt-outs and replies are honoured.
+   Never take an address out of `suppress.csv`.
+5. Do not write templates with `Re:`/`Fwd:` subjects, fake urgency, or claims that are not true. Never put patient information anywhere.
 
 ## Feeding engagement back
 
@@ -64,6 +76,7 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 
 * Everything from directory listings, web search or memory is **unverified**: say so in the review pack notes, never as fact.
 * Add opt-outs to `suppress.csv` the moment you learn of one (email, domain or company), before the next plan.
+* Mail credentials (app passwords, OAuth files) stay on the human's computer, never in chat, the repo or the campaign folder.
 * Stop and ask when: the sender block is empty, a new country or channel (text, WhatsApp, phone) is requested, or a source needs a paid key.
 * Company lists come from the human. Do not build one by scraping a site whose terms forbid it; `--find-contacts` reads only the leads' own websites and obeys robots.txt.
 * Contacts found on a website are published, not verified (Risky). Say so; do not mark them Valid.

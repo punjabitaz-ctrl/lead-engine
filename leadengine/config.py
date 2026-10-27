@@ -25,6 +25,23 @@ DEFAULTS = {
                    "grade_a": 75, "grade_b": 60, "grade_c": 40},
     "signal": {"hot_days": 30, "warm_days": 90, "hot_min_postings": 2},
     "size": {"basis": "clinicians", "small_max": 5, "medium_max": 15},
+    "mail": {
+        "provider": "smtp",                 # smtp | gmail | file (dry run); see docs/EMAIL_SENDING.md
+        "from_email": "",                   # the address you send from: the account you log in with
+        "unsubscribe_email": "",            # where opt-outs go (default: sender.reply_email, then from_email)
+        "unsubscribe_url": "",              # optional https page that unsubscribes in one click
+        "ad_disclosure": True,              # footer says plainly that it is a marketing email
+        "batch_size": 10,
+        "daily_cap": 30,                    # per sending address, across every campaign
+        "warmup": [[7, 10], [14, 20]],      # a new address: 10 a day in week 1, 20 in week 2, then daily_cap
+        "delay_seconds": [60, 180],         # random pause between emails
+        "max_failures": 3,                  # stop the batch after this many failures
+        "bounce_limit": 0.05,               # stop sending when over 5% of the last 30 days' emails bounced
+        "min_days_between": 30,             # no marketing email to the same address more often than this
+        "allowed_email_status": ["Valid", "Risky"],
+        "one_per_domain": True,             # one person per business domain in a mailing (free mail like gmail.com is not grouped)
+        "timezone": "",                     # recipients' time zone for the send window (default: the spec's operator timezone)
+    },
     "exclude_large": False,
     "excluded_job_types": ["part-time", "internship"],
 }

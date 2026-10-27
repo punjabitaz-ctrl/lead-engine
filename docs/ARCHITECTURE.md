@@ -82,11 +82,13 @@ Found by reading every module for assumptions about NJ, healthcare or this one s
 | 12 | Not packaged | cannot install or license it | `pyproject.toml` with a `leadengine` command; `pip install .` checked in a clean virtualenv | **built** (licence still to choose) |
 | 13 | NPPES taxonomy strings and some geography unverified | zero-result queries | run `leadengine doctor` + first live run; fix strings from the warnings | gap (needs network) |
 | 14 | Network and keys are manual | agent stalls | `campaign status` lists key blockers; `doctor` lists hosts; keep both in the runbook | **built** (reporting) |
+| 16 | The tool could not send; email went out by hand from an export | slow, and opt-outs depended on memory | `mailer.py` + `mailing.py`: templates with merge fields, per-batch preview and hash approval, send window, daily cap with warm-up, random pacing, bounce-rate stop, ledger; SMTP and Gmail API providers (pluggable); `mail sync` reads replies and bounces back; CAN-SPAM footer and headers | **built** (needs the human's mailbox credentials; see docs/EMAIL_SENDING.md) |
 
 ## Roadmap (suggested order)
 
 1. On a networked machine: `leadengine geo build` (#1), a live NPPES run for NJ (#13), then a Places run for trades.
 2. Email verification on top of the contact finder (#2), and a first live run of `--find-contacts`.
+   Then a first small mailing (#16): set up SMTP or the Gmail API, `mail send --dry-run`, a `mail test` to yourself, then batch 1 of 10.
 3. Review workbook naming (#6) and a Sheets Templates tab generated from the pack's template set.
 4. After about 200 contacts: tune scoring weights from `campaign events report` (#10).
 5. Choose a licence (#12).
@@ -94,6 +96,8 @@ Found by reading every module for assumptions about NJ, healthcare or this one s
 ## Compliance notes (not legal advice)
 
 Commercial email needs a truthful sender, a postal address and a working opt-out (CAN-SPAM); the engine's template includes all three and
-`campaign outreach` blocks when a draft lacks an opt-out line. Phone, text and WhatsApp outreach are governed by separate rules (Do-Not-Call,
+`campaign outreach` blocks when a draft lacks an opt-out line. Sending (#16) adds an advertisement line, a `List-Unsubscribe` header,
+a check against misleading subjects, a From that must match the signed-in account, and keeps no addresses from sites that say they are not for
+commercial email (address harvesting is an aggravated violation). Phone, text and WhatsApp outreach are governed by separate rules (Do-Not-Call,
 TCPA, carrier and platform terms); the plan only schedules calls and LinkedIn touches, and reminds you to check registries first.
 Outside the US, consent rules differ (GDPR, CASL, others): review them before pointing a campaign at another country.
