@@ -26,6 +26,13 @@ Goal: deliver lists of leads for humans to review, then plan outreach for the on
 4. `campaign batch export <name> DATE` writes the mail-merge CSV. The human sends; you never do.
 Never invent or reuse a hash, and never approve a batch the human has not read in this form.
 
+## Feeding engagement back
+
+* When the human gives you an events export (the workbook's Events tab, the tracker, or their own sheet): `campaign events import <name> FILE.csv`.
+  Report what it printed: events logged, addresses added to `suppress.csv`, tasks stopped, and any rows it could not match.
+* `campaign events report <name>` gives interest per lead and rates by source and signal. Do not change scoring weights from it until it says there are enough contacts.
+* Never mark a task Done or Stopped by hand to make a report look better; only the human's records and imported events do that.
+
 ## After a reply
 
 * Add the deal: `campaign deal add <name> --lead-key <key> --product page1|page3 [--plan care9|care20|care99]` (only approved leads can enter).
@@ -58,6 +65,8 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
 * Everything from directory listings, web search or memory is **unverified**: say so in the review pack notes, never as fact.
 * Add opt-outs to `suppress.csv` the moment you learn of one (email, domain or company), before the next plan.
 * Stop and ask when: the sender block is empty, a new country or channel (text, WhatsApp, phone) is requested, or a source needs a paid key.
+* Company lists come from the human. Do not build one by scraping a site whose terms forbid it; `--find-contacts` reads only the leads' own websites and obeys robots.txt.
+* Contacts found on a website are published, not verified (Risky). Say so; do not mark them Valid.
 * Keep lead data out of the public repo: `campaigns/*` is git-ignored; do not copy leads into docs, tests or commits.
 * Major changes (new modules, schema changes) go on `dev/*` branches and wait for an explicit instruction before merging to `main`.
 

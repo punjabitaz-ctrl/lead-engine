@@ -46,12 +46,15 @@ def anonymous_employer(company):
 
 
 class RoleRules:
-    def __init__(self, professions=(), path=None):
-        with open(path or os.path.join(DATA, "role_rules.json"), encoding="utf-8") as fh:
-            raw = json.load(fh)
+    def __init__(self, professions=(), path=None, rules=None):
+        """rules: a pack's own {"include": [...], "exclude": [...]}; otherwise role_rules.json (website-project roles)."""
+        if rules is None:
+            with open(path or os.path.join(DATA, "role_rules.json"), encoding="utf-8") as fh:
+                rules = json.load(fh)
+        raw = rules
         inc = list(raw["include"]) + [re.escape(w) for p in professions for w in p.lower().split() if len(w) > 3]
         self.include = re.compile("|".join(inc), re.I)
-        self.exclude = re.compile("|".join(raw["exclude"]), re.I)
+        self.exclude = re.compile("|".join(raw["exclude"]), re.I) if raw.get("exclude") else None
 
     def relevant(self, title):
-        return bool(self.include.search(title)) and not self.exclude.search(title)
+        return bool(self.include.search(title)) and not (self.exclude and self.exclude.search(title))

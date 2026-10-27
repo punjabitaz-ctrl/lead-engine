@@ -24,7 +24,7 @@ DEFAULTS = {
     "thresholds": {"urgency_cap": 40, "thin_reviews": 10, "psi_poor": 50, "psi_moderate": 75, "fresh1_days": 30, "fresh2_days": 90,
                    "grade_a": 75, "grade_b": 60, "grade_c": 40},
     "signal": {"hot_days": 30, "warm_days": 90, "hot_min_postings": 2},
-    "size": {"small_max": 5, "medium_max": 15},
+    "size": {"basis": "clinicians", "small_max": 5, "medium_max": 15},
     "exclude_large": False,
     "excluded_job_types": ["part-time", "internship"],
 }
@@ -39,8 +39,11 @@ def _merge(base, over):
     return base
 
 
-def load(path=None):
+def load(path=None, pack=None):
+    """Defaults, then the vertical pack's own "config" block (sizing, points, targets that suit that market), then the file."""
     cfg = copy.deepcopy(DEFAULTS)
+    if pack and pack.get("config"):
+        _merge(cfg, copy.deepcopy(pack["config"]))
     if path:
         with open(path, encoding="utf-8") as fh:
             _merge(cfg, json.load(fh))

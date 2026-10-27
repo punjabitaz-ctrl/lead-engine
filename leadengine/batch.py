@@ -26,7 +26,8 @@ def _batch(name, date, channel, root, include_approved=False):
     for path in _files(name, root):
         rows, fields = campaign._read_csv(path)
         for r in rows:
-            if r["Date"] == date and r["Channel"] == channel and r["Draft"].strip() and (include_approved or r["Approved to send (Y/N)"].upper() != "Y"):
+            if (r["Date"] == date and r["Channel"] == channel and r["Draft"].strip() and r.get("Done (Y/N)", "").strip().upper() != "STOPPED"
+                    and (include_approved or r["Approved to send (Y/N)"].upper() != "Y")):
                 out.append((path, rows, fields, r))
     return out
 

@@ -5,7 +5,7 @@ import json
 import os
 import sys
 
-from . import config, export, geo, packs, sources
+from . import config, contacts, export, geo, packs, sources
 from .engine import Engine, load_enrichment
 from .presence import PlacesChecker, load_presence
 
@@ -51,23 +51,28 @@ def build_sources(args, cities, professions):
             if not args.manual:
                 raise SystemExit("--manual FILE.csv is required for the manual source")
             gens.append(sources.manual_providers(args.manual, (args.state or "NJ").upper()))
+        elif n == "companies":
+            if not args.companies:
+                raise SystemExit("--companies FILE.csv is required for the companies source")
+            gens.append(sources.company_list(args.companies, (args.state or "").upper()))
         elif n == "nppes":
             gens.append(sources.nppes_providers(cities, taxonomies_for(args)))
         elif n == "places":
             queries = args.places_query or ([args.industry] if args.industry else [])
             if not queries:
                 raise SystemExit("--industry (or --places-query) is required for the places source")
-            gens.append(sources.places_businesses(cities, queries))
+            cap = sources.SpendCap(os.path.join(args.state_dir, "places_usage.json"), args.max_places_calls, args.monthly_places_cap)
+            gens.append(sources.places_businesses(cities, queries, cap=cap))
         else:
             raise SystemExit(f"Unknown source {n}")
     return (b for g in gens for b in g)
 
 
-def taxonomies_for(args, pack_id="healthcare-practices"):
+def taxonomies_for(args, pack_id=None):
     """--taxonomy wins; otherwise --tier focus (default), 1, 2, 3 or all, from the vertical pack's tiers."""
     if args.taxonomy:
         return [t.strip() for t in args.taxonomy.split(",") if t.strip()]
-    pack = packs.load(pack_id)
+    pack = packs.load(pack_id or getattr(args, "vertical", None) or "healthcare-practices")
     tiers = ["all"] if args.tier == "all" else ["focus" if args.tier == "focus" else f"tier{args.tier}"]
     return packs.terms(pack, "taxonomies", tiers)
 
@@ -81,6 +86,7 @@ def summarize(leads):
 CHECKS = [
     ("npiregistry.cms.hhs.gov", "provider registry (nppes source)", "https://npiregistry.cms.hhs.gov/api/?version=2.1&state=NJ&limit=1&taxonomy_description=Ophthalmology"),
     ("places.googleapis.com", "Google Places presence checks", "https://places.googleapis.com/"),
+    ("www2.census.gov", "county and place lists (geo build)", "https://www2.census.gov/geo/docs/reference/codes2020/"),
     ("data.cms.gov", "Medicare spending by specialty", "https://data.cms.gov/"),
     ("www.cms.gov", "CMS specialty tables", "https://www.cms.gov/"),
     ("download.medicaid.gov", "NADAC drug costs", "https://download.medicaid.gov/"),
@@ -115,35 +121,44 @@ def doctor():
 
 
 def run(args):
-    interactive = not (args.city or args.state or args.county or "manual" in (args.source or []) or args.postings)
+    interactive = not (args.city or args.state or args.county or args.zip or {"manual", "companies"} & set(args.source or []) or args.postings)
     if interactive:
         args.city = [c.strip() for c in ask("City, ST (separate several with ';')").split(";") if c.strip()]
         args.industry = ask("Industry (blank to skip)", args.industry or "")
         args.profession = ask("Profession / role you want to reach or that signals need", args.profession or "web developer, marketing manager")
         args.signal = ask("Signal strength (hot / warm / any)", args.signal or "warm")
     if "manual" in (args.source or []) and not (args.county or args.city or args.state):
-        cities = [(c, (args.state or "NJ").upper()) for c in sorted({r["city"] for r in csv.DictReader(open(args.manual, encoding="utf-8"))})]
-    elif args.county:
-        cities = geo.county_cities(args.county, args.state or "NJ")
-    elif args.city:
-        cities = [parse_city(c) for c in args.city]
+        with open(args.manual, encoding="utf-8") as fh:
+            cities = [(c, (args.state or "NJ").upper()) for c in sorted({r["city"] for r in csv.DictReader(fh)})]
+    elif "companies" in (args.source or []) and not (args.county or args.city or args.state):
+        with open(args.companies, encoding="utf-8-sig") as fh:
+            rows = list(csv.DictReader(fh))
+        cities = sorted({((r.get("city") or "").strip(), (r.get("state") or "").strip().upper()) for r in rows if (r.get("city") or "").strip()})
+    elif args.county or args.city or args.zip:
+        if args.zip and not args.state:
+            raise SystemExit("--zip needs --state (two letters), e.g. --state NJ --zip 07960")
+        cities = (geo.county_cities(args.county, args.state or "NJ") if args.county else []) + [parse_city(c) for c in args.city or []]
+        cities += geo.resolve({"state": args.state, "zips": args.zip}) if args.zip else []
     elif args.state:
         cities = geo.statewide(args.state)
     else:
         raise SystemExit("Give --state NJ --county Middlesex, --city 'City, ST' or --state NJ for a statewide sweep")
     professions = [p.strip() for p in (args.profession or "").split(",") if p.strip()]
-    cfg = config.load(args.config)
+    pack = packs.load(args.vertical) if args.vertical else None
+    cfg = config.load(args.config, pack)
     if args.exclude_large:
         cfg["exclude_large"] = True
-    signal = args.signal or ("any" if set(args.source or []) & {"nppes", "manual"} else "warm")
+    signal = args.signal or ("any" if set(args.source or []) & {"nppes", "manual", "companies"} else "warm")
     query = {"industry": args.industry, "professions": professions, "signal": signal}
     seen = None if args.fresh else os.path.join(args.state_dir, "seen.json")
     checker = (PlacesChecker(args.state_dir, args.max_places_calls, args.monthly_places_cap)
                if args.presence_check == "places" else None)
+    finder = contacts.ContactFinder(args.state_dir, args.max_contact_sites) if args.find_contacts else None
     eng = Engine(query, cfg, build_sources(args, cities, professions), seen_path=seen, do_audit=args.audit,
                  enrichment=load_enrichment(args.enrich) if args.enrich else None,
                  presence_data=load_presence(args.presence) if args.presence else None,
-                 checker=checker, priority_first="manual" in (args.source or []), group_by_specialty=args.group_by_specialty)
+                 checker=checker, priority_first=bool({"manual", "companies"} & set(args.source or [])), group_by_specialty=args.group_by_specialty,
+                 pack=pack, contact_finder=finder)
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     written = []
     stages = [args.target] if args.target else [int(x) for x in args.stages.split(",") if x.strip()]
@@ -162,6 +177,8 @@ def run(args):
         print(f"\nScanned {st['scanned']} records: dropped {st['enterprise_or_staffing']} enterprise/staffing, "
               f"{st['irrelevant_role']} irrelevant roles, {st['part_time']} part-time, {st['anonymous']} anonymous, "
               f"{st['not_private']} not privately owned.")
+        if finder:
+            print(f"Contact lookup: {finder.sites} websites read this run" + (f"; paused: {finder.stopped}" if finder.stopped else ""))
         if checker:
             print(checker.cost_note() + (f"\nPlaces lookups paused: {checker.stopped}. Unchecked providers stay 'cold'." if checker.stopped else ""))
         base = os.path.join(args.out, f"leads-{stamp}-b{batch_no}")
@@ -193,14 +210,19 @@ def build_parser():
     ap.add_argument("--profession", default="")
     ap.add_argument("--signal", choices=["hot", "warm", "any"], help="signal strength to keep (default warm; any for nppes)")
     ap.add_argument("--county", action="append", help="county name (repeatable) in --state (default NJ), e.g. --county Middlesex --county Somerset")
+    ap.add_argument("--zip", action="append", help="5-digit ZIP code (repeatable; needs --state), e.g. --state NJ --zip 07960")
     ap.add_argument("--state", help="two-letter state; with --county picks the state, alone sweeps data/geo/<ST>.json cities")
     ap.add_argument("--taxonomy", help="comma list of NPPES specialties, e.g. 'Family Medicine, Pediatrics'")
     ap.add_argument("--presence", help="CSV of web-presence results (npi or company, has_website, has_gbp, reviews)")
     ap.add_argument("--presence-check", choices=["places"], help="look each provider up in Google Places (needs a key)")
     ap.add_argument("--tier", choices=["focus", "1", "2", "3", "all"], default="focus", help="NPPES specialty set from the healthcare-practices pack (default: focus = cardiology + ophthalmology)")
-    ap.add_argument("--max-places-calls", type=int, default=200, help="hard cap on Places lookups per run")
+    ap.add_argument("--max-places-calls", type=int, default=200, help="hard cap on Places requests per run (searches and presence lookups each)")
     ap.add_argument("--monthly-places-cap", type=int, default=1000, help="hard cap per calendar month (default = Google's listed free allowance)")
-    ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes", "manual"])
+    ap.add_argument("--source", action="append", choices=["csv", "adzuna", "places", "nppes", "manual", "companies"])
+    ap.add_argument("--companies", help="CSV company list (any export you may use; see sources.COMPANY_COLUMNS)")
+    ap.add_argument("--vertical", help="vertical pack id in data/verticals/ (its role rules, sizing, ownership rules and templates apply)")
+    ap.add_argument("--find-contacts", action="store_true", help="read each lead's own website for published emails, phone and LinkedIn (robots.txt respected)")
+    ap.add_argument("--max-contact-sites", type=int, default=100, help="cap on websites read per run for --find-contacts")
     ap.add_argument("--manual", help="CSV of hand-assembled practices (see sources.manual_providers)")
     ap.add_argument("--postings", help="CSV of job postings (metro,company,title,location,posted,job_type,comp,url)")
     ap.add_argument("--target", type=int, help="one batch of exactly this size (overrides --stages)")
@@ -224,6 +246,9 @@ def main(argv=None):
     if argv and argv[0] == "campaign":
         from . import campaign
         raise SystemExit(campaign.main(argv[1:]))
+    if argv and argv[0] == "geo":
+        from . import geo as _geo
+        raise SystemExit(_geo.main(argv[1:]))
     if argv and argv[0] == "site":
         from . import sitebuilder
         raise SystemExit(sitebuilder.main(argv[1:]))

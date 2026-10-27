@@ -17,6 +17,11 @@ SCHEMA_TYPES = {"dentist": "Dentist", "physician": "Physician", "medical": "Medi
 PLACEHOLDER = re.compile(r"\[[^\]]{2,}\]|\{\{[^}]+\}\}|lorem ipsum", re.I)
 
 
+
+def _read(path):
+    with open(path, encoding="utf-8") as fh:
+        return fh.read()
+
 def _e(x):
     return html.escape(str(x), quote=True)
 
@@ -194,7 +199,7 @@ def qa(site_dir, intake=None):
     if not pages:
         return ["no .html files found"], []
     for f in pages:
-        text = open(os.path.join(site_dir, f), encoding="utf-8").read()
+        text = _read(os.path.join(site_dir, f))
         low = text.lower()
         if not re.search(r"<title>[^<]{5,}</title>", text):
             bad.append(f"{f}: missing or empty <title>")
@@ -225,7 +230,7 @@ def qa(site_dir, intake=None):
         if size > 200_000:
             bad.append(f"{f}: {size // 1000} KB is heavy for a one-page site")
     if intake:
-        everything = " ".join(open(os.path.join(site_dir, f), encoding="utf-8").read() for f in pages)
+        everything = " ".join(_read(os.path.join(site_dir, f)) for f in pages)
         flat = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", everything)))
         for key in ("phone", "address", "zip", "email"):
             if intake.get(key) and str(intake[key]) not in flat:
@@ -233,7 +238,7 @@ def qa(site_dir, intake=None):
         for h in intake.get("hours", []):
             if h["hours"] not in flat:
                 bad.append(f"hours {h['hours']!r} from the intake do not appear on the site")
-    if any('action="mailto:' in open(os.path.join(site_dir, f), encoding="utf-8").read() for f in pages):
+    if any('action="mailto:' in _read(os.path.join(site_dir, f)) for f in pages):
         notes.append("The form uses a mailto fallback, which is unreliable. Set form_action in the intake to a form service, and check that its data handling matches the privacy policy.")
     notes.append("Still check by hand: mobile and desktop, Chrome and Safari, form delivery to the right inbox, mobile speed test (target 80+), domain and SSL.")
     return bad, notes
@@ -262,7 +267,7 @@ def main(argv):
         print(f"Built {a.pages}-page site in {a.out}: {', '.join(files)}")
         problems, notes = qa(a.out, intake)
     else:
-        intake = json.load(open(a.intake, encoding="utf-8")) if a.intake else None
+        intake = json.loads(_read(a.intake)) if a.intake else None
         problems, notes = qa(a.site_dir, intake)
     for x in problems:
         print("  problem:", x)

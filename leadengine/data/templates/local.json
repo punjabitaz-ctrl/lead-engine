@@ -1,0 +1,30 @@
+{
+  "_note": "First notes for local trades and home-service businesses. Same tokens as data/templates.json. Keep the opt-out line: campaign outreach refuses drafts without one.",
+  "signals": {
+    "Hiring": {
+      "line": "I saw that {company} is hiring for {signal_detail}, which usually means the phone is busy and the business is growing.",
+      "subject": "{company} is growing: quick idea"
+    },
+    "Weak Site": {
+      "line": "I took a look at {website} and {site_issue}. Most people searching for help nearby are on their phones.",
+      "subject": "Quick note on {website}"
+    },
+    "Expansion": {
+      "line": "Congratulations on {signal_detail}. Growth like that usually means more people looking you up online.",
+      "subject": "Congrats, {company}: quick idea"
+    },
+    "No Presence": {
+      "line": "I came across {company} in {city} but couldn't find a website for it, so people searching online may be calling someone else first.",
+      "subject": "Is {company} easy to find online?"
+    },
+    "Thin Profile": {
+      "line": "I noticed {company} has only {reviews} Google reviews, and most people check reviews before they call.",
+      "subject": "A quick note on {company}'s Google reviews"
+    },
+    "General": {
+      "line": "I came across {company} while looking at local businesses in {city}.",
+      "subject": "Idea for {company}'s website"
+    }
+  },
+  "body": "Hi {first_name},\n\n{signal_line}\n\n{offer_line}\n\nIf a fast, fixed-price website would help {company}, I'm happy to send a quick plan, no obligation. Recent work: {portfolio_url}\n\nWorth a 15-minute call this week?{booking_link}\n\n{sender_name}\n{business_name} · {postal_address}\nIf you'd rather not hear from me, just reply \"no thanks\" and I won't contact you again."
+}

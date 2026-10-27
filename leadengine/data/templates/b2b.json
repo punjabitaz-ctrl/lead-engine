@@ -1,0 +1,18 @@
+{
+  "_note": "Business-to-business first notes for companies growing into a new market. Same tokens as data/templates.json, plus {title}, {industry} and {country}. Keep the opt-out line: campaign outreach refuses drafts without one.",
+  "signals": {
+    "Hiring": {
+      "line": "I saw that {company} is hiring for {signal_detail}. Teams usually open that role when the US push is about to start, and the first year of partner and channel work decides how fast it pays off.",
+      "subject": "{company}'s US hire"
+    },
+    "Expansion": {
+      "line": "I saw the news about {company}: {signal_detail}. Growth like that usually raises the same questions: which partners and distributors to sign first, and how to get them selling.",
+      "subject": "{company} in the US"
+    },
+    "General": {
+      "line": "I came across {company} while looking at {industry} companies growing into new markets.",
+      "subject": "Idea for {company}"
+    }
+  },
+  "body": "Hi {first_name},\n\n{signal_line}\n\n{offer_line}\n\nIf it would help, I can send a one-page plan for {company}: no cost and no obligation. More about the work: {portfolio_url}\n\nWorth a 20-minute call?{booking_link}\n\n{sender_name}\n{business_name} · {postal_address}\nIf you'd rather not hear from me, just reply \"no thanks\" and I won't contact you again."
+}

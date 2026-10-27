@@ -54,8 +54,8 @@ def primary_signal(lead, cfg):
 
 def strength(lead, cfg, today=None):
     """Signal strength (NOT interest level; interest is engagement with your properties, scored in the sheet's Events tab).
-    hot = fresh hiring signal / several postings / confirmed no website AND no Google profile;
-    warm = hiring within 90 days / outdated site / one confirmed presence gap; cold = anything else."""
+    hot = fresh hiring or dated expansion signal / several postings / confirmed no website AND no Google profile;
+    warm = hiring or expansion within 90 days / outdated site / one confirmed presence gap; cold = anything else."""
     today = today or dt.date.today()
     i = cfg["signal"]
     if lead.get("hasweb") == "N" and lead.get("hasgbp") == "N":
@@ -64,10 +64,13 @@ def strength(lead, cfg, today=None):
         return "warm"
     if isinstance(lead.get("reviews"), (int, float)) and lead["reviews"] < cfg["thresholds"]["thin_reviews"]:
         return "warm"
-    if lead.get("hiring") != "Y" and lead.get("outdated") != "Y":
+    dated_expansion = lead.get("expand") == "Y" and lead.get("sigdate")
+    if lead.get("hiring") != "Y" and lead.get("outdated") != "Y" and not dated_expansion:
         return "cold"
     age = (today - lead["sigdate"]).days if lead.get("sigdate") else 9999
     if lead.get("hiring") == "Y" and (age <= i["hot_days"] or lead.get("n_postings", 1) >= i["hot_min_postings"]):
+        return "hot"
+    if dated_expansion and age <= i["hot_days"]:
         return "hot"
     if age <= i["warm_days"] or lead.get("outdated") == "Y":
         return "warm"
@@ -91,12 +94,13 @@ def why(lead):
 
 
 def size_class(lead, cfg):
-    """Solo / Small / Medium / Large / Unknown. An explicit override wins; otherwise the clinician count decides.
-    Must match the Size Class formula in the workbook."""
+    """Solo / Small / Medium / Large / Unknown. An explicit override wins; otherwise the count named by cfg size.basis decides:
+    clinicians (Providers column, the default and what the workbook formula uses), employees (Employees column) or locations.
+    Must match the Size Class formula in the workbook for the clinicians basis."""
     if lead.get("sizeov"):
         return lead["sizeov"]
-    n = lead.get("providers")
+    z = cfg["size"]
+    n = lead.get({"employees": "emp", "locations": "locations"}.get(z.get("basis"), "providers"))
     if not isinstance(n, (int, float)):
         return "Unknown"
-    z = cfg["size"]
     return "Solo" if n <= 1 else "Small" if n <= z["small_max"] else "Medium" if n <= z["medium_max"] else "Large"
