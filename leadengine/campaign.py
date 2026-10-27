@@ -1,15 +1,16 @@
 """Campaign layer: one folder per market-and-offer, a fixed pipeline, and a human gate before anything is contacted.
 
-  define -> discover -> REVIEW GATE -> outreach plan -> (humans send) -> engagement
+  define -> discover -> REVIEW GATE -> outreach plan -> BATCH APPROVAL -> send (paced, capped) -> engagement
 
   campaigns/<name>/spec.json      geography, vertical pack, sources, stage sizes, outreach sequence
   campaigns/<name>/config.json    sender, offer and scoring overrides (passed to the engine as --config)
   campaigns/<name>/review/        lead packs for a human to mark Keep / Drop / Unsure
   campaigns/<name>/approved.csv   leads a human kept (the only input to outreach planning)
-  campaigns/<name>/outreach/      dated task lists; nothing is sent by this tool
+  campaigns/<name>/outreach/      dated task lists; email 1 is sent only after a person approves the batch (batch send)
+  campaigns/<name>/mail/<id>/     marketing mailings: template, recipients, per-batch previews and approvals, dry-run outbox
   campaigns/<name>/audit.log      one JSON line per action
 
-Commands: init, list, validate, status, run, approve, outreach, batch, events, deal, pipeline, launch, landing.
+Commands: init, list, validate, status, run, approve, outreach, batch, mail, events, deal, pipeline, launch, landing.
 `status --json` is the entry point for an agent."""
 import argparse
 import copy
@@ -603,6 +604,12 @@ def status(name, root=ROOT, today=None):
 
 # ---- CLI ------------------------------------------------------------------
 def main(argv):
+    rest, root = list(argv), ROOT
+    if rest[:1] == ["--root"] and len(rest) > 1:
+        root, rest = rest[1], rest[2:]
+    if rest[:1] == ["mail"]:                    # its own parser, so `campaign mail --help` and options work as usual
+        from . import mailing
+        return mailing.main(rest[1:], root)
     ap = argparse.ArgumentParser(prog="leadengine campaign", description=__doc__.split("\n")[0])
     ap.add_argument("--root", default=ROOT)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -637,11 +644,16 @@ def main(argv):
     p.add_argument("--lock-months", type=int, help="how long launch prices stay locked for clients who sign during the launch")
     p = sub.add_parser("batch", help="review and approve a day's first-contact emails together")
     bsub = p.add_subparsers(dest="batch_cmd", required=True)
-    for c in ("preview", "approve", "export"):
+    for c in ("preview", "approve", "export", "send"):
         q = bsub.add_parser(c)
         q.add_argument("name")
         q.add_argument("date", help="YYYY-MM-DD, the task date")
         q.add_argument("--channel", default="email")
+        if c == "send":
+            q.add_argument("--provider", help="smtp, gmail or file (default: config mail.provider)")
+            q.add_argument("--dry-run", action="store_true", help="write the emails to a folder instead of sending")
+            q.add_argument("--wait", action="store_true", help="wait for the send window to open (keep the computer awake)")
+            q.add_argument("--yes", action="store_true", help="skip the typed confirmation (only when a person has said to send)")
         if c == "approve":
             q.add_argument("--hash", required=True, help="the hash printed by preview")
             q.add_argument("--exclude-flagged", action="store_true")
@@ -687,6 +699,8 @@ def main(argv):
     q.add_argument("file")
     q = esub.add_parser("report", help="interest level per lead; reply, booking and opt-out rates by source and signal")
     q.add_argument("name")
+    p = sub.add_parser("mail", help="marketing mailings: plan, preview, approve, send in paced batches, sync replies (see mailing.py)", add_help=False)
+    p.add_argument("rest", nargs=argparse.REMAINDER)
     p = sub.add_parser("pipeline", help="funnel, conversion, revenue, capacity, in-person eligibility")
     p.add_argument("name")
     a = ap.parse_args(argv)
@@ -749,6 +763,16 @@ def main(argv):
         elif a.batch_cmd == "approve":
             n, left = batch.approve(a.name, a.date, a.hash, a.channel, a.exclude_flagged, root)
             print(f"Approved {n}; left out {left}. Next: leadengine campaign batch export {a.name} {a.date}")
+        elif a.batch_cmd == "send":
+            if not a.dry_run and not a.yes:
+                if not sys.stdin.isatty():
+                    raise SystemExit("Refusing to send without a person at the keyboard: run it in a terminal, or add --yes when you have decided to send")
+                if input(f"Send the approved email-1 drafts for {a.date}? Type SEND to go ahead: ").strip() != "SEND":
+                    raise SystemExit("Not sent.")
+            r = batch.send(a.name, a.date, a.channel, root, a.provider, a.dry_run, a.wait)
+            print(f"{r['sent']} {'written to ' + r['outbox'] if r['outbox'] else 'sent'}; {r['skipped']} skipped; {r['failed']} failed ({r['bounced']} bounced)")
+            if r["stopped"]:
+                print("  stopped:", r["stopped"])
         else:
             path, n = batch.export_approved(a.name, a.date, a.channel, root)
             print(f"{n} rows -> {path}")
@@ -782,6 +806,9 @@ def main(argv):
                 print("  note:", x)
         else:
             print(json.dumps(events.report(a.name, root), indent=2))
+    elif a.cmd == "mail":
+        from . import mailing
+        return mailing.main(a.rest, root)
     elif a.cmd == "pipeline":
         from . import pipeline
         print(json.dumps(pipeline.report(a.name, root), indent=2))

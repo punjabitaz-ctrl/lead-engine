@@ -17,7 +17,7 @@ has supplied everything (services, hours, contact details, privacy policy text, 
 ## Campaigns: the repeatable version
 
 A campaign is one market plus one offer, run through fixed stages with a human gate before anyone is contacted:
-`define -> discover -> review (human) -> outreach plan -> humans send -> engagement`.
+`define -> discover -> review (human) -> outreach plan -> batch approval (human) -> paced send -> engagement`.
 
 ```
 python3 -m leadengine campaign init nj-dental --state NJ --county Middlesex --vertical healthcare-practices
@@ -26,7 +26,7 @@ python3 -m leadengine campaign run nj-dental               # next stage size -> 
 python3 -m leadengine campaign run nj-dental --manual my_private_list.csv   # use a hand-assembled list kept outside the repo
 python3 -m leadengine campaign approve nj-dental reviewed.csv   # after a human marks Keep / Drop / Unsure
 python3 -m leadengine campaign outreach nj-dental --start 2026-10-19   # dated tasks; nothing is sent
-python3 -m leadengine campaign batch preview nj-dental 2026-10-19      # read one file, then: batch approve --hash H, batch export
+python3 -m leadengine campaign batch preview nj-dental 2026-10-19      # read one file, then: batch approve --hash H, then batch send (or batch export)
 python3 -m leadengine campaign deal add nj-dental --lead-key <key> --product page1   # after a reply
 python3 -m leadengine campaign launch nj-dental --start 2026-11-01   # 90-day introductory pricing, fixed end date; first 100 signers locked for 12 months
 python3 -m leadengine campaign landing nj-dental                      # one-page landing page from the spec (see examples/landing_example.html)
@@ -49,6 +49,18 @@ The list needs only a `company` column; `website`, `signal` (the reason to conta
 Set `"enrich": {"find_contacts": true}` in the campaign's `spec.json` to read each lead's own website for the emails, phone and LinkedIn page it
 publishes (robots.txt respected, one page at a time, cached, capped by `max_contact_sites`). Nothing is guessed and nothing is verified:
 found addresses are marked Risky until you run a verifier.
+
+### Marketing emails in approved batches
+
+```
+python3 -m leadengine campaign mail plan nj-dental nov-intro --template examples/mail_template_example.txt
+python3 -m leadengine campaign mail approve nj-dental nov-intro --batch 1 --hash <hash>   # after reading mail/nov-intro/batch-01.md
+python3 -m leadengine campaign mail send nj-dental nov-intro --batch 1 --dry-run         # then without --dry-run; you type SEND
+python3 -m leadengine campaign mail sync nj-dental                                       # replies, opt-outs and bounces come back in
+```
+Templates take `{first_name}`, `{company}`, `{city}` and more. Every email gets your postal address and an opt-out. Sending is paced
+(60 to 180 seconds apart), stays inside the send window and a daily cap with warm-up, and is logged in `campaigns/_mail/ledger.csv`.
+Anyone who opted out, replied or bounced is skipped. Send through SMTP (an app password) or the Gmail API. Setup: [docs/EMAIL_SENDING.md](docs/EMAIL_SENDING.md).
 
 ### After you send: replies, opt-outs and bounces come back in
 

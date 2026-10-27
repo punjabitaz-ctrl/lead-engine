@@ -98,6 +98,34 @@ CHECKS = [
 ]
 
 
+def mail_main(argv):
+    """leadengine mail auth gmail [--read]: one-time Gmail sign-in on your own computer. leadengine mail check: are sending settings in place?"""
+    import argparse
+    from . import mailer
+    ap = argparse.ArgumentParser(prog="leadengine mail")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("auth", help="authorise the Gmail API (opens your browser; the token stays in ~/.config/leadengine/)")
+    p.add_argument("provider", choices=["gmail"])
+    p.add_argument("--read", action="store_true", help="also allow reading replies and bounces (for campaign mail sync)")
+    p = sub.add_parser("check", help="check that a provider's settings load and its login works (sends nothing)")
+    p.add_argument("provider", choices=sorted(mailer.PROVIDERS))
+    a = ap.parse_args(argv)
+    if a.cmd == "auth":
+        print("Saved:", mailer.authorize_gmail(read=a.read))
+        return 0
+    prov = mailer.provider(a.provider, os.path.join(".leadengine", "outbox-check"), {"mail": {"from_email": ""}})
+    try:
+        if a.provider == "smtp":
+            prov._connect()
+        print(f"{a.provider}: signed in as {prov.account() or '(no account)'}; nothing was sent")
+    except mailer.Fatal as exc:
+        print(f"{a.provider}: {exc}")
+        return 1
+    finally:
+        prov.close()
+    return 0
+
+
 def doctor():
     """Preflight: which hosts the sandbox can reach and which keys are set. Prints no secret values."""
     import urllib.error
@@ -249,6 +277,8 @@ def main(argv=None):
     if argv and argv[0] == "geo":
         from . import geo as _geo
         raise SystemExit(_geo.main(argv[1:]))
+    if argv and argv[0] == "mail":
+        raise SystemExit(mail_main(argv[1:]))
     if argv and argv[0] == "site":
         from . import sitebuilder
         raise SystemExit(sitebuilder.main(argv[1:]))

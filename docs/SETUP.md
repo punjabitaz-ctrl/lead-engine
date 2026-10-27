@@ -50,6 +50,8 @@ Deployed to project `lead-engine-tracker` (`mzsrtwrbpdpehthwmkwt`, free plan). T
 ## 4. Sending from momento.family
 
 Sending volume is limited by reputation, not by tools. A new setup that starts large gets blocked.
+The engine's own sending (`campaign mail`, `campaign batch send`) and its mailbox setup are in [EMAIL_SENDING.md](EMAIL_SENDING.md); its
+default warm-up (10, then 20, then 30 a day) is lower than the numbers below on purpose.
 
 - **Use a subdomain, not the root.** For example `mail.<your-domain>`, with its own mailbox. Send from **`mail.momento.family`**. You also own `memento.family` (the likely typo domain): park it, publishing `v=spf1 -all` (TXT on the root) and a DMARC record `v=DMARC1; p=reject` so nobody can spoof it, and redirect its web address to `momento.family`. Mailbox provider is not decided yet; the SPF/DKIM values depend on it. A flagged sending domain then does not
   damage the root domain you use for real family email.

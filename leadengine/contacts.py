@@ -28,6 +28,10 @@ CONTACT_WORDS = re.compile(r"contact|about|team|staff|leadership|people|our-?doc
 JUNK_LOCAL = re.compile(r"^(no-?reply|do-?not-?reply|mailer-daemon|postmaster|abuse|webmaster|example|test|user|email|name|your-?name|privacy|wordpress)$", re.I)
 JUNK_DOMAIN = re.compile(r"(example\.(com|org|net)|sentry\.io|wixpress\.com|domain\.com|email\.com|yourdomain|godaddy\.com|squarespace\.com|"
                          r"schema\.org|w3\.org|googleapis\.com|gstatic\.com|cloudflare\.com)$", re.I)
+# CAN-SPAM treats collecting addresses from a site that says it does not hand them out for commercial email as an aggravated violation.
+NO_HARVEST = re.compile(r"(will not|won'?t|do not|does not|never)\s+(sell|share|give|rent|transfer|disclose|provide)[^.]{0,80}e-?mail\s+address|"
+                        r"unsolicited (commercial |marketing )?e-?mail[^.]{0,60}(prohibited|not (permitted|allowed|welcome))|no unsolicited|"
+                        r"not (to )?be used for (commercial|marketing|unsolicited)", re.I)
 ASSET = re.compile(r"\.(png|jpe?g|gif|svg|webp|css|js|ico)$", re.I)
 ROLE_ORDER = ["owner", "founder", "ceo", "president", "director", "manager", "office", "partnerships", "partners", "sales", "bd", "business",
               "hello", "contact", "info", "inquiries", "enquiries", "admin", "frontdesk", "appointments", "support",
@@ -51,8 +55,9 @@ def _clean_email(e):
 
 
 def extract(html, base_url):
-    """-> {"emails": [...], "phones": [...], "linkedin": [...], "pages": [same-site contact/about urls]} in page order, no repeats."""
-    out = {"emails": [], "phones": [], "linkedin": [], "pages": []}
+    """-> {"emails": [...], "phones": [...], "linkedin": [...], "pages": [same-site contact/about urls], "no_harvest": bool} in page order,
+    no repeats. no_harvest: the page says its addresses are not to be collected or used for commercial email."""
+    out = {"emails": [], "phones": [], "linkedin": [], "pages": [], "no_harvest": False}
     site = domain_of(base_url)
 
     def add(kind, v):
@@ -78,6 +83,7 @@ def extract(html, base_url):
                     add("pages", url)
     text = TAGS.sub(" ", re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.I | re.S))
     text = text.replace("&#64;", "@").replace("&commat;", "@").replace("&#46;", ".")
+    out["no_harvest"] = bool(NO_HARVEST.search(re.sub(r"\s+", " ", text)))
     for m in EMAIL.finditer(text):
         add("emails", _clean_email(m.group(0)))
     for m in OBFUSCATED.finditer(text):
@@ -154,7 +160,7 @@ class ContactFinder:
         if robots is None:
             return {**blank, "note": "contact lookup skipped: site unreachable"}
         found = {"emails": [], "phones": [], "linkedin": []}
-        queue, seen, page_with_email = [home], set(), ""
+        queue, seen, page_with_email, no_harvest = [home], set(), "", False
         while queue and len(seen) < 1 + self.max_pages:
             url = queue.pop(0)
             if url in seen:
@@ -169,11 +175,18 @@ class ContactFinder:
             except Exception:
                 continue
             got = extract(html, final)
+            no_harvest = no_harvest or got["no_harvest"]
             if got["emails"] and not page_with_email:
                 page_with_email = final
-            for k in found:
+            for k in ("emails", "phones", "linkedin"):
                 found[k] += [v for v in got[k] if v not in found[k]]
             queue += [p for p in got["pages"] if p not in seen and p not in queue]
+        if no_harvest:                                   # keep nothing: the site asked for its addresses not to be collected
+            result = {**blank, "page": "", "note": "site says its addresses are not for commercial email; none kept"}
+            self.cache[site] = result
+            with open(self.cache_path, "w", encoding="utf-8") as fh:
+                json.dump(self.cache, fh)
+            return result
         emails = rank_emails(found["emails"], site, first, last)
         best = emails[0] if emails else ""
         own = bool(best) and (best.split("@", 1)[1] == site or best.split("@", 1)[1].endswith("." + site))

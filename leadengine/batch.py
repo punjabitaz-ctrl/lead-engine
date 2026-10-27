@@ -2,9 +2,11 @@
 
   preview  -> outreach/batch-<date>-<channel>.md : counts, flags, samples, every recipient, and a batch hash
   approve  -> marks the batch Approved to send = Y, only if you pass the hash from the preview and nothing changed since
-  export   -> outreach/send-<date>-<channel>.csv : To, Subject, Body for a mail merge or Gmail drafts (this tool still sends nothing)
+  export   -> outreach/send-<date>-<channel>.csv : To, Subject, Body for a mail merge or Gmail drafts
+  send     -> sends the approved, unsent drafts through mailer.py (paced, capped, logged); --dry-run writes them to a folder instead
 
 A batch is every task for that date and channel that carries a draft (step 1 emails) and is not yet approved."""
+import datetime as dt
 import hashlib
 import os
 import re
@@ -73,7 +75,7 @@ def preview(name, date, channel="email", root=campaign.ROOT):
     picks |= {r["Lead Key"] for r in rows[::10]}
     sample = [r for r in rows if r["Lead Key"] in picks][: SAMPLE + len(flagged)]
     lines = [f"# Batch {date} / {channel}  (hash `{digest}`)", "",
-             f"{len(rows)} drafts, daily cap {cap}, {len(flagged)} flagged. Nothing is sent by this tool.", ""]
+             f"{len(rows)} drafts, daily cap {cap}, {len(flagged)} flagged. Nothing is sent by this preview.", ""]
     if len(rows) > cap:
         lines += [f"**Over the daily cap ({len(rows)} > {cap}).** Re-plan or split the batch.", ""]
     if flagged:
@@ -128,3 +130,63 @@ def export_approved(name, date, channel="email", root=campaign.ROOT):
     campaign._write_csv(path, out_rows, ["To", "Subject", "Body", "Send window", "Company", "Lead Key"])
     campaign.log(name, "batch_export", root, date=date, channel=channel, rows=len(out_rows))
     return path, len(out_rows)
+
+
+def send(name, date, channel="email", root=campaign.ROOT, provider_name=None, dry_run=False, wait=False, prov=None, clock=None, sleep=None,
+         today=None, out=print):
+    """Sends the approved, unsent email-1 drafts for that date through the same mailer as mailings: compliant headers, the send window,
+    the day's cap with warm-up, pacing and the ledger. A sent task is marked Done; anyone who opted out or replied since is skipped."""
+    from . import config, mailer, mailing
+    if channel != "email":
+        raise SystemExit("Only email can be sent from here; other channels stay with you")
+    spec = campaign.load(name, root)
+    cfg = config.load(os.path.join(campaign.folder(name, root), "config.json"))
+    probs = mailer.sender_problems(cfg)
+    rows = [r for _, _, _, r in _batch(name, date, channel, root, include_approved=True)
+            if r["Approved to send (Y/N)"].upper() == "Y" and r["Done (Y/N)"].strip().upper() != "Y"]
+    if not rows:
+        raise SystemExit("Nothing approved and unsent for that date. Preview and approve first: leadengine campaign batch preview " + f"{name} {date}")
+    for r in rows:
+        probs += [f"{r['Company']}: {p}" for p in mailer.subject_problems(r["Subject"]) + mailer.body_problems(r["Draft"], cfg)]
+    if probs:
+        raise SystemExit("Fix before sending:\n  - " + "\n  - ".join(dict.fromkeys(probs)))
+    items = [{"to": r["Where"].strip(), "lead_key": r["Lead Key"], "company": r["Company"], "subject": r["Subject"], "body": r["Draft"]} for r in rows]
+    today = today or dt.date.today()
+
+    def recheck(it):
+        sup = campaign.load_suppressions(name, root)
+        seen = set()
+        r = next(x for x in rows if x["Lead Key"] == it["lead_key"])
+        flags = _flags(r, sup, seen)
+        if flags:
+            return "; ".join(flags)
+        ctx = mailing.context(name, root, cfg, "", today)
+        if it["lead_key"] in ctx["stop_keys"] or it["to"].lower() in ctx["stop_emails"]:
+            return "replied, booked, opted out or bounced"
+        last = ctx["last"].get(it["to"].lower())
+        if last and (today - dt.date.fromisoformat(last)).days < int(cfg["mail"].get("min_days_between", 30)):
+            return f"emailed on {last}"
+        return ""
+
+    def done(it, mid, now):
+        for path in _files(name, root):
+            trows, fields = campaign._read_csv(path)
+            hit = False
+            for t in trows:
+                if t["Lead Key"] == it["lead_key"] and t["Date"] == date and t["Channel"] == "email" and t["Draft"].strip():
+                    t["Done (Y/N)"] = "Y"
+                    t["Outcome / notes"] = f"sent {now:%Y-%m-%d %H:%M}" + (f"; {t['Outcome / notes']}" if t.get("Outcome / notes") else "")
+                    hit = True
+            if hit:
+                campaign._write_csv(path, trows, fields)
+
+    outbox = os.path.join(campaign.folder(name, root), "outreach", f"outbox-{date}")
+    prov = prov or mailer.provider("file" if dry_run else (provider_name or cfg["mail"]["provider"]), outbox, cfg)
+    note = mailer.check_account(prov, cfg)
+    if note:
+        out("  note:", note)
+    kw = {k: v for k, v in (("clock", clock), ("sleep", sleep)) if v}
+    res = mailer.send_all(items, prov, name=name, root=root, cfg=cfg, spec=spec, batch=date, recheck=recheck, on_sent=done, wait=wait, out=out, **kw)
+    res["outbox"] = outbox if prov.name == "file" else ""
+    campaign.log(name, "batch_send", root, date=date, provider=prov.name, **{k: v for k, v in res.items() if k != "outbox"})
+    return res
