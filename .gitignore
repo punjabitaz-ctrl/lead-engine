@@ -7,3 +7,5 @@ lists/
 samples/
 campaigns/*
 !campaigns/README.md
+build/
+*.egg-info/

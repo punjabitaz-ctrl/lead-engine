@@ -9,7 +9,8 @@
   campaigns/<name>/outreach/      dated task lists; nothing is sent by this tool
   campaigns/<name>/audit.log      one JSON line per action
 
-Commands: init, list, validate, status, run, approve, outreach. `status --json` is the entry point for an agent."""
+Commands: init, list, validate, status, run, approve, outreach, batch, events, deal, pipeline, launch, landing.
+`status --json` is the entry point for an agent."""
 import argparse
 import copy
 import csv
@@ -23,14 +24,14 @@ from . import config, geo, keys, packs
 from .filters import norm_name
 
 ROOT = "campaigns"
-SOURCES = {"nppes", "places", "adzuna", "csv", "manual"}
+SOURCES = {"nppes", "places", "adzuna", "csv", "manual", "companies"}
 CHANNELS = {"email", "phone", "linkedin"}
 DECISIONS = {"keep": "Keep", "drop": "Drop", "unsure": "Unsure"}
 PLACEHOLDER = re.compile(r"\[[^\]]+\]")
 
 DEFAULT_SPEC = {
     "name": "",
-    "geography": {"state": "", "counties": [], "cities": []},
+    "geography": {"state": "", "counties": [], "cities": [], "zips": []},
     "vertical": "healthcare-practices",
     "tiers": ["focus"],
     "sources": [],
@@ -38,6 +39,7 @@ DEFAULT_SPEC = {
     "signal": "any",
     "stages": [59, 100, 250],
     "template": "lead-engine-template.xlsx",
+    "enrich": {"find_contacts": False, "max_contact_sites": 100, "audit": False},
     "offer": {
         "products": [
             {"id": "page1", "suggested_list_price": 500, "name": "Single-page site, live in 72 hours", "price": 250, "pages": 1, "payment": {"type": "full_upfront"}},
@@ -128,7 +130,7 @@ def lead_key(row):
 
 
 # ---- define ---------------------------------------------------------------
-def init(name, state, counties=(), cities=(), vertical="healthcare-practices", tiers=("focus",), root=ROOT):
+def init(name, state, counties=(), cities=(), vertical="healthcare-practices", tiers=("focus",), root=ROOT, zips=()):
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
         raise SystemExit("Campaign names use lower-case letters, digits and hyphens, e.g. nj-dental")
     d = folder(name, root)
@@ -137,7 +139,7 @@ def init(name, state, counties=(), cities=(), vertical="healthcare-practices", t
     pack = packs.load(vertical)
     spec = copy.deepcopy(DEFAULT_SPEC)
     spec.update(name=name, vertical=vertical, tiers=list(tiers), sources=list(pack["sources"]), industry=pack.get("industry", ""))
-    spec["geography"] = {"state": state.upper(), "counties": list(counties), "cities": list(cities)}
+    spec["geography"] = {"state": state.upper(), "counties": list(counties), "cities": list(cities), "zips": list(zips)}
     _write_json(os.path.join(d, "spec.json"), spec)
     cfg = {"sender": copy.deepcopy(config.DEFAULTS["sender"])}
     cfg["_note"] = "Fill in the sender block before outreach planning. Add any other config.DEFAULTS keys to override scoring."
@@ -311,6 +313,10 @@ def blockers(spec):
                           ("adzuna", "ADZUNA_APP_KEY", "Adzuna key")):
         if src in spec.get("sources", []) and not os.environ.get(var):
             out.append(f"set {var} ({why}) for the {src} source")
+    flags = {"manual": "--manual", "csv": "--postings", "companies": "--companies"}
+    for src in spec.get("sources", []):
+        if src in flags:
+            out.append(f"the {src} source reads a file you supply: leadengine campaign run {spec.get('name') or '<name>'} {flags[src]} FILE.csv")
     return out
 
 
@@ -318,14 +324,14 @@ def blockers(spec):
 REVIEW_EXTRA = ["Lead Key", "Decision", "Reviewer Notes"]
 
 
-def run_discover(name, root=ROOT, target=None, manual=None, postings=None):
+def run_discover(name, root=ROOT, target=None, manual=None, postings=None, companies=None):
     """Runs the engine for the next stage size and turns its output into a review pack. Does not contact anyone."""
     from . import cli
     spec = load(name, root)
     problems = validate(spec)
     if problems:
         raise SystemExit("Spec problems:\n  - " + "\n  - ".join(problems))
-    need = [] if (manual or postings) else blockers(spec)
+    need = [] if (manual or postings or companies) else blockers(spec)
     if need:
         raise SystemExit("Blocked:\n  - " + "\n  - ".join(need))
     d = folder(name, root)
@@ -335,7 +341,12 @@ def run_discover(name, root=ROOT, target=None, manual=None, postings=None):
     size = target or spec["stages"][min(packs_done, len(spec["stages"]) - 1)]
     argv = ["run", "--no-prompt", "--target", str(size), "--signal", spec.get("signal", "any"), "--out", os.path.join(d, "runs"),
             "--state-dir", os.path.join(d, ".state"), "--config", os.path.join(d, "config.json"), "--template", spec["template"],
-            "--state", g["state"]]
+            "--state", g["state"], "--vertical", spec["vertical"]]
+    enrich = {**DEFAULT_SPEC["enrich"], **spec.get("enrich", {})}
+    if enrich.get("find_contacts"):
+        argv += ["--find-contacts", "--max-contact-sites", str(enrich.get("max_contact_sites", 100))]
+    if enrich.get("audit"):
+        argv += ["--audit"]
     sources = list(spec["sources"])
     if manual:                                   # a hand-assembled CSV (kept private) replaces the network sources for this run
         sources = ["manual"]
@@ -343,12 +354,17 @@ def run_discover(name, root=ROOT, target=None, manual=None, postings=None):
     elif postings:
         sources = ["csv"]
         argv += ["--postings", postings]
+    elif companies:                              # a company list (CRM export, exhibitor list, your own research), kept outside the repo
+        sources = ["companies"]
+        argv += ["--companies", companies]
     for src in sources:
         argv += ["--source", src]
     for c in g.get("counties", []):
         argv += ["--county", c]
     for c in g.get("cities", []):
         argv += ["--city", c if "," in c else f"{c}, {g['state']}"]
+    for z in g.get("zips", []):
+        argv += ["--zip", z]
     tiers = spec.get("tiers") or ["focus"]
     tier_names = ["all"] if tiers == ["all"] else tiers
     if "nppes" in sources:
@@ -360,8 +376,8 @@ def run_discover(name, root=ROOT, target=None, manual=None, postings=None):
         argv += ["--profession", ",".join(profs)]
     if spec.get("industry"):
         argv += ["--industry", spec["industry"]]
-    if ("manual" in sources and not manual) or ("csv" in sources and not postings):
-        raise SystemExit("manual and csv sources need a file: `campaign run <name> --manual FILE` or `--postings FILE`.")
+    if ("manual" in sources and not manual) or ("csv" in sources and not postings) or ("companies" in sources and not companies):
+        raise SystemExit("manual, csv and companies sources need a file: `campaign run <name> --manual FILE`, `--postings FILE` or `--companies FILE`.")
     written = cli.run(cli.build_parser().parse_args(argv))
     packs_out = []
     for path in written or []:
@@ -489,6 +505,8 @@ def plan_outreach(name, start, root=ROOT, force=False):
     for f in (sorted(os.listdir(odir)) if os.path.isdir(odir) else []):        # earlier plans already use up daily capacity
         if f.startswith("tasks-"):
             for t in _read_csv(os.path.join(odir, f))[0]:
+                if (t.get("Done (Y/N)") or "").strip().upper() == "STOPPED":     # stopped by a reply or opt-out: frees the slot
+                    continue
                 k = (dt.date.fromisoformat(t["Date"]), t["Channel"])
                 load_[k] = load_.get(k, 0) + 1
     tasks, skipped = [], []
@@ -593,6 +611,7 @@ def main(argv):
     p.add_argument("--state", required=True)
     p.add_argument("--county", action="append", default=[])
     p.add_argument("--city", action="append", default=[], help="'City, ST' (repeatable)")
+    p.add_argument("--zip", action="append", default=[], help="5-digit ZIP code in --state (repeatable)")
     p.add_argument("--vertical", default="healthcare-practices", help="pack id in data/verticals/")
     p.add_argument("--tier", action="append", default=None)
     sub.add_parser("list")
@@ -602,6 +621,7 @@ def main(argv):
     sub.choices["run"].add_argument("--target", type=int)
     sub.choices["run"].add_argument("--manual", help="hand-assembled practice list (CSV, kept private) instead of the network sources")
     sub.choices["run"].add_argument("--postings", help="job-board export (CSV) instead of the network sources")
+    sub.choices["run"].add_argument("--companies", help="company list (CSV, kept private) instead of the network sources")
     p = sub.add_parser("approve", help="read a reviewed pack (Keep / Drop / Unsure)")
     p.add_argument("name")
     p.add_argument("file")
@@ -660,12 +680,19 @@ def main(argv):
     q.add_argument("--reason", default="")
     q.add_argument("--notes", default="")
     q.add_argument("--plan", default=None)
+    p = sub.add_parser("events", help="log replies, opt-outs, bounces, clicks and bookings; report interest and rates")
+    esub = p.add_subparsers(dest="events_cmd", required=True)
+    q = esub.add_parser("import", help="read an Events CSV: opt-outs and bounces are suppressed, replies stop the sequence")
+    q.add_argument("name")
+    q.add_argument("file")
+    q = esub.add_parser("report", help="interest level per lead; reply, booking and opt-out rates by source and signal")
+    q.add_argument("name")
     p = sub.add_parser("pipeline", help="funnel, conversion, revenue, capacity, in-person eligibility")
     p.add_argument("name")
     a = ap.parse_args(argv)
     root = a.root
     if a.cmd == "init":
-        spec, problems = init(a.name, a.state, a.county, a.city, a.vertical, a.tier or ["focus"], root)
+        spec, problems = init(a.name, a.state, a.county, a.city, a.vertical, a.tier or ["focus"], root, a.zip)
         print(f"Created {folder(a.name, root)}/ (spec.json, config.json). Edit config.json's sender block before outreach.")
         for x in problems:
             print("  problem:", x)
@@ -688,7 +715,7 @@ def main(argv):
                 print("  !", x)
             print("Next:", st["next_action"])
     elif a.cmd == "run":
-        for path in run_discover(a.name, root, a.target, a.manual, a.postings):
+        for path in run_discover(a.name, root, a.target, a.manual, a.postings, a.companies):
             print("Review pack:", path)
     elif a.cmd == "approve":
         print(approve(a.name, a.file, root))
@@ -745,6 +772,16 @@ def main(argv):
         else:
             d, visit = pipeline.move_deal(a.name, a.deal_id, a.stage, a.one_time, a.monthly, a.reason, a.notes, a.plan, root=root)
             print(f"{d['Deal ID']} {d['Company']} -> {d['Stage']}" + ("  [monthly value qualifies for an in-person visit]" if visit else ""))
+    elif a.cmd == "events":
+        from . import events
+        if a.events_cmd == "import":
+            res = events.import_events(a.name, a.file, root)
+            print(f"{res['imported']} events logged {res['by_event']}; {len(res['suppressed_added'])} added to suppress.csv; "
+                  f"{res['tasks_stopped']} planned tasks stopped")
+            for x in res["unmatched"] + res["skipped"]:
+                print("  note:", x)
+        else:
+            print(json.dumps(events.report(a.name, root), indent=2))
     elif a.cmd == "pipeline":
         from . import pipeline
         print(json.dumps(pipeline.report(a.name, root), indent=2))

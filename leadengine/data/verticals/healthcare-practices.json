@@ -55,5 +55,33 @@
     "Obstetrics & Gynecology"
    ]
   }
- }
+ },
+ "ownership_exclude": [
+  "aspen dental",
+  "heartland dental",
+  "pacific dental",
+  "western dental",
+  "coast dental",
+  "smile brands",
+  "gentle dental",
+  "bright now",
+  "ideal image",
+  "athletico",
+  "\\bati physical therapy\\b",
+  "select physical therapy",
+  "\\bnovacare\\b",
+  "one medical",
+  "\\bcitymd\\b",
+  "minuteclinic",
+  "carbon health",
+  "medexpress",
+  "concentra",
+  "fresenius",
+  "lifestance",
+  "kaiser permanente",
+  "quest diagnostics",
+  "labcorp",
+  "\\bupmc\\b"
+ ],
+ "_ownership_note": "Names of national chains and groups, matched in any state. The NJ health systems are also caught by filters.HEALTH_SYSTEM. Remove a line to keep that group."
 }

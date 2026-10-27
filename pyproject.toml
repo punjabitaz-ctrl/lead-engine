@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leadengine"
+version = "0.2.0"
+description = "Find, score and review leads for any market and offer, with a human gate before anyone is contacted."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+sheets = ["openpyxl>=3.1"]
+
+[project.scripts]
+leadengine = "leadengine.cli:main"
+
+[tool.setuptools]
+packages = ["leadengine"]
+
+[tool.setuptools.package-data]
+leadengine = ["data/*.json", "data/*.txt", "data/*.csv", "data/geo/*.json", "data/verticals/*.json", "data/templates/*.json"]

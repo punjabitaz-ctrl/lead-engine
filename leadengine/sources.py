@@ -72,11 +72,45 @@ def adzuna_postings(cities, professions, pages=3):
                     break
 
 
-def places_businesses(cities, industry, max_pages=3):
-    """industry: one text-search phrase, or a list of phrases (each searched in every city)."""
+class SpendCap:
+    """Counts billed requests per run and per calendar month in a small JSON file, so a wide sweep cannot run up a surprise bill.
+    The same file is shared with the presence checker (state_dir/places_usage.json)."""
+
+    def __init__(self, usage_path=None, run_cap=200, monthly_cap=1000, today=None):
+        self.path, self.run_cap, self.monthly_cap, self.calls, self.stopped = usage_path, run_cap, monthly_cap, 0, ""
+        self.month = (today or dt.date.today()).strftime("%Y-%m")
+        self.usage = {}
+        if usage_path and os.path.exists(usage_path):
+            try:
+                with open(usage_path, encoding="utf-8") as fh:
+                    self.usage = json.load(fh)
+            except ValueError:
+                self.usage = {}
+
+    def take(self):
+        if self.calls >= self.run_cap:
+            self.stopped = f"per-run cap of {self.run_cap} Places requests reached"
+            return False
+        if self.usage.get(self.month, 0) >= self.monthly_cap:
+            self.stopped = f"monthly cap of {self.monthly_cap} Places requests reached"
+            return False
+        self.calls += 1
+        self.usage[self.month] = self.usage.get(self.month, 0) + 1
+        if self.path:
+            os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+            with open(self.path, "w", encoding="utf-8") as fh:
+                json.dump(self.usage, fh)
+        return True
+
+
+def places_businesses(cities, industry, max_pages=3, cap=None, fetch=None):
+    """industry: one text-search phrase, or a list of phrases (each searched in every city). cap: a SpendCap; the sweep stops,
+    and says so on stderr, when it is reached."""
+    import sys
     key = os.environ.get("GOOGLE_PLACES_API_KEY")
     if not key:
         raise RuntimeError("Set GOOGLE_PLACES_API_KEY (Places API (New) must be enabled; billed per request)")
+    fetch = fetch or _http_json
     mask = ("places.displayName,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,"
             "places.rating,places.userRatingCount,nextPageToken")
     queries = [industry] if isinstance(industry, str) else list(industry)
@@ -87,7 +121,10 @@ def places_businesses(cities, industry, max_pages=3):
                 body = {"textQuery": f"{query} in {city}, {state}", "pageSize": 20}
                 if token:
                     body["pageToken"] = token
-                data = _http_json("https://places.googleapis.com/v1/places:searchText", json.dumps(body).encode(),
+                if cap and not cap.take():
+                    print(f"[places] stopped: {cap.stopped}. Raise --max-places-calls / --monthly-places-cap to continue.", file=sys.stderr)
+                    return
+                data = fetch("https://places.googleapis.com/v1/places:searchText", json.dumps(body).encode(),
                                   {"Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": mask})
                 yield [{"kind": "business", "company": p["displayName"]["text"], "address": p.get("formattedAddress", ""),
                         "website": p.get("websiteUri", ""), "phone": p.get("nationalPhoneNumber", ""),
@@ -148,7 +185,8 @@ def nppes_providers(cities, taxonomies=None, max_skip=1000):
         for tax in (taxonomies or DEFAULT_TAXONOMIES):
             for kind in ("NPI-2", "NPI-1"):
                 for skip in range(0, max_skip + 1, 200):
-                    q = urllib.parse.urlencode({"version": "2.1", "state": state, "city": city, "enumeration_type": kind,
+                    where = {"postal_code": city} if city.isdigit() else {"city": city}      # a 5-digit "city" is a ZIP code
+                    q = urllib.parse.urlencode({"version": "2.1", "state": state, **where, "enumeration_type": kind,
                                                 "taxonomy_description": tax, "limit": 200, "skip": skip})
                     data = _http_json("https://npiregistry.cms.hhs.gov/api/?" + q)
                     if skip == 0 and not data.get("results"):
@@ -171,3 +209,35 @@ def manual_providers(path, state="NJ"):  # state: two-letter code written on eac
             "origin_note": r.get("source", ""),
             "providers": int(r["providers"]) if (r.get("providers") or "").strip().isdigit() else None,
             "size_override": (r.get("size_override") or "").strip()} for r in rows]
+
+
+COMPANY_COLUMNS = ["company", "website", "city", "state", "country", "industry", "employees", "signal", "signal_date", "evidence",
+                   "first", "last", "title", "email", "email_status", "linkedin", "phone", "priority", "source"]
+
+
+def company_list(path, state=""):
+    """Any company list you are allowed to use: a CRM or Apollo/Sales Navigator export, a trade-show exhibitor list, an accelerator
+    cohort, your own research. Only `company` is required; see COMPANY_COLUMNS. `signal` is the reason to contact them now (for example
+    'Hiring: US channel manager', 'Opened a US office', 'Exhibiting at CES 2027'); a signal mentioning hiring counts as a hiring signal,
+    anything else as an expansion signal. `signal_date` (YYYY-MM-DD) drives freshness. One batch per file."""
+    with open(path, newline="", encoding="utf-8-sig") as fh:
+        rows = list(csv.DictReader(fh))
+    if rows and "company" not in rows[0]:
+        raise SystemExit(f"{path}: needs a 'company' column (optional: {', '.join(COMPANY_COLUMNS[1:])})")
+    batch = []
+    for r in rows:
+        g = lambda k: (r.get(k) or "").strip()
+        if not g("company"):
+            continue
+        try:
+            sigdate = dt.date.fromisoformat(g("signal_date")) if g("signal_date") else None
+        except ValueError:
+            sigdate = None
+        city, st = g("city"), g("state") or state
+        batch.append({"kind": "company", "company": g("company"), "website": g("website"), "phone": g("phone"), "industry": g("industry"),
+                      "employees": g("employees"), "signal": g("signal"), "signal_date": sigdate, "evidence": g("evidence"),
+                      "first": g("first"), "last": g("last"), "title": g("title"), "email": g("email"), "estatus": g("email_status"),
+                      "linkedin": g("linkedin"), "country": g("country"), "address": "",
+                      "priority": int(g("priority")) if g("priority").isdigit() else 9, "origin": g("source") and f"List: {g('source')}" or "",
+                      "source_note": g("source"), "metro": city, "city_label": f"{city or 'Unknown'}, {st or g('country') or '-'}"})
+    yield batch

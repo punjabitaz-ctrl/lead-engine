@@ -1,0 +1,4 @@
+company,website,city,state,country,industry,employees,signal,signal_date,evidence,first,last,title,email,email_status,linkedin,phone,priority,source
+Example Robotics GmbH,https://robotics.example,Munich,,Germany,Robotics,51-200,Hiring: Head of US Channel Sales,2026-10-20,Job post on the company careers page,,,,,,,,1,made-up example
+Fjord XR AS,https://fjordxr.example,Oslo,,Norway,XR,20,Exhibiting at a US trade show in January,2026-10-15,Exhibitor list,Kari,Example,CEO,,,,,2,made-up example
+Sample Sensors Ltd,,Leeds,,UK,IoT,120,Opened a US office,2026-09-01,Press release,,,,,,,,3,made-up example

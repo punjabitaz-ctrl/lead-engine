@@ -1,24 +1,21 @@
 {
  "id": "local-services",
- "label": "Local service businesses found through Google Places",
- "industry": "Local business",
- "sources": [
-  "places"
- ],
- "tier_order": [
-  "focus"
- ],
+ "label": "Local trades and home services found through Google Places",
+ "industry": "Home services",
+ "sources": ["places"],
+ "tier_order": ["focus", "home", "specialty"],
  "tiers": {
-  "focus": {
-   "label": "Edit this list for your market",
-   "places_queries": [
-    "plumber",
-    "electrician",
-    "HVAC contractor",
-    "roofing contractor",
-    "landscaper"
-   ]
-  }
+  "focus": {"label": "Plumbers and electricians", "places_queries": ["plumber", "electrician"]},
+  "home": {"label": "Other core trades", "places_queries": ["HVAC contractor", "roofing contractor", "general contractor", "painter", "handyman", "landscaper"]},
+  "specialty": {"label": "Specialty services", "places_queries": ["garage door repair", "pest control", "tree service", "gutter cleaning", "septic service", "locksmith", "pool service"]}
  },
- "_note": "Example pack for a non-medical vertical. Each query becomes a Google Places text search per city. Replace the list with the trades you serve."
+ "ownership_exclude": [
+  "roto-?rooter", "\\bmr\\.? rooter\\b", "benjamin franklin plumbing", "mister sparky", "\\bmr\\.? electric\\b", "\\bmr\\.? handyman\\b",
+  "one hour heating", "\\bars\\b.*rescue rooter", "rescue rooter", "service experts", "aire serv", "home depot", "lowe'?s", "\\bsears\\b",
+  "terminix", "orkin", "servpro", "servicemaster", "two men and a truck", "the grounds guys", "lawn doctor", "trugreen", "davey tree",
+  "bartlett tree", "precision garage door", "pop-a-lock"
+ ],
+ "config": {"size": {"basis": "employees", "small_max": 10, "medium_max": 50}},
+ "templates": "local",
+ "_note": "Google Places finds the businesses (needs GOOGLE_PLACES_API_KEY; billed per request, capped by --max-places-calls and --monthly-places-cap). A listing with no website is a confirmed gap; few reviews is a thin profile. ownership_exclude drops national franchise brands, whose sites the franchisor controls: remove a line to keep them. Edit the queries for the trades you serve."
 }

@@ -37,6 +37,27 @@ python3 -m leadengine campaign pipeline nj-dental          # funnel, revenue, we
 ```
 
 Swap `--state`, `--county`/`--city` and `--vertical` (a pack in `leadengine/data/verticals/`) to run the same process anywhere.
+
+### Any B2B market from a company list
+
+```
+python3 -m leadengine campaign init us-entry --state NJ --city "Newark, NJ" --vertical us-market-entry
+python3 -m leadengine campaign run us-entry --companies my_list.csv     # exhibitor list, accelerator cohort, CRM or Sales Navigator export
+```
+The list needs only a `company` column; `website`, `signal` (the reason to contact them now) and `signal_date` make it useful. See
+`examples/companies_example.csv` (made up). Use lists you are allowed to use; do not scrape sites whose terms forbid it.
+Set `"enrich": {"find_contacts": true}` in the campaign's `spec.json` to read each lead's own website for the emails, phone and LinkedIn page it
+publishes (robots.txt respected, one page at a time, cached, capped by `max_contact_sites`). Nothing is guessed and nothing is verified:
+found addresses are marked Risky until you run a verifier.
+
+### After you send: replies, opt-outs and bounces come back in
+
+```
+python3 -m leadengine campaign events import nj-dental events.csv   # Date, Event, Lead Key or Email or Company, optional Notes
+python3 -m leadengine campaign events report nj-dental              # interest per lead; reply and booking rates by source and signal
+```
+Opt-outs (including a reply that says "no thanks") and bounces go straight to `suppress.csv`. A reply, booking or form fill stops that lead's
+remaining planned tasks, so a follow-up is never sent to someone who already answered. The workbook's Events tab exported as CSV works as input.
 `playbook/` has the call script, proposal, agreement and delivery checklist. `docs/EXECUTIVE_REVIEW.md` has the business case and `python3 tools/funnel.py` the funnel math.
 See `docs/ARCHITECTURE.md` for the model and the gap list, and `docs/AGENT_RUNBOOK.md` for how an agent drives it.
 `campaigns/` holds lead data and sender details, so it is git-ignored except `campaigns/README.md`.
@@ -58,13 +79,17 @@ python3 -m leadengine run --city "Tampa, FL" --profession "web developer, market
 python3 -m leadengine run --source nppes --county Middlesex --county Somerset --tier 1 --presence-check places   # first test area
 python3 -m leadengine run --source nppes --state NJ --tier 1 --presence-check places   # statewide city sweep (top ~55 cities only)
 python3 -m leadengine run --source nppes --state NJ --presence presence.csv             # or import hand-checked results
+python3 -m leadengine run --source places --vertical local-services --county Bergen --state NJ   # trades (plumbers, electricians first)
 ```
 
 Leads are delivered in stages of **59, then 100, then 250** (`--stages`, the last repeats; `--all-stages` runs them back to back; `--target N` for one batch). After each stage it asks whether to continue. Delivered leads are remembered in `.leadengine/seen.json` (`--fresh` ignores it).
 Output: `output/leads-<time>-b<N>.csv` plus a filled `.xlsx` copy of the template (its Config tab is set to match the run).
 
-Counties: `--county Middlesex --county Somerset` (municipalities and USPS place names from `leadengine/data/geo/NJ.json`, written from memory
-and unverified; the other 19 NJ counties and other states are not loaded yet: add `data/geo/<ST>.json`, see `docs/ARCHITECTURE.md`).
+Anywhere in the US: `--city "Austin, TX"` and `--state NJ --zip 07960` work with no setup. Counties and statewide sweeps use
+`leadengine/data/geo/<ST>.json`; load every state and county once with `python3 -m leadengine geo build` (downloads the Census Bureau's
+public place and county-subdivision lists; on a machine without access, download the two files it names and pass them with `--file`).
+`python3 -m leadengine geo show TX --county Travis` lists what a county covers. Until then only NJ is loaded (Middlesex and Somerset by
+county, plus a 55-city statewide sweep).
 
 Segments (`--tier`, from the vertical pack `leadengine/data/verticals/healthcare-practices.json`): **focus** (default) cardiology + ophthalmology (pitch: site and local-search quality; signals: weak site, thin reviews, slow mobile page) · **1** dentists, physical therapists, mental health, primary care ·
 **2** gastroenterology, orthopaedics, cardiology (high referral volume per cited studies) · **3** unvalidated cost-of-care candidates ·
@@ -97,7 +122,7 @@ On the command line, `--exclude-large` drops them. Unknown is not Large: count t
 The tool needs only Python 3 (openpyxl is optional, for the filled .xlsx). On a machine with normal internet access none of the network blocks apply:
 
 ```
-git clone <this repo> && cd lead-engine && git checkout claude/lead-generation-system-pbvuy8
+git clone <this repo> && cd lead-engine
 python3 -m leadengine doctor
 python3 -m leadengine run --source nppes --county Middlesex --county Somerset --audit
 ```
@@ -112,8 +137,10 @@ python3 -m leadengine run --source nppes --county Middlesex --county Somerset --
 | `--presence file.csv` | your manual or tool results: `npi`/`company`, `has_website`, `has_gbp`, `reviews` | confirmed web-presence gaps | tested |
 | `--presence-check places` | `GOOGLE_PLACES_API_KEY` | automatic presence lookup, cached, with per-run and monthly caps | caps/cache tested; **API call not tested live**; billed per request |
 | `adzuna` | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | hiring signals | **not tested live** |
-| `places` | `GOOGLE_PLACES_API_KEY`, `--industry` | businesses with website + phone | **not tested live** |
+| `places` | `GOOGLE_PLACES_API_KEY`, `--industry` or a pack's `places_queries` | businesses with website, phone and review count; a listing with no website is a confirmed gap | capped per run and per month; **not tested live**; billed per request |
 | `--enrich file.csv` | Hunter / Apollo / Indeed-profile exports | size, website, contacts | tested |
+| `companies` + `--companies file.csv` | any company list you may use (only `company` required) | B2B leads with hiring or expansion signals and dates | tested |
+| `--find-contacts` | internet access to the leads' own websites | emails, phone and LinkedIn the business publishes | tested on canned pages; **not tested live** |
 
 ## NJ medical offices with no web presence: what to know
 
@@ -129,4 +156,4 @@ python3 -m leadengine run --source nppes --county Middlesex --county Somerset --
 
 `docs/SETUP.md` network, Google key, sending-domain checklist · `tracker/` click/visit tracker · `lead-engine-template.xlsx` Sheets template (Leads, Queue, Call Queue, Events, Dashboard, Templates, Config) ·
 `apps-script/Code.gs` optional Gmail-draft / reply-sync helper (untested live) · `examples/` a tiny made-up postings file ·
-tests: `python3 -m unittest discover -s tests`
+tests: `python3 -m unittest discover -s tests` · install as a command: `pip install .` (then `leadengine doctor`)

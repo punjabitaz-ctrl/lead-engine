@@ -1,0 +1,29 @@
+{
+ "id": "us-market-entry",
+ "label": "Tech companies entering or growing in the US (channel, distribution and partner programs)",
+ "industry": "",
+ "sources": ["companies"],
+ "tier_order": ["focus", "hiring"],
+ "tiers": {
+  "focus": {
+   "label": "Your own company list: exhibitor lists, accelerator cohorts, CRM or Sales Navigator exports (signal column says why now)"
+  },
+  "hiring": {
+   "label": "Job-board signal: a company hiring its first US channel or partner lead (add the adzuna source and keys)",
+   "professions": ["channel sales manager", "partner manager", "country manager", "head of north america", "distribution manager", "alliances manager"]
+  }
+ },
+ "role_rules": {
+  "include": ["channel", "partner", "alliance", "distribut", "reseller", "\\bvar\\b", "country manager", "north america", "americas",
+              "\\bus\\b (market|sales|expansion|launch)", "go[- ]to[- ]market", "\\bgtm\\b", "business development", "market entry"],
+  "exclude": ["intern", "recruit", "customer service", "accounting", "\\btax\\b", "law firm", "legal partner", "hr business partner",
+              "people partner", "talent partner"]
+ },
+ "ownership_exclude": ["\\b(staffing|recruit(ing|ment)|talent agency)\\b"],
+ "config": {
+  "target": {"employees_min": 10, "employees_max": 1000},
+  "size": {"basis": "employees", "small_max": 50, "medium_max": 500}
+ },
+ "templates": "b2b",
+ "_note": "Example pack for a channel and market-entry advisory offer. Fill config.json's sender.offer with your one-sentence offer. The companies source needs a CSV you are allowed to use (see sources.COMPANY_COLUMNS); never scrape sites whose terms forbid it."
+}
