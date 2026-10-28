@@ -99,7 +99,8 @@ class SiteBuilderTests(unittest.TestCase):
         text = open(path, encoding="utf-8").read()
         text = text.replace('<title>', '<title></title><title>', 1).replace("Cleanings and exams", "[Service name]")
         text = text.replace("<form", '<img src="https://tracker.example/x.gif"><form', 1).replace('name="phone"', 'name="symptoms"', 1)
-        open(path, "w", encoding="utf-8").write(text)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
         problems = " | ".join(sb.qa(self.out, d)[0])
         for needle in ("placeholder", "external resource", "could collect health information", "image without alt"):
             self.assertIn(needle, problems)

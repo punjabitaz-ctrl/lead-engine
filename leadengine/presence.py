@@ -35,15 +35,19 @@ def _digits(p):
 
 class PlacesChecker:
     """Google Places (New) text search with a disk cache and hard spend caps (per run and per calendar month).
-    Not tested live. Each lookup requests websiteUri/phone/rating fields, which Google bills at its Enterprise rate."""
+    Not tested live. Each lookup requests websiteUri/phone/rating fields, which Google bills at its Enterprise rate.
+    Google's terms limit how long Places content may be cached, so a cached answer is refetched after CACHE_DAYS
+    (and older entries are dropped on load). Lists built from Places answers are for your own outreach, not for resale."""
+    CACHE_DAYS = 30
 
     def __init__(self, state_dir=".leadengine", run_cap=200, monthly_cap=1000, today=None):
         import datetime as dt
         self.cache_path = os.path.join(state_dir, "presence_cache.json")
         self.usage_path = os.path.join(state_dir, "places_usage.json")
-        self.month = (today or dt.date.today()).strftime("%Y-%m")
+        self.today = today or dt.date.today()
+        self.month = self.today.strftime("%Y-%m")
         self.run_cap, self.monthly_cap, self.calls, self.stopped = run_cap, monthly_cap, 0, ""
-        self.cache = self._load(self.cache_path)
+        self.cache = {k: v for k, v in self._load(self.cache_path).items() if self._fresh(v)}
         self.usage = self._load(self.usage_path)
         os.makedirs(state_dir, exist_ok=True)
 
@@ -55,6 +59,13 @@ class PlacesChecker:
         except (OSError, ValueError):
             return {}
 
+    def _fresh(self, row):
+        import datetime as dt
+        try:
+            return (self.today - dt.date.fromisoformat(row.get("_at", ""))).days <= self.CACHE_DAYS
+        except (AttributeError, TypeError, ValueError):
+            return False                      # entries from before the date was kept: refetch
+
     def _save(self):
         with open(self.cache_path, "w", encoding="utf-8") as fh:
             json.dump(self.cache, fh)
@@ -63,8 +74,8 @@ class PlacesChecker:
 
     def check(self, name, city, state, phone=""):
         ck = f"{norm_name(name)}|{city.lower()}|{state}"
-        if ck in self.cache:
-            return self.cache[ck]
+        if ck in self.cache and self._fresh(self.cache[ck]):
+            return {k: v for k, v in self.cache[ck].items() if k != "_at"}
         if self.calls >= self.run_cap:
             self.stopped = f"per-run cap of {self.run_cap} lookups reached"
             return None
@@ -76,7 +87,7 @@ class PlacesChecker:
             return None
         self.calls += 1
         self.usage[self.month] = self.usage.get(self.month, 0) + 1
-        self.cache[ck] = row
+        self.cache[ck] = {**row, "_at": self.today.isoformat()}
         self._save()
         return row
 

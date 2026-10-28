@@ -43,6 +43,8 @@ define ──> discover ──> enrich/score ──> REVIEW GATE ──> outreac
 | `leadengine/sources.py` | adapters: nppes, places, adzuna, csv postings, manual list, company list (any B2B export) |
 | `leadengine/contacts.py` | published contacts from a lead's own website: emails, phone, LinkedIn; robots.txt respected, cached, capped per run |
 | `leadengine/events.py` | engagement back into the campaign: import events, suppress opt-outs and bounces, stop sequences, interest and rates by source and signal |
+| `leadengine/listexport.py` | any list to CSV (formula-safe), Excel (stdlib-built, frozen filterable header, About sheet) or PDF (paginated table) |
+| `leadengine/verify.py`, `enrich.py` | accuracy checks (offline rules, DNS mail check, website live/parked/redirect, NPPES, optional paid mailbox check), confidence, duplicates, quality report |
 | `leadengine/engine.py`, `scoring.py`, `drafts.py` | ingest, filter, enrich, score, draft |
 | `lead-engine-template.xlsx`, `apps-script/`, `tracker/` | no-code sheet, Gmail drafts + reply sync, click/visit tracking |
 
@@ -68,7 +70,7 @@ Found by reading every module for assumptions about NJ, healthcare or this one s
 | # | Gap | Effect | Fix | Status |
 |---|---|---|---|---|
 | 1 | Only NJ geography; 19 counties missing | cannot run "all NJ counties" or other states | `leadengine geo build` reads the Census Bureau's place-by-county and county-subdivision lists (public domain) for every state and merges hand-entered names; `--zip` and `--city` need no file | **built** (run once where census.gov is reachable; blocked in this sandbox) |
-| 2 | Contact discovery is manual (`--enrich` CSV) | most leads have no email/owner name | `contacts.py`: reads the lead's own site (robots.txt respected) for published emails, tel: links and LinkedIn; ranks own-domain and named addresses first; `--find-contacts` or spec `enrich.find_contacts`. Still to add: a paid verifier | **built** (published contacts; verification still manual) |
+| 2 | Contact discovery is manual (`--enrich` CSV) | most leads have no email/owner name | `contacts.py`: reads the lead's own site (robots.txt respected) for published emails, tel: links and LinkedIn; ranks own-domain and named addresses first; `--find-contacts` or spec `enrich.find_contacts`. Paid verifier hook in `enrich.py` (#18) | **built** (published contacts; paid verification needs your key) |
 | 3 | `HEALTH_SYSTEM` regex lists NJ systems by name | other states' systems slip through as "private" | packs carry `ownership_exclude` regexes; the NJ health-system list still applies to NPPES providers | **built** for packs (`HEALTH_SYSTEM` stays for NPPES) |
 | 4 | Size logic counts clinicians (Solo/Small/Medium/Large) | wrong notion for plumbers or agencies | pack `config.size.basis` = clinicians, employees or locations; Size Override still wins | **built** |
 | 5 | Email templates and the sheet's Templates tab mention patients, a 72-hour offer and the first seller's portfolio names | every seller's mail would carry them | pack `templates` names a set in `data/templates/` (`b2b.json` added); the default set keeps the workbook in step | **built** for the engine (sheet Templates tab unchanged) |
@@ -83,11 +85,14 @@ Found by reading every module for assumptions about NJ, healthcare or this one s
 | 13 | NPPES taxonomy strings and some geography unverified | zero-result queries | run `leadengine doctor` + first live run; fix strings from the warnings | gap (needs network) |
 | 14 | Network and keys are manual | agent stalls | `campaign status` lists key blockers; `doctor` lists hosts; keep both in the runbook | **built** (reporting) |
 | 16 | The tool could not send; email went out by hand from an export | slow, and opt-outs depended on memory | `mailer.py` + `mailing.py`: templates with merge fields, per-batch preview and hash approval, send window, daily cap with warm-up, random pacing, bounce-rate stop, ledger; SMTP and Gmail API providers (pluggable); `mail sync` reads replies and bounces back; CAN-SPAM footer and headers | **built** (needs the human's mailbox credentials; see docs/EMAIL_SENDING.md) |
+| 17 | Lists could only leave as the internal CSV or the workbook template | hard to share or print | `campaign export` / `leadengine export`: CSV, XLSX and PDF with filters and suppression | **built** |
+| 18 | No way to tell good rows from bad ones | bounces, wasted calls | `campaign enrich` and `campaign quality`: issues, confidence, stale-row flags, report; paid verifier hook | **built** (network checks unproven here; paid step needs a key) |
+| 19 | Places answers cached forever | against Google's caching limits | 30-day expiry in `presence.py`; resale question open (docs/COMMERCIAL_REVIEW.md) | **built** / open |
 
 ## Roadmap (suggested order)
 
 1. On a networked machine: `leadengine geo build` (#1), a live NPPES run for NJ (#13), then a Places run for trades.
-2. Email verification on top of the contact finder (#2), and a first live run of `--find-contacts`.
+2. A first live `campaign enrich` (#18), then a paid mailbox check on a small batch, and a first live run of `--find-contacts`.
    Then a first small mailing (#16): set up SMTP or the Gmail API, `mail send --dry-run`, a `mail test` to yourself, then batch 1 of 10.
 3. Review workbook naming (#6) and a Sheets Templates tab generated from the pack's template set.
 4. After about 200 contacts: tune scoring weights from `campaign events report` (#10).

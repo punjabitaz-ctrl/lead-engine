@@ -62,6 +62,16 @@ Templates take `{first_name}`, `{company}`, `{city}` and more. Every email gets 
 (60 to 180 seconds apart), stays inside the send window and a daily cap with warm-up, and is logged in `campaigns/_mail/ledger.csv`.
 Anyone who opted out, replied or bounced is skipped. Send through SMTP (an app password) or the Gmail API. Setup: [docs/EMAIL_SENDING.md](docs/EMAIL_SENDING.md).
 
+### Export, enrich and check a list
+
+```
+python3 -m leadengine campaign enrich nj-dental                       # fill gaps; check websites, email domains, phones, NPIs, duplicates
+python3 -m leadengine campaign quality nj-dental                      # coverage and accuracy report, changes nothing
+python3 -m leadengine campaign export nj-dental --format xlsx         # or csv, pdf; --grade A,B --min-confidence 70 --columns full
+```
+Every row gets an Issues column and a 0-100 Confidence for ranking what to check. A check that could not run says "not checked" instead of
+guessing. Only a paid mailbox check (your own ZeroBounce or NeverBounce key) marks an email Valid. Details: [docs/DATA_QUALITY.md](docs/DATA_QUALITY.md).
+
 ### After you send: replies, opt-outs and bounces come back in
 
 ```

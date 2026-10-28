@@ -277,6 +277,9 @@ def main(argv=None):
     if argv and argv[0] == "geo":
         from . import geo as _geo
         raise SystemExit(_geo.main(argv[1:]))
+    if argv and argv[0] == "export":
+        from . import listexport
+        raise SystemExit(listexport.main(argv[1:], campaign_mode=False))
     if argv and argv[0] == "mail":
         raise SystemExit(mail_main(argv[1:]))
     if argv and argv[0] == "site":

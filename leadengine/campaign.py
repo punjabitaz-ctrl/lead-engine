@@ -610,6 +610,12 @@ def main(argv):
     if rest[:1] == ["mail"]:                    # its own parser, so `campaign mail --help` and options work as usual
         from . import mailing
         return mailing.main(rest[1:], root)
+    if rest[:1] == ["export"]:
+        from . import listexport
+        return listexport.main(rest[1:], root)
+    if rest[:1] in (["enrich"], ["quality"]):
+        from . import enrich
+        return enrich.main(rest[1:], root, quality_only=rest[0] == "quality")
     ap = argparse.ArgumentParser(prog="leadengine campaign", description=__doc__.split("\n")[0])
     ap.add_argument("--root", default=ROOT)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -701,6 +707,10 @@ def main(argv):
     q.add_argument("name")
     p = sub.add_parser("mail", help="marketing mailings: plan, preview, approve, send in paced batches, sync replies (see mailing.py)", add_help=False)
     p.add_argument("rest", nargs=argparse.REMAINDER)
+    for c, h in (("export", "export a list to CSV, Excel or PDF (see listexport.py)"),
+                 ("enrich", "fill gaps and check accuracy: websites, email domains, phones, NPIs, duplicates (see enrich.py)"),
+                 ("quality", "data-quality report for a list, read-only (see enrich.py)")):
+        sub.add_parser(c, help=h, add_help=False).add_argument("rest", nargs=argparse.REMAINDER)
     p = sub.add_parser("pipeline", help="funnel, conversion, revenue, capacity, in-person eligibility")
     p.add_argument("name")
     a = ap.parse_args(argv)
