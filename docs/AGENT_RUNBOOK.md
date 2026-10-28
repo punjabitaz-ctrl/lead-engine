@@ -38,6 +38,13 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
    Never take an address out of `suppress.csv`.
 5. Do not write templates with `Re:`/`Fwd:` subjects, fake urgency, or claims that are not true. Never put patient information anywhere.
 
+## Exports and data quality (docs/DATA_QUALITY.md)
+
+* `campaign enrich <name>` and `campaign quality <name>` are safe to run. Give the human the `quality-*.md` report and say how many checks could not run.
+* Never pass `--verifier` (it is billed) unless the human asked in their own words, and always with a `--max-verifications` they chose.
+* `campaign export` leaves out suppressed leads. Do not add `--include-suppressed` to an export meant for outreach.
+* Exports hold business contact data. Keep them in `campaigns/` (git-ignored); never commit, upload or share one unless the human names where it goes.
+
 ## Feeding engagement back
 
 * When the human gives you an events export (the workbook's Events tab, the tracker, or their own sheet): `campaign events import <name> FILE.csv`.
