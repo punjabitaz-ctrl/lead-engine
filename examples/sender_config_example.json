@@ -1,0 +1,18 @@
+{
+  "_note": "Copy this file outside the repo (e.g. ~/leadengine-sender.json), fill in every [bracket], then run: python3 -m leadengine first-run --sender ~/leadengine-sender.json. Passwords never go here: they go in your terminal (docs/FIRST_RUN.md step 4).",
+  "sender": {
+    "name": "[Your full name, as it should appear in the From line]",
+    "business": "[Your business name]",
+    "address": "[A real postal address or PO box: street, city, state ZIP]",
+    "reply_email": "[you@yourdomain.com, where replies and opt-outs go]",
+    "offer": "[One sentence: what you do for practices and how fast]",
+    "portfolio_url": "[https://your site, or leave empty]",
+    "booking_link": "[https://your booking page, or leave empty]"
+  },
+  "mail": {
+    "provider": "smtp",
+    "from_email": "[the address you send from: the mailbox you log in to]",
+    "unsubscribe_email": "",
+    "timezone": "America/New_York"
+  }
+}

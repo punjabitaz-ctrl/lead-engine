@@ -40,7 +40,7 @@ python3 -m leadengine campaign quality nj-dental                      # report o
 | `verify` | a mailbox check with your own ZeroBounce or NeverBounce key. The only step that can mark an address Valid | **paid**, needs `--verifier` and `--max-verifications N` |
 
 Each row gains `Phone (formatted)`, `Email Check`, `Website Check`, `NPI Check`, `Issues`, `Confidence`, `Last Verified` and `Checked`.
-The list is rewritten with a `.bak` copy of the previous version. Rows are never dropped: problems are flagged for you to decide.
+The list is rewritten, with the previous version kept in `campaigns/<name>/.backup/`. Rows are never dropped: problems are flagged for you to decide.
 
 Rules it follows:
 * A check that could not run (no network, a timeout) says `not checked`. It never counts as a pass or a fail, and does not set `Last Verified`.

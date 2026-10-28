@@ -12,7 +12,7 @@ Steps (default: all the free ones):
 Offline checks (syntax, phone rules, NPI check digit, duplicates, mismatched domains) always run.
 
 Each row gains: Phone (formatted), Email Check, Website Check, NPI Check, Issues, Confidence (0-100), Last Verified, Checked.
-The list is rewritten with a .bak copy of the previous version; nothing is ever deleted. Rows are never dropped: problems are flagged for you to decide."""
+The list is rewritten with a copy of the previous version in campaigns/<name>/.backup/; nothing is ever deleted. Rows are never dropped: problems are flagged for you to decide."""
 import datetime as dt
 import json
 import os
@@ -40,6 +40,13 @@ def list_paths(name, root, which):
     if which == "all":
         return [os.path.join(d, f) for f in LISTS.values()]
     return [which]
+
+
+def _backup_path(name, root, path):
+    """campaigns/<name>/.backup/<file>.bak: kept out of review/, so a backup is never read as a review pack."""
+    d = os.path.join(campaign.folder(name, root), ".backup")
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, os.path.basename(path) + ".bak")
 
 
 def _row_check(row, today, checker=None, steps=(), finder=None, paid=None):
@@ -87,7 +94,7 @@ def _row_check(row, today, checker=None, steps=(), finder=None, paid=None):
         if echeck in ("no mail servers", "domain does not exist"):
             status = "Invalid"
             issues.append(f"email domain: {echeck}")
-    row["Email Status"] = status or ("Unverified" if email else "")
+    row["Email Status"] = (status or "Unverified") if email else ""
     row["Email Check"] = echeck
     # website: answers, not parked, not redirected to someone else
     if not (row.get("Website") or "").strip():
@@ -231,7 +238,7 @@ def run(name, root=campaign.ROOT, which="approved", steps=FREE, checker=None, fi
             ran[i] = _row_check(r, today, checker, steps, finder, paid)
         _finish(rows, today, ran)
         if write and steps:
-            shutil.copyfile(path, path + ".bak")
+            shutil.copyfile(path, _backup_path(name, root, path))
             campaign._write_csv(path, rows, fields + [c for c in ADDED + ["Email", "Email Status", "Phone", "LinkedIn URL", "Notes"] if c not in fields])
         out[path] = summarize(rows)
         all_rows += rows

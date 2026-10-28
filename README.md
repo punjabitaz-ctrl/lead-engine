@@ -5,6 +5,9 @@ each, and fills the Google Sheets template. Then it asks if you want more.
 
 Validate first with `lead-engine-template.xlsx` (no code). The CLI fills that same sheet.
 
+**Start here on your own computer:** [docs/FIRST_RUN.md](docs/FIRST_RUN.md). One command, `python3 -m leadengine first-run`, finds and checks your
+first NJ medical leads and saves a spreadsheet; `--demo` shows the same steps on sample data with no network.
+
 ## Building the sites you sell
 
 ```

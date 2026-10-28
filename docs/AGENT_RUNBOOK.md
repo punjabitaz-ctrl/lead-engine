@@ -38,6 +38,12 @@ Never invent or reuse a hash, and never approve a batch the human has not read i
    Never take an address out of `suppress.csv`.
 5. Do not write templates with `Re:`/`Fwd:` subjects, fake urgency, or claims that are not true. Never put patient information anywhere.
 
+## First run (docs/FIRST_RUN.md)
+
+* `leadengine first-run --demo` is safe anywhere and uses made-up data; its campaign name must start with `demo-`. Never present demo rows as leads.
+* The real `first-run` needs the NPI Registry reachable. If it is not, report that and stop; do not fall back to the demo.
+* `first-run --sender FILE` only copies filled-in values; never write the human's details into a file in the repo.
+
 ## Exports and data quality (docs/DATA_QUALITY.md)
 
 * `campaign enrich <name>` and `campaign quality <name>` are safe to run. Give the human the `quality-*.md` report and say how many checks could not run.
