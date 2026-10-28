@@ -1,4 +1,5 @@
 import argparse
+import importlib.util
 import csv
 import datetime as dt
 import json
@@ -85,6 +86,7 @@ def summarize(leads):
 
 CHECKS = [
     ("npiregistry.cms.hhs.gov", "provider registry (nppes source)", "https://npiregistry.cms.hhs.gov/api/?version=2.1&state=NJ&limit=1&taxonomy_description=Ophthalmology"),
+    ("dns.google", "email domain checks (campaign enrich)", "https://dns.google/resolve?name=example.com&type=MX"),
     ("places.googleapis.com", "Google Places presence checks", "https://places.googleapis.com/"),
     ("www2.census.gov", "county and place lists (geo build)", "https://www2.census.gov/geo/docs/reference/codes2020/"),
     ("data.cms.gov", "Medicare spending by specialty", "https://data.cms.gov/"),
@@ -211,10 +213,13 @@ def run(args):
             print(checker.cost_note() + (f"\nPlaces lookups paused: {checker.stopped}. Unchecked providers stay 'cold'." if checker.stopped else ""))
         base = os.path.join(args.out, f"leads-{stamp}-b{batch_no}")
         export.write_csv(base + ".csv", leads)
-        if os.path.exists(args.template):
+        book = os.path.exists(args.template) and importlib.util.find_spec("openpyxl") is not None
+        if book:
             export.write_workbook(args.template, base + ".xlsx", leads, cfg, [c for c, _ in cities], args.industry)
+        elif os.path.exists(args.template):
+            print("Workbook skipped: install openpyxl (pip install openpyxl) to fill the Sheets template. The CSV has every lead.")
         written.append(base + ".csv")
-        print(f"Saved {len(leads)} leads -> {base}.csv" + (f" and {base}.xlsx" if os.path.exists(args.template) else ""))
+        print(f"Saved {len(leads)} leads -> {base}.csv" + (f" and {base}.xlsx" if book else ""))
         if len(leads) < size:
             print(f"Only {len(leads)} of the {size} requested qualified: sources are exhausted. "
                   "Try --signal any, more professions, nearby cities, or add the places source.")
@@ -277,6 +282,9 @@ def main(argv=None):
     if argv and argv[0] == "geo":
         from . import geo as _geo
         raise SystemExit(_geo.main(argv[1:]))
+    if argv and argv[0] == "first-run":
+        from . import firstrun
+        raise SystemExit(firstrun.main(argv[1:]))
     if argv and argv[0] == "export":
         from . import listexport
         raise SystemExit(listexport.main(argv[1:], campaign_mode=False))

@@ -88,6 +88,8 @@ Found by reading every module for assumptions about NJ, healthcare or this one s
 | 17 | Lists could only leave as the internal CSV or the workbook template | hard to share or print | `campaign export` / `leadengine export`: CSV, XLSX and PDF with filters and suppression | **built** |
 | 18 | No way to tell good rows from bad ones | bounces, wasted calls | `campaign enrich` and `campaign quality`: issues, confidence, stale-row flags, report; paid verifier hook | **built** (network checks unproven here; paid step needs a key) |
 | 19 | Places answers cached forever | against Google's caching limits | 30-day expiry in `presence.py`; resale question open (docs/COMMERCIAL_REVIEW.md) | **built** / open |
+| 20 | First run needed a dozen commands and the network check was separate | easy to stall before the first lead | `leadengine first-run`: network check, campaign, discover, checks, report, spreadsheet, sender readiness; `--demo` offline; `--sender FILE` | **built** (live path unproven here) |
+| 21 | Registry leads have no website, so no email | the NJ medical list cannot be emailed as found | phone and mail first; websites from a Places key or your own list, then `--find-contacts` | open (your choice of source) |
 
 ## Roadmap (suggested order)
 

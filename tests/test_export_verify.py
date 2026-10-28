@@ -237,7 +237,7 @@ class EnrichTests(CampaignBase):
         res = self.run_enrich(net, sites({"https://parked.test": ("", "<html>buy this domain</html>")}))
         out = {r["Company"]: r for r in read(os.path.join(self.d, "approved.csv"))}
         self.assertEqual(len(out), 4)
-        self.assertTrue(os.path.exists(os.path.join(self.d, "approved.csv.bak")))
+        self.assertTrue(os.path.exists(os.path.join(self.d, ".backup", "approved.csv.bak")))
         self.assertEqual(out["Edison Smile 1"]["NPI Check"], "active")
         self.assertEqual(out["Edison Smile 1"]["Email Check"], "domain receives mail")
         self.assertEqual(out["Edison Smile 1"]["Email Status"], "Risky")          # a free check never upgrades to Valid
@@ -285,6 +285,16 @@ class EnrichTests(CampaignBase):
             self.assertEqual(fh.read(), before)
         self.assertEqual(res["summary"]["rows"], 2)
         self.assertIn("website is parked", res["summary"]["issues"])
+
+    def test_enriching_review_packs_does_not_create_extra_packs(self):
+        rows = [lead(1), lead(2)]
+        for r in rows:
+            r["Lead Key"] = campaign.lead_key(r)
+        write(os.path.join(self.d, "review", "pack-01.csv"), rows, FIELDS + ["Lead Key", "Decision"])
+        checker = verify.Checker(opener=FakeNet(), fetch=sites({}), today=TODAY)
+        enrich.run("nj", self.root, "review", enrich.FREE, checker=checker, finder=FakeFinder({}), today=TODAY, state_dir=self.state)
+        self.assertEqual([os.path.basename(p) for p in campaign._review_packs("nj", self.root)], ["pack-01.csv"])
+        self.assertEqual(len(listexport.load("nj", self.root, "review")[0]), 2)
 
     def test_stale_rows_are_flagged(self):
         self.approved([lead(1, **{"Last Verified": "2026-06-01"})])

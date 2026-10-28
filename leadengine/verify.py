@@ -129,7 +129,7 @@ def offline(row):
             issues.append(f"email domain {ed} differs from the website {wd}")
     name = row.get("Company") or ""
     if name and name.isupper() and len(name) > 4:
-        issues.append("company name is in capitals (registry style); check how the business writes it")
+        issues.append("company name is in capitals (registry style), check how the business writes it")
     first = (row.get("First Name") or "").strip()
     if first and (ROLE.match(first.lower()) or not re.fullmatch(r"[A-Za-z][A-Za-z'.\- ]{0,30}", first)):
         issues.append(f"first name {first!r} does not look like a person's name")

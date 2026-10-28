@@ -389,7 +389,7 @@ def run_discover(name, root=ROOT, target=None, manual=None, postings=None, compa
 
 def _review_packs(name, root=ROOT):
     d = os.path.join(folder(name, root), "review")
-    return sorted(os.path.join(d, f) for f in os.listdir(d)) if os.path.isdir(d) else []
+    return sorted(os.path.join(d, f) for f in os.listdir(d) if f.endswith(".csv")) if os.path.isdir(d) else []
 
 
 def make_review_pack(name, lead_csv, root=ROOT):
