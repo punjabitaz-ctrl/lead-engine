@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYiN - Automated Yield Intelligence Network | Medical Practice Lead Generation</title>
+    <meta name="description" content="Automated lead generation system for medical practices. Generate 50+ qualified leads per month with AI-powered web scraping and enrichment.">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0f172a;
+            --accent: #0ea5e9;
+            --success: #10b981;
+            --muted: #64748b;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --border: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--secondary);
+            background: var(--bg);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .nav-links a {
+            color: var(--secondary);
+            text-decoration: none;
+            margin-left: 32px;
+            font-weight: 500;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Hero */
+        .hero {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+        
+        .hero h1 span {
+            color: var(--primary);
+        }
+        
+        .hero p {
+            font-size: 20px;
+            color: var(--muted);
+            max-width: 700px;
+            margin: 0 auto 32px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 64px;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Features */
+        .features {
+            padding: 80px 0;
+            background: var(--bg);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+        
+        .section-title h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .section-title p {
+            font-size: 18px;
+            color: var(--muted);
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+        }
+        
+        .feature-card {
+            background: var(--bg-alt);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .feature-icon svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
+        
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .feature-card p {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+        
+        /* How It Works */
+        .how-it-works {
+            padding: 80px 0;
+            background: var(--bg-alt);
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 32px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .step {
+            text-align: center;
+            position: relative;
+        }
+        
+        .step-number {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 auto 24px;
+        }
+        
+        .step h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .step p {
+            color: var(--muted);
+        }
+        
+        /* Results */
+        .results {
+            padding: 80px 0;
+            background: var(--bg);
+        }
+        
+        .result-card {
+            max-width: 600px;
+            margin: 0 auto 48px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            color: white;
+        }
+        
+        .result-card h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        
+        .result-card p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+        
+        .result-value {
+            font-size: 56px;
+            font-weight: 800;
+            color: var(--success);
+            margin-bottom: 16px;
+        }
+        
+        /* CTA */
+        .cta {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            text-align: center;
+            color: white;
+        }
+        
+        .cta h2 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        
+        .cta p {
+            font-size: 20px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+        
+        .btn-white {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .btn-white:hover {
+            background: var(--bg-alt);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--secondary);
+            color: white;
+            padding: 48px 0;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+        }
+        
+        .footer-section h4 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .footer-section a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+        
+        .footer-section a:hover {
+            opacity: 1;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 32px;
+            margin-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .stats { flex-direction: column; gap: 24px; }
+            .stat-number { font-size: 32px; }
+            .cta h2 { font-size: 28px; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container nav">
+            <div class="logo">AYiN</div>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#results">Results</a>
+                <a href="#demo" class="btn btn-primary">Book Demo</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>Automated Lead Generation for <span>Medical Practices</span></h1>
+            <p>Generate 50+ qualified leads per month with AI-powered web scraping and lead enrichment. Our system finds and verifies local medical practices, extracts contact information, and delivers ready-to-reach leads to your inbox.</p>
+            
+            <div style="margin-top: 32px;">
+                <a href="#demo" class="btn btn-primary">Book a Demo</a>
+                <a href="https://github.com/punjabitaz-ctrl/lead-engine" target="_blank" class="btn btn-outline" style="margin-left: 16px;">View on GitHub</a>
+            </div>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">59+</div>
+                    <div class="stat-label">Leads Delivered</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Automated Delivery</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Everything You Need to Scale</h2>
+                <p>A complete lead generation system built for medical practices and agencies</p>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <h3>AI-Powered Scraping</h3>
+                    <p>Our intelligent system scans the web for local medical practices, identifies practice websites, and extracts verified contact information automatically.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3>Lead Enrichment</h3>
+                    <p>Every lead is enriched with practice details, location data, and verified contact information. No more guessing who to call.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3>Automated Campaigns</h3>
+                    <p>Set up campaigns for specific specialties, locations, or practice types. Our system runs 24/7 and delivers leads to your inbox.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3>Export & Deliver</h3>
+                    <p>Export leads to CSV, Excel, or integrate with your CRM. Ready-to-use data that saves you hours of manual research.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <h3>Multi-Location Targeting</h3>
+                    <p>Target practices by city, state, or specific zip codes. Perfect for multi-location clinics and regional expansion.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <h3>Specialty Filtering</h3>
+                    <p>Target specific medical specialties: dentists, cardiologists, ophthalmologists, and more. Focus on your ideal client profile.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-title">
+                <h2>How AYiN Works</h2>
+                <p>From campaign setup to lead delivery in 4 simple steps</p>
+            </div>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Define Your Campaign</h3>
+                    <p>Specify your target location, specialty, and practice type. Our system learns your criteria.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>AI Scans the Web</h3>
+                    <p>Our scrapers identify medical practices, find their websites, and extract contact details.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Lead Enrichment</h3>
+                    <p>Every lead is verified and enriched with practice information, location data, and more.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Receive Qualified Leads</h3>
+                    <p>Leads arrive in your inbox or CRM, ready for outreach. No manual research required.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="results">
+        <div class="container">
+            <div class="section-title">
+                <h2>Real Results</h2>
+                <p>See what our clients are achieving with AYiN</p>
+            </div>
+            
+            <div class="result-card">
+                <h3>NJ Dental Campaign Result</h3>
+                <p>Our automated system successfully delivered verified leads for dental practices in New Jersey</p>
+                <div class="result-value">59+</div>
+                <p>Qualified Leads Delivered</p>
+                <p style="margin-top: 16px; opacity: 0.8;">Average lead value: $2,000 - $5,000 per practice
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="demo" class="cta">
+        <div class="container">
+            <h2>Ready to Scale Your Lead Generation?</h2>
+            <p>Book a demo and see how AYiN can help you generate 50+ qualified leads per month</p>
+            <a href="mailto:contact@ayin-demo.com" class="btn btn-white">Schedule Your Free Demo</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>AYiN</h4>
+                    <p style="opacity: 0.8; font-size: 14px;">Automated Yield Intelligence Network<br>for Medical Practice Growth</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#results">Results</a>
+                    <a href="https://github.com/punjabitaz-ctrl/lead-engine">GitHub</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Contact</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="#">Documentation</a>
+                    <a href="#">FAQ</a>
+                    <a href="mailto:support@ayin-demo.com">support@ayin-demo.com</a>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2026 AYiN. All rights reserved. | Built with the Lead Engine
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
