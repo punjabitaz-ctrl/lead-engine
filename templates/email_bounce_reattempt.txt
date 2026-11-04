@@ -1,0 +1,30 @@
+{% comment
+BOUNCE HANDLING / RE-ATTEMPT TEMPLATE
+Review date: 2026-11-04
+Legal review: CAN-SPAM compliant
+Only send once after initial bounce
+{% endcomment %}
+
+Subject: Your website for {company} is one click away
+
+Hi {first_name},
+
+I noticed my previous email to you bounced. I wanted to give you another chance in case the address changed.
+
+Our team builds professional websites for practices like yours in {city} — live in 72 hours at a fixed price, no hidden fees.
+
+If you're interested, reply "Yes" and I'll send over examples tailored to your specialty.
+
+If not, just reply "STOP" and I'll remove you from our list immediately. No hard feelings.
+
+Best regards,
+
+{sender_name}
+AYiN Advisors
+{physical_address}
+Phone: {phone_number} | Email: hello@ayin.momento.family
+
+---
+This is a commercial message. Reply "STOP" to unsubscribe.
+
+Copyright 2026 AYiN Advisors. All rights reserved.

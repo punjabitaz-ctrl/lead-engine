@@ -1,0 +1,32 @@
+{% comment
+FOLLOW-UP EMAIL TEMPLATE (Day 2)
+Review date: 2026-11-04
+Legal review: CAN-SPAM compliant
+{% endcomment %}
+
+Subject: Following up: Website for {company}
+
+Hi {first_name},
+
+Just following up on my email from yesterday about building a faster website for {company}.
+
+Many practices in {city} are seeing 20-30% more patient calls after switching to our simple, fast-loading sites.
+
+Would you be open to a brief 15-minute call this week to see if we're a fit? No pressure at all — just want to make sure I'm not wasting your time.
+
+If you prefer, you can also:
+- Reply with "Not interested" and I'll stop emailing
+- Visit {landing_url} to see examples from similar practices
+
+Best regards,
+
+{sender_name}
+{sender_title}
+AYiN Advisors
+{physical_address}
+Phone: {phone_number} | Email: hello@ayin.momento.family
+
+---
+This is a commercial message. Reply "STOP" to unsubscribe.
+
+Copyright 2026 AYiN Advisors. All rights reserved.

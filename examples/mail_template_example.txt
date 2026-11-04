@@ -1,9 +1,24 @@
-Subject: A faster website for {company}
+Subject: A faster website for {company} - Fixed Price, 72-Hour Delivery
 
 Hi {first_name},
 
-I build fast, simple websites for practices in {city}, live in 72 hours at a fixed price.
+I'm {sender_name} from AYiN Advisors. We help medical practices in {city} get fast, simple websites that attract more patients — built live in 72 hours at a fixed price.
 
-If a quick plan for {company} would help, reply to this email and I'll send one. No obligation.
+Our process:
+1. You share your current website (or lack of one)
+2. We build a professional site with your services, hours, and contact info
+3. You review it and we launch within 3 days
+4. No hidden fees — just a straightforward investment in your practice
 
-{sender_name}
+If a quick plan for {company} would help, reply to this email or visit {landing_url} to see examples.
+
+To opt out of future emails, reply with "STOP" or click here: {unsubscribe_url}
+
+You're receiving this because {reason}. You can unsubscribe at any time.
+
+AYiN Advisors
+{physical_address}
+Phone: {phone_number}
+Website: {website_url}
+
+This is an advertisement. Please consider recycling this email.

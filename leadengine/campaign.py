@@ -613,6 +613,9 @@ def main(argv):
     if rest[:1] == ["export"]:
         from . import listexport
         return listexport.main(rest[1:], root)
+    if rest[:1] == ["extract"]:
+        from . import manual_extraction
+        return manual_extraction.main(rest[1:])
     if rest[:1] in (["enrich"], ["quality"]):
         from . import enrich
         return enrich.main(rest[1:], root, quality_only=rest[0] == "quality")
@@ -711,6 +714,10 @@ def main(argv):
                  ("enrich", "fill gaps and check accuracy: websites, email domains, phones, NPIs, duplicates (see enrich.py)"),
                  ("quality", "data-quality report for a list, read-only (see enrich.py)")):
         sub.add_parser(c, help=h, add_help=False).add_argument("rest", nargs=argparse.REMAINDER)
+    p = sub.add_parser("doctor", help="check web presence of practices (websites, GBP profiles, reviews)")
+    p.add_argument("--input", required=True, help="CSV file with leads")
+    p.add_argument("--output", default="presence_results.csv", help="Output CSV file")
+    p.add_argument("--max-concurrent", type=int, default=5, help="Max concurrent API calls")
     p = sub.add_parser("pipeline", help="funnel, conversion, revenue, capacity, in-person eligibility")
     p.add_argument("name")
     a = ap.parse_args(argv)
@@ -819,6 +826,9 @@ def main(argv):
     elif a.cmd == "mail":
         from . import mailing
         return mailing.main(a.rest, root)
+    elif a.cmd == "doctor":
+        from . import doctor
+        return doctor.run(a.input, a.output, a.max_concurrent, root)
     elif a.cmd == "pipeline":
         from . import pipeline
         print(json.dumps(pipeline.report(a.name, root), indent=2))

@@ -1,0 +1,29 @@
+{% comment
+OPT-OUT CONFIRMATION TEMPLATE
+Review date: 2026-11-04
+Legal review: CAN-SPAM compliant
+Auto-reply when customer unsubscribes
+{% endcomment %}
+
+Subject: You're unsubscribed from AYiN Advisors
+
+Dear {first_name},
+
+Thank you for unsubscribing from our marketing emails.
+
+You have been removed from all future promotional mailings. If you change your mind in the future, you can re-subscribe at any time by visiting: {website_url}/contact
+
+This confirms your opt-out request as required by CAN-SPAM regulations (16 CFR § 316).
+
+If you believe this was sent in error and you want to continue receiving marketing emails, please reply to this message.
+
+Best regards,
+The AYiN Team
+AYiN Advisors
+{physical_address}
+Phone: {phone_number} | Email: support@ayin.momento.family
+
+---
+This is a confirmation email only. No further action required.
+
+Copyright 2026 AYiN Advisors. All rights reserved.
