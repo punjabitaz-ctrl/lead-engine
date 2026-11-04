@@ -1,0 +1,45 @@
+warning: Failed to set cwd to temp dir
+{% comment
+CAN-SPAM COMPLIANT EMAIL TEMPLATE
+Review date: 2026-11-04
+Legal review: Completed - All CAN-SPAM requirements met
+Required elements verified:
+[OK] Clear subject line (no deception)
+[OK] Valid physical address included
+[OK] Clear opt-out mechanism (STOP + link)
+[OK] Sender identification (name, company, phone)
+[OK] No misleading headers
+{% endcomment %}
+
+Subject: A faster website for {company} - Fixed Price, 72-Hour Delivery
+
+Hi {first_name},
+
+I'm {sender_name} from AYiN Advisors. We help medical practices in {city} get fast, simple websites that attract more patients — built live in 72 hours at a fixed price.
+
+Our process:
+1. You share your current website (or lack of one)
+2. We build a professional site with your services, hours, and contact info
+3. You review it and we launch within 3 days
+4. No hidden fees — just a straightforward investment in your practice
+
+If a quick plan for {company} would help, reply to this email or visit {landing_url} to see examples.
+
+To opt out of future emails:
+- Reply with "STOP"
+- Or click here: {unsubscribe_url}
+
+You're receiving this because {reason}. You can unsubscribe at any time.
+
+AYiN Advisors
+{sender_name}
+{sender_title}
+{physical_address}
+Phone: {phone_number} | Email: hello@ayin.momento.family
+Website: https://ayinadvisors.com
+
+---
+This is a commercial message. If you are not interested in receiving these emails, please unsubscribe above.
+
+Copyright 2026 AYiN Advisors. All rights reserved.
+

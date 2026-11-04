@@ -1,0 +1,41 @@
+warning: Failed to set cwd to temp dir
+Found command handlers...
+lan, root=root)
+            print("Added", d["Deal ID"], d["Company"])
+        elif a.deal_cmd == "call":
+            d = pipeline.require_call(a.name, a.deal_id, a.reason, root=root)
+            print(f"{d['Deal ID']}: call required ({a.reason}); do it in the Friday 10:00-15:00 block")
+        elif a.deal_cmd == "pay":
+            d = pipeline.record_payment(a.name, a.deal_id, a.amount, root=root)
+            print(f"{d['Deal ID']}: ${float(d['Paid $']):,.2f} received")
+        elif a.deal_cmd == "intake":
+            d = pipeline.mark_intake(a.name, a.deal_id, not a.incomplete, root=root)
+            print(f"{d['Deal ID']}: intake complete = {d['Intake complete']}")
+        elif a.deal_cmd == "start":
+            d = pipeline.start_work(a.name, a.deal_id, root=root)
+            print(f"{d['Deal ID']} {d['Company']}: work started {d['Start date']}; deliver within 72 hours")
+        else:
+            d, visit = pipeline.move_deal(a.name, a.deal_id, a.stage, a.one_time, a.monthly, a.reason, a.notes, a.plan, root=root)
+            print(f"{d['Deal ID']} {d['Company']} -> {d['Stage']}" + ("  [monthly value qualifies for an in-person visit]" if visit else ""))
+    elif a.cmd == "events":
+        from . import events
+        if a.events_cmd == "import":
+            res = events.import_events(a.name, a.file, root)
+            print(f"{res['imported']} events logged {res['by_event']}; {len(res['suppressed_added'])} added to suppress.csv; "
+                  f"{res['tasks_stopped']} planned tasks stopped")
+            for x in res["unmatched"] + res["skipped"]:
+                print("  note:", x)
+        else:
+            print(json.dumps(events.report(a.name, root), indent=2))
+    elif a.cmd == "mail":
+        from . import mailing
+        return mailing.main(a.rest, root)
+    elif a.cmd == "pipeline":
+        from . import pipeline
+        print(json.dumps(pipeline.report(a.name, root), indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+

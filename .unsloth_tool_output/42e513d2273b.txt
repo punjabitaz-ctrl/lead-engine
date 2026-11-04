@@ -1,0 +1,15 @@
+warning: Failed to set cwd to temp dir
+'run' command already exists!
+elif a.cmd == "run":
+        for path in run_discover(a.name, root, a.target, a.manual, a.postings, a.companies):
+            print("Review pack:", path)
+    elif a.cmd == "approve":
+        print(approve(a.name, a.file, root))
+    elif a.cmd == "outreach":
+        out, n, skipped, block, warn = plan_outreach(a.name, dt.date.fromisoformat(a.start), root, a.force)
+        print(f"{n} tasks -> {out}; {len(skipped)} skipped")
+        for x in block + warn:
+            print("  note:", x)
+    elif a.cmd == "landing":
+
+✗ 'doctor' command NOT found - needs to be added

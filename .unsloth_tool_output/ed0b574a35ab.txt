@@ -1,0 +1,72 @@
+warning: Failed to set cwd to temp dir
+File length: 4902
+
+First 500 chars:
+#!/usr/bin/env python3
+"""
+Manual Website & Email Extraction Script
+========================================
+This script helps manually extract websites and emails from practice phone numbers.
+
+Usage:
+    python manual_extraction.py --campaign nj-dental [--output csv|excel]
+
+Process:
+1. Load leads from campaign runs folder
+2. Generate lookup URLs for each practice (phone + specialty)
+3. Provide organized list for manual Google search
+4. Optionally create enriched CSV with extracted data
+"""
+
+imp
+
+============================================================
+Looking for print statements with broken syntax...
+
+Found at position 3136:
+'(args.campaign)\n    print(f"Loaded {len(df)} leads from campaign \'{args.campaign}\'")\n    \n    # Generate search queries\n    qu'
+
+Found at position 3337:
+'.list_only:\n        print("\n        for i, q in enumerate(queries[:20], 1):  # Show first 20\n            print(f"{i}. {q[\'comp'
+
+Found at position 3422:
+'irst 20\n            print(f"{i}. {q[\'company\']} ({q[\'city\']})")\n            print(f"   Query: {q[\'search_query\']}")\n          '
+
+Found at position 3478:
+'y\']})")\n            print(f"   Query: {q[\'search_query\']}")\n            if q.get(\'alt_query_1\'):\n                print(f"   Al'
+
+Found at position 3571:
+'\'):\n                print(f"   Alt: {q[\'alt_query_1\']}")\n        print(f"... and {len(queries) - 20} more queries")\n    else:\n'
+
+Found at position 3616:
+'uery_1\']}")\n        print(f"... and {len(queries) - 20} more queries")\n    else:\n        # Create extraction template\n        '
+
+Found at position 3985:
+'=False)\n            print(f"\nCreated: {output_path}")\n            print("\nOpen this file and manually extract websites/emails '
+
+Found at position 4031:
+'path}")\n            print("\nOpen this file and manually extract websites/emails from Google searches.")\n        elif args.outp'
+
+Found at position 4428:
+'Leads")\n            print(f"\nCreated: {output_path}")\n    \n    print("\n=== NEXT STEPS ===")\n    print("1. Open Google and sear'
+
+Found at position 4471:
+'ut_path}")\n    \n    print("\n=== NEXT STEPS ===")\n    print("1. Open Google and search each query")\n    print("2. Find the prac'
+
+Found at position 4504:
+'EXT STEPS ===")\n    print("1. Open Google and search each query")\n    print("2. Find the practice website")\n    print("3. Look'
+
+Found at position 4554:
+'ch each query")\n    print("2. Find the practice website")\n    print("3. Look for \'Contact Us\' page or footer links")\n    print'
+
+Found at position 4596:
+'ctice website")\n    print("3. Look for \'Contact Us\' page or footer links")\n    print("4. Extract email addresses (often in for'
+
+Found at position 4655:
+' footer links")\n    print("4. Extract email addresses (often in format: info@, contact@)")\n    print("5. Fill in the extracted'
+
+Found at position 4730:
+'o@, contact@)")\n    print("5. Fill in the extracted data in the template")\n    print("6. Save and run: python -m leadengine ca'
+
+Found at position 4789:
+' the template")\n    print("6. Save and run: python -m leadengine campaign enrich <campaign>")\n\nif __name__ == "__main__":\n    '

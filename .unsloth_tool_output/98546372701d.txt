@@ -1,0 +1,7 @@
+warning: Failed to set cwd to temp dir
+Fixed remaining issues
+❌ Still has errors:   File "manual_extraction.py", line 123
+    print(f"
+          ^
+SyntaxError: unterminated f-string literal (detected at line 123)
+

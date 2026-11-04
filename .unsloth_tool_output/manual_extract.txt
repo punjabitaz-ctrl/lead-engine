@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""
+Manual Website & Email Extraction Script
+========================================
+This script helps manually extract websites and emails from practice phone numbers.
+
+Usage:
+    python manual_extraction.py --campaign nj-dental [--output csv|excel]
+
+Process:
+1. Load leads from campaign runs folder
+2. Generate lookup URLs for each practice (phone + specialty)
+3. Provide organized list for manual Google search
+4. Optionally create enriched CSV with extracted data
+"""
+
+import pandas as pd
+import argparse
+from pathlib import Path
+import json
+from datetime import datetime
+
+def load_leads(campaign: str, run_file: str = None):
+    """Load leads from campaign runs folder."""
+    base_path = Path("campaigns") / campaign / "runs"
+    
+    if run_file:
+        filepath = base_path / run_file
+    else:
+        # Get most recent CSV file
+        csv_files = list(base_path.glob("leads-*.csv"))
+        if not csv_files:
+            raise FileNotFoundError(f"No lead files found in {base_path}")
+        filepath = csv_files[-1]  # Most recent
+    
+    df = pd.read_csv(filepath)
+    return df
+
+def generate_search_queries(df, city_filter=None):
+    """Generate search queries for manual extraction."""
+    queries = []
+    
+    for _, row in df.iterrows():
+        if city_filter and row['City'] != city_filter:
+            continue
+            
+        # Create different query variations
+        company = str(row['Company']).strip()
+        specialty = str(row['Specialty'])
+        phone = str(row['Phone'])
+        city = str(row['City'])
+        
+        queries.append({
+            'company': company,
+            'phone': phone,
+            'city': city,
+            'specialty': specialty,
+            'search_query': f"{company} {city}",
+            'alt_query_1': f"{company} website",
+            'alt_query_2': f"{phone} medical practice {city}",
+            'alt_query_3': f"{company} ophthalmology cardiology {city}" if specialty else "",
+        })
+    
+    return queries
+
+def create_extraction_template(df):
+    """Create a template for manual data entry."""
+    output = []
+    
+    for _, row in df.iterrows():
+        output.append({
+            'Company': row['Company'],
+            'Phone': row['Phone'],
+            'City': row['City'],
+            'State': row['State'],
+            'Specialty': row['Specialty'],
+            'NPI': row.get('NPI'),
+            'Website (to find)': '',
+            'Email (to find)': '',
+            'Contact Person': '',
+            'Notes': ''
+        })
+    
+    return pd.DataFrame(output)
+
+def main():
+    parser = argparse.ArgumentParser(description="Manual website and email extraction")
+    parser.add_argument("--campaign", required=True, help="Campaign name (e.g., nj-dental)")
+    parser.add_argument("--output", choices=["csv", "excel"], default="csv", help="Output format")
+    parser.add_argument("--city", help="Filter by city only")
+    parser.add_argument("--list-only", action="store_true", help="Just show queries, don't create file")
+    
+    args = parser.parse_args()
+    
+    # Load leads
+    df = load_leads(args.campaign)
+    print(f"Loaded {len(df)} leads from campaign '{args.campaign}'")
+    
+    # Generate search queries
+    queries = generate_search_queries(df, city_filter=args.city)
+    
+    if args.list_only:
+        print("
+=== SEARCH QUERIES ===")
+        for i, q in enumerate(queries[:20], 1):  # Show first 20
+            print(f"
+{i}. {q['company']} ({q['city']})")
+            print(f"   Query: {q['search_query']}")
+            if q.get('alt_query_1'):
+                print(f"   Alt: {q['alt_query_1']}")
+        print(f"
+... and {len(queries) - 20} more queries")
+    else:
+        # Create extraction template
+        template = create_extraction_template(df)
+        
+        if args.output == "csv":
+            output_path = f"campaigns/{args.campaign}/manual_extraction_{datetime.now().strftime('%Y%m%d')}.csv"
+            template.to_csv(output_path, index=False)
+            print(f"
+Created: {output_path}")
+            print("
+Open this file and manually extract websites/emails from Google searches.")
+        elif args.output == "excel":
+            output_path = f"campaigns/{args.campaign}/manual_extraction_{datetime.now().strftime('%Y%m%d')}.xlsx"
+            with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+                template.to_excel(writer, index=False, sheet_name="Leads")
+            print(f"
+Created: {output_path}")
+    
+    print("
+=== NEXT STEPS ===")
+    print("1. Open Google and search each query")
+    print("2. Find the practice website")
+    print("3. Look for 'Contact Us' page or footer links")
+    print("4. Extract email addresses (often in format: info@, contact@)")
+    print("5. Fill in the extracted data in the template")
+    print("6. Save and run: python -m leadengine campaign enrich <campaign>")
+
+if __name__ == "__main__":
+    main()
+

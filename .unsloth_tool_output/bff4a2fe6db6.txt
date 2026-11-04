@@ -1,0 +1,8 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 6413-0B86
+
+ Directory of C:\Users\AtlasRex\.unsloth\studio\sandbox\__LOCALID_2aXKtIT
+
+11/04/2026  03:26 AM             5,072 fixed_manual_extract.py
+               1 File(s)          5,072 bytes
+               0 Dir(s)  235,967,037,440 bytes free

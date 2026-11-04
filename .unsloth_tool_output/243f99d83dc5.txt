@@ -1,0 +1,25 @@
+Exit code 1:
+Traceback (most recent call last):
+  File "C:\Users\AtlasRex\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\Lib\py_compile.py", line 144, in compile
+    code = loader.source_to_code(source_bytes, dfile or file,
+                                 _optimize=optimize)
+  File "<frozen importlib._bootstrap_external>", line 1091, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "manual_extraction.py", line 103
+    print("
+          ^
+SyntaxError: unterminated string literal (detected at line 103)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import py_compile; py_compile.compile('manual_extraction.py', doraise=True); print('Syntax OK')
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AtlasRex\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\Lib\py_compile.py", line 150, in compile
+    raise py_exc
+py_compile.PyCompileError:   File "manual_extraction.py", line 103
+    print("
+          ^
+SyntaxError: unterminated string literal (detected at line 103)
+

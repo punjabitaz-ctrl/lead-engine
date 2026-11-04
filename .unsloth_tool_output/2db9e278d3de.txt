@@ -1,0 +1,26 @@
+    df = load_leads(args.campaign)
+    print(f"Loaded {len(df)} leads from campaign '{args.campaign}'")
+    
+    # Generate search queries
+    queries = generate_search_queries(df, city_filter=args.city)
+    
+    if args.list_only:
+        print("
+=== SEARCH QUERIES ===")
+        for i, q in enumerate(queries[:20], 1):  # Show first 20
+            print(f"
+{i}. {q['company']} ({q['city']})")
+            print(f"   Query: {q['search_query']}")
+            if q.get('alt_query_1'):
+                print(f"   Alt: {q['alt_query_1']}")
+        print(f"
+... and {len(queries) - 20} more queries")
+    else:
+        # Create extraction template
+        template = create_extraction_template(df)
+        
+        if args.output == "csv":
+            output_path = f"campaigns/{args.campaign}/manual_extraction_{datetime.now().strftime('%Y%m%d')}.csv"
+            template.to_csv(output_path, index=False)
+            print(f"
+

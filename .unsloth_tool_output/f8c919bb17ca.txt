@@ -1,0 +1,15 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 6413-0B86
+
+ Directory of C:\Users\AtlasRex\.unsloth\studio\sandbox\__LOCALID_2aXKtIT\campaigns\nj-dental
+
+11/03/2026  11:35 PM    <DIR>          .
+11/03/2026  11:35 PM    <DIR>          ..
+11/03/2026  11:35 PM    <DIR>          .state
+11/03/2026  11:35 PM               292 audit.log
+11/03/2026  11:35 PM               473 config.json
+11/03/2026  11:35 PM    <DIR>          review
+11/03/2026  11:35 PM    <DIR>          runs
+11/03/2026  11:35 PM             5,419 spec.json
+               3 File(s)          6,184 bytes
+               5 Dir(s)  234,360,020,992 bytes free

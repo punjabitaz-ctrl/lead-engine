@@ -1,0 +1,5 @@
+  File "manual_extraction.py", line 103
+    print("
+          ^
+SyntaxError: unterminated string literal (detected at line 103)
+"Still has errors"

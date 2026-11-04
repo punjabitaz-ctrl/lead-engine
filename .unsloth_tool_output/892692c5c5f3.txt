@@ -1,0 +1,17 @@
+warning: Failed to set cwd to temp dir
+Fixed lines 102-103 and 109-110
+100: '    \n'
+101: '    if args.list_only:\n'
+102: '        print("\n'
+103: '=== SEARCH QUERIES ===")\n'
+104: '        for i, q in enumerate(queries[:20], 1):  # Show first 20\n'
+105: '            print(f"{i}. {q[\'company\']} ({q[\'city\']})")\n'
+106: '            print(f"   Query: {q[\'search_query\']}")\n'
+107: "            if q.get('alt_query_1'):\n"
+108: '                print(f"   Alt: {q[\'alt_query_1\']}")\n'
+109: '        print(f"... and {len(queries) - 20} more queries")\n'
+110: '    else:\n'
+111: '        # Create extraction template\n'
+112: '        template = create_extraction_template(df)\n'
+113: '        \n'
+114: '        if args.output == "csv":\n'
