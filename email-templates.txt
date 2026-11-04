@@ -1,0 +1,206 @@
+EMAIL TEMPLATES FOR AYiN LEAD ENGINE
+═══════════════════════════════════════════════════════════════
+
+These templates are designed to be sent from the dedicated 
+sending domain (e.g., outreach@yourdomain.com) to qualified 
+medical practice decision-makers.
+
+═══════════════════════════════════════════════════════════════
+
+TEMPLATE 1: INITIAL OUTREACH
+───────────────────────────────────────────────────────────────
+Subject: Quick question about [Practice Name]
+
+Hi [First Name],
+
+I'm reaching out because I noticed [Practice Name] is doing great work in [Specialty/Service Area].
+
+I run AYiN Lead Engine, which helps service providers find qualified medical practices like yours for partnerships. We verify every lead through NPPES and Google Places before sharing it.
+
+Quick question: Are you currently looking to expand your practice or add new services?
+
+No pressure at all — just wanted to check if this is something that matters right now.
+
+Best,
+[Your Name]
+AYiN Advisors
+www.ayinadvisors.com
+
+P.S. We've helped [number] practices find qualified leads in the past 30 days.
+
+───────────────────────────────────────────────────────────────
+
+TEMPLATE 2: FOLLOW-UP #1 (3 days later)
+───────────────────────────────────────────────────────────────
+Subject: Re: Quick question about [Practice Name]
+
+Hi [First Name],
+
+Following up on my note below — I know inboxes get busy.
+
+Most practices I work with are looking to either:
+• Add new providers/specialties
+• Build referral networks with complementary services
+• Expand into new service areas
+
+Is any of this relevant to [Practice Name] right now?
+
+If not, no worries at all. Just let me know and I'll close the loop.
+
+Best,
+[Your Name]
+
+───────────────────────────────────────────────────────────────
+
+TEMPLATE 3: FOLLOW-UP #2 (5 days later)
+───────────────────────────────────────────────────────────────
+Subject: One more thought on [Practice Name]
+
+Hi [First Name],
+
+This is my final note on this. I'd rather not clutter your inbox further.
+
+If expanding or optimizing your practice is a priority in the next 30-60 days, I'd love to share how we're helping other practices find qualified leads.
+
+If not, I completely understand and won't reach out again. Either way, best of luck with [Practice Name]!
+
+Best regards,
+[Your Name]
+AYiN Advisors
+
+───────────────────────────────────────────────────────────────
+
+TEMPLATE 4: OBJECTION HANDLING - "NOT INTERESTED"
+───────────────────────────────────────────────────────────────
+Subject: Totally understand
+
+Hi [First Name],
+
+No problem at all — I completely understand. Things change, and right now might not be the right time.
+
+I'll close the loop on my end and won't reach out again. If things shift in the future, feel free to reply and I'll be happy to reconnect.
+
+Wishing you continued success with [Practice Name]!
+
+Best,
+[Your Name]
+
+───────────────────────────────────────────────────────────────
+
+TEMPLATE 5: OBJECTION HANDLING - "TOO EXPENSIVE"
+───────────────────────────────────────────────────────────────
+Subject: Re: Cost concerns
+
+Hi [First Name],
+
+Totally fair — let me share the math.
+
+A single qualified patient can generate $200-1,000+ in revenue depending on your specialty. Our leads cost $5 each (retainer) or $299 individually. 
+
+If you book just 1-2 appointments from our leads per month, we've already paid for themselves.
+
+Most of our clients see ROI within their first batch because the quality is so high — every lead is verified and ready to work with.
+
+Want me to send over a quick case study showing typical results?
+
+Best,
+[Your Name]
+
+───────────────────────────────────────────────────────────────
+
+TEMPLATE 6: BOOKING CONFIRMATION
+───────────────────────────────────────────────────────────────
+Subject: Confirming our call on [Date/Time]
+
+Hi [First Name],
+
+Looking forward to chatting with you on [Day, Date] at [Time].
+
+Agenda for our 15-minute call:
+• Understand your goals and current challenges
+• Share how we're helping other practices
+• See if there's a fit
+
+If anything changes or you need to reschedule, just reply with your new availability.
+
+See you then!
+
+Best,
+[Your Name]
+AYiN Advisors
+
+───────────────────────────────────────────────────────────────
+
+TEMPLATE 7: THANK YOU / NO THANKS
+───────────────────────────────────────────────────────────────
+Subject: Great connecting — or not
+
+Hi [First Name],
+
+Thanks for taking the time to chat (or even consider my note).
+
+[Choose one:]
+• If they met: It was great meeting you. I'll send over a brief summary after our call and circle back in a week.
+• If no match: This wasn't quite a fit, but I appreciate you considering it. Let me know if things change.
+
+Wishing you the best with [Practice Name]!
+
+Best regards,
+[Your Name]
+AYiN Advisors
+
+═══════════════════════════════════════════════════════════════
+
+TEMPLATE 8: SUPPORT EMAIL (For existing clients)
+───────────────────────────────────────────────────────────────
+Subject: How can I help you today?
+
+Hi [First Name],
+
+This is a friendly check-in from [Your Name] at AYiN.
+
+How are your recent leads performing? Any questions about the data or follow-up process?
+
+I'm here to help however I can. Just reply to this email and let me know what you need.
+
+Best,
+[Your Name]
+AYiN Support Team
+support@ayin.momento.family
+
+═══════════════════════════════════════════════════════════════
+
+CAN-SPAM COMPLIANCE NOTES
+───────────────────────────────────────────────────────────────
+
+Every email must include:
+✓ Valid physical address (footer)
+✓ Clear unsubscribe mechanism (or "stop replying")
+✓ Identification as an advertisement/promotional message
+✓ Accurate subject line (no deception)
+
+Footer template:
+"AYiN Advisors | [Physical Address] | www.ayinadvisors.com
+You received this email because you matched our criteria. Reply STOP to unsubscribe."
+
+═══════════════════════════════════════════════════════════════
+
+A/B TESTING VARIATIONS
+───────────────────────────────────────────────────────────────
+
+Test 1: Subject Lines
+A: "Quick question about [Practice Name]"
+B: "[Practice Name] - partnership opportunity"
+C: "One thought on [Practice Name]"
+
+Test 2: Opening Line
+A: "I noticed you're doing great work..."
+B: "Most practices I work with are looking to..."
+C: "Quick question about your practice"
+
+Test 3: Call-to-Action
+A: "Are you currently looking to expand?"
+B: "Is this something that matters right now?"
+C: "Want to chat for 15 minutes?"
+
+═══════════════════════════════════════════════════════════════

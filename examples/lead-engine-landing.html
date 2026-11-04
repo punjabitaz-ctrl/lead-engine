@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Engine — Find Qualified Leads in Any Market</title>
+    <style>
+        :root {
+            --text: #2d3748;
+            --text-light: #4a5568;
+            --bg: #ffffff;
+            --accent: #1e40af;
+            --accent-hover: #1e3a8a;
+            --border: #e2e8f0;
+            --heading: #1a202c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--heading);
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            margin-left: 24px;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--heading);
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+
+        .cta-button:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Section Headings */
+        section {
+            padding: 64px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        section:first-of-type {
+            border-top: none;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--heading);
+            margin-bottom: 40px;
+        }
+
+        /* Three practices layout */
+        .practices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .practice-card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 32px;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .practice-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .practice-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--heading);
+            margin-bottom: 12px;
+        }
+
+        .practice-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .practice-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* How we work */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 32px;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--border);
+            margin-bottom: 16px;
+        }
+
+        .step h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--heading);
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Values */
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .value-card {
+            padding: 24px;
+        }
+
+        .value-card h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--heading);
+            margin-bottom: 12px;
+        }
+
+        .value-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* CTA section */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0;
+        }
+
+        .cta-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--heading);
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            color: var(--text-light);
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        @media (max-width: 640px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container nav-inner">
+            <a href="/" class="logo">Lead Engine</a>
+            <div class="nav-links">
+                <a href="#how-it-works">How it works</a>
+                <a href="#process">The process</a>
+                <a href="#values">Values</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <h1>Find qualified leads in any market.</h1>
+            <p>A repeatable engine that discovers, scores, and delivers verified prospects for B2B sales. Point it at a place, a segment and a signal — the rest follows.</p>
+            <a href="#contact" class="cta-button">Book a consultation</a>
+        </div>
+    </header>
+
+    <section id="practices">
+        <div class="container">
+            <h2 class="section-title">Choose the model that fits your problem.</h2>
+            <div class="practices-grid">
+                <div class="practice-card">
+                    <h3>Model A: Your own prospecting engine</h3>
+                    <p>For AYiN's website and care-plan offer. Run campaigns to find qualified practices, enrich their data, and build a pipeline of inbound leads ready for outreach.</p>
+                    <a href="#contact" class="practice-link">Start your campaign →</a>
+                </div>
+                <div class="practice-card">
+                    <h3>Model B: Done-for-you lists and services</h3>
+                    <p>For agencies and local service firms. We find, verify, and deliver enriched lead lists or run campaigns on your behalf with full reporting and handoff.</p>
+                    <a href="#contact" class="practice-link">Get a quote →</a>
+                </div>
+                <div class="practice-card">
+                    <h3>Model C: Self-serve software (coming)</h3>
+                    <p>A login, dashboard and billing for independent operators. Once we validate that models A and B show people pay, we build this.</p>
+                    <a href="#contact" class="practice-link">Join the waitlist →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">From first call to handover.</h2>
+            <p style="color: var(--text-light); margin-bottom: 48px;">A clear, sequenced engagement. No theory without traction.</p>
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h4>Understand</h4>
+                    <p>We start with your goals, your constraints and what you have already tried.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h4>Plan</h4>
+                    <p>We agree what will be done, in what order, and what a good result looks like.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h4>Execute</h4>
+                    <p>We run the engine, approve batches, send emails, and track engagement.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">04</div>
+                    <h4>Handover</h4>
+                    <p>We deliver your pipeline, reports, and agree what happens next.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="process">
+        <div class="container">
+            <h2 class="section-title">The engine in action.</h2>
+            <div class="practices-grid">
+                <div class="practice-card">
+                    <h3>Discover</h3>
+                    <p>We pull from public registries (NPPES), Google Places, job postings and company lists — no scraping, no guessing. Every lead is verified at source.</p>
+                </div>
+                <div class="practice-card">
+                    <h3>Score &amp; Filter</h3>
+                    <p>We apply signals (hiring posts, missing websites, thin reviews) and size thresholds to drop non-buyers. Only qualified prospects move forward.</p>
+                </div>
+                <div class="practice-card">
+                    <h3>Human Gate</h3>
+                    <p>You review each batch before anyone is contacted. Keep / Drop / Unsure decisions ensure every email sent is intentional and approved.</p>
+                </div>
+                <div class="practice-card">
+                    <h3>Paced Outreach</h3>
+                    <p>Dated tasks with warm-up pacing, bounce handling, and suppression lists built in. Track replies, bookings and revenue by source.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="values">
+        <div class="container">
+            <h2 class="section-title">Our principles.</h2>
+            <div class="values-grid">
+                <div class="value-card">
+                    <h4>Evidence over theory</h4>
+                    <p>Recommendations are grounded in evidence, not assumption. We measure what works and iterate based on real data.</p>
+                </div>
+                <div class="value-card">
+                    <h4>Candid counsel</h4>
+                    <p>Plain advice and clear steps from the first call to the handover. You always know what comes next and why.</p>
+                </div>
+                <div class="value-card">
+                    <h4>Sequenced, not open-ended</h4>
+                    <p>Clear phases with defined outcomes. No endless discovery — every stage has a deliverable and a decision point.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="cta-section">
+        <div class="container">
+            <h2>Begin the engagement</h2>
+            <p>A focused, candid conversation about your goals and the model that fits them. No obligation, just clarity.</p>
+            <a href="https://calendar.app.google/8iyzRwWpo7FWfYB98" class="cta-button">Schedule a call</a>
+            <p style="margin-top: 16px; font-size: 0.9rem;">Or email hello@ayin.momento.family</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 AYiN Advisors. Built with evidence, not theory.</p>
+            <p style="margin-top: 8px;"><a href="/privacy">Privacy</a> &bull; <a href="/terms">Terms</a></p>
+        </div>
+    </footer>
+</body>
+</html>

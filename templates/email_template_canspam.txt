@@ -1,0 +1,34 @@
+{% comment
+CAN-SPAM COMPLIANT EMAIL TEMPLATE
+Review date: 2026-11-03
+Legal review: Pending attorney sign-off
+Required elements:
+- Clear subject line (no deception)
+- Valid physical address included
+- Clear opt-out mechanism
+- Sender identification
+- No misleading headers
+{% endcomment %}
+
+Subject: A faster website for {company}
+
+Hi {first_name},
+
+I'm reaching out because I build fast, simple websites for practices in {city}, live in 72 hours at a fixed price.
+
+If a quick plan for {company} would help, reply to this email and I'll send one. No obligation.
+
+To opt out of future emails from me, [reply with "STOP" or unsubscribe here: https://unsubscribe.example.com]
+
+Sincerely,
+{sender_name}
+{sender_title}
+AYiN Advisors
+{physical_address}
+Phone: {phone_number} | Email: hello@ayin.momento.family
+
+---
+
+This is a commercial message. If you are not interested in receiving these emails, please unsubscribe.
+
+© 2026 AYiN Advisors. All rights reserved.
